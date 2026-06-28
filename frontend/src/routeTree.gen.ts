@@ -14,12 +14,12 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as ProductsProductIdRouteImport } from './routes/products/$productId'
 import { Route as DashboardSellerRouteImport } from './routes/dashboard/seller'
 import { Route as DashboardDriverRouteImport } from './routes/dashboard/driver'
 import { Route as DashboardBuyerRouteImport } from './routes/dashboard/buyer'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
+import { Route as StoreSlugProductSlugRouteImport } from './routes/$storeSlug/$productSlug'
 
 const SelectRoleRoute = SelectRoleRouteImport.update({
   id: '/select-role',
@@ -44,11 +44,6 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsIndexRoute = ProductsIndexRouteImport.update({
-  id: '/products/',
-  path: '/products/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
@@ -76,6 +71,11 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
   path: '/dashboard/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoreSlugProductSlugRoute = StoreSlugProductSlugRouteImport.update({
+  id: '/$storeSlug/$productSlug',
+  path: '/$storeSlug/$productSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,12 +83,12 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
+  '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/buyer': typeof DashboardBuyerRoute
   '/dashboard/driver': typeof DashboardDriverRoute
   '/dashboard/seller': typeof DashboardSellerRoute
   '/products/$productId': typeof ProductsProductIdRoute
-  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,12 +96,12 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
+  '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/buyer': typeof DashboardBuyerRoute
   '/dashboard/driver': typeof DashboardDriverRoute
   '/dashboard/seller': typeof DashboardSellerRoute
   '/products/$productId': typeof ProductsProductIdRoute
-  '/products': typeof ProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,12 +110,12 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
+  '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/buyer': typeof DashboardBuyerRoute
   '/dashboard/driver': typeof DashboardDriverRoute
   '/dashboard/seller': typeof DashboardSellerRoute
   '/products/$productId': typeof ProductsProductIdRoute
-  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,12 +125,12 @@ export interface FileRouteTypes {
     | '/profile'
     | '/register'
     | '/select-role'
+    | '/$storeSlug/$productSlug'
     | '/dashboard/admin'
     | '/dashboard/buyer'
     | '/dashboard/driver'
     | '/dashboard/seller'
     | '/products/$productId'
-    | '/products/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -138,12 +138,12 @@ export interface FileRouteTypes {
     | '/profile'
     | '/register'
     | '/select-role'
+    | '/$storeSlug/$productSlug'
     | '/dashboard/admin'
     | '/dashboard/buyer'
     | '/dashboard/driver'
     | '/dashboard/seller'
     | '/products/$productId'
-    | '/products'
   id:
     | '__root__'
     | '/'
@@ -151,12 +151,12 @@ export interface FileRouteTypes {
     | '/profile'
     | '/register'
     | '/select-role'
+    | '/$storeSlug/$productSlug'
     | '/dashboard/admin'
     | '/dashboard/buyer'
     | '/dashboard/driver'
     | '/dashboard/seller'
     | '/products/$productId'
-    | '/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,12 +165,12 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   SelectRoleRoute: typeof SelectRoleRoute
+  StoreSlugProductSlugRoute: typeof StoreSlugProductSlugRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardBuyerRoute: typeof DashboardBuyerRoute
   DashboardDriverRoute: typeof DashboardDriverRoute
   DashboardSellerRoute: typeof DashboardSellerRoute
   ProductsProductIdRoute: typeof ProductsProductIdRoute
-  ProductsIndexRoute: typeof ProductsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -210,13 +210,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/products/': {
-      id: '/products/'
-      path: '/products'
-      fullPath: '/products/'
-      preLoaderRoute: typeof ProductsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/products/$productId': {
       id: '/products/$productId'
       path: '/products/$productId'
@@ -252,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$storeSlug/$productSlug': {
+      id: '/$storeSlug/$productSlug'
+      path: '/$storeSlug/$productSlug'
+      fullPath: '/$storeSlug/$productSlug'
+      preLoaderRoute: typeof StoreSlugProductSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -261,12 +261,12 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   SelectRoleRoute: SelectRoleRoute,
+  StoreSlugProductSlugRoute: StoreSlugProductSlugRoute,
   DashboardAdminRoute: DashboardAdminRoute,
   DashboardBuyerRoute: DashboardBuyerRoute,
   DashboardDriverRoute: DashboardDriverRoute,
   DashboardSellerRoute: DashboardSellerRoute,
   ProductsProductIdRoute: ProductsProductIdRoute,
-  ProductsIndexRoute: ProductsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

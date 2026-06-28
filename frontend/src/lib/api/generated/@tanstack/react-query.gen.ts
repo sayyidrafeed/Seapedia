@@ -13,6 +13,7 @@ import {
   getCurrentSession,
   getCurrentUser,
   getProductById,
+  getProductBySlug,
   healthCheck,
   listProducts,
   listReviews,
@@ -33,6 +34,9 @@ import type {
   GetProductByIdData,
   GetProductByIdError,
   GetProductByIdResponse,
+  GetProductBySlugData,
+  GetProductBySlugError,
+  GetProductBySlugResponse,
   HealthCheckData,
   HealthCheckResponse,
   ListProductsData,
@@ -393,6 +397,31 @@ export const getProductByIdOptions = (options: Options<GetProductByIdData>) =>
       return data;
     },
     queryKey: getProductByIdQueryKey(options),
+  });
+
+export const getProductBySlugQueryKey = (options: Options<GetProductBySlugData>) =>
+  createQueryKey('getProductBySlug', options);
+
+/**
+ * Get product by store and product slug (public)
+ */
+export const getProductBySlugOptions = (options: Options<GetProductBySlugData>) =>
+  queryOptions<
+    GetProductBySlugResponse,
+    GetProductBySlugError,
+    GetProductBySlugResponse,
+    ReturnType<typeof getProductBySlugQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProductBySlug({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProductBySlugQueryKey(options),
   });
 
 export const listReviewsQueryKey = (options?: Options<ListReviewsData>) =>

@@ -12,6 +12,9 @@ import type {
   GetProductByIdData,
   GetProductByIdErrors,
   GetProductByIdResponses,
+  GetProductBySlugData,
+  GetProductBySlugErrors,
+  GetProductBySlugResponses,
   HealthCheckData,
   HealthCheckResponses,
   ListProductsData,
@@ -195,6 +198,17 @@ export const getProductById = <ThrowOnError extends boolean = false>(
 ): RequestResult<GetProductByIdResponses, GetProductByIdErrors, ThrowOnError> =>
   (options.client ?? client).get<GetProductByIdResponses, GetProductByIdErrors, ThrowOnError>({
     url: '/api/products/{id}',
+    ...options,
+  });
+
+/**
+ * Get product by store and product slug (public)
+ */
+export const getProductBySlug = <ThrowOnError extends boolean = false>(
+  options: Options<GetProductBySlugData, ThrowOnError>,
+): RequestResult<GetProductBySlugResponses, GetProductBySlugErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetProductBySlugResponses, GetProductBySlugErrors, ThrowOnError>({
+    url: '/api/products/by-slug/{storeSlug}/{productSlug}',
     ...options,
   });
 

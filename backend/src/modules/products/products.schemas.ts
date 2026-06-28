@@ -6,8 +6,11 @@ export const productSchema = z
     name: z.string(),
     description: z.string(),
     price: z.number(),
+    currency: z.string().default('IDR'),
     stock: z.number(),
     storeName: z.string(),
+    storeSlug: z.string(),
+    slug: z.string(),
   })
   .meta({ id: 'Product' });
 

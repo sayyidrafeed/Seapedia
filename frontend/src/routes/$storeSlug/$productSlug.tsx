@@ -1,24 +1,24 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { getProductById } from '@/lib/api/generated/sdk.gen';
+import { getProductBySlug } from '@/lib/api/generated/sdk.gen';
 import { formatCurrency } from '@/lib/utils';
 
-export const Route = createFileRoute('/products/$productId')({
-  component: ProductDetailPage,
+export const Route = createFileRoute('/$storeSlug/$productSlug')({
+  component: StoreProductPage,
 });
 
-function ProductDetailPage() {
-  const { productId } = Route.useParams();
+function StoreProductPage() {
+  const { storeSlug, productSlug } = Route.useParams();
 
   const {
     data: product,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['product', productId],
+    queryKey: ['product', storeSlug, productSlug],
     queryFn: async () => {
-      const res = await getProductById({
-        path: { id: productId },
+      const res = await getProductBySlug({
+        path: { storeSlug, productSlug },
         throwOnError: true,
       });
       return res.data;
@@ -60,7 +60,9 @@ function ProductDetailPage() {
             </span>
             <span className="text-xs text-muted-foreground">Stock: {product.stock} left</span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{product.name}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+            {product.name}
+          </h1>
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed border-t border-b border-border/50 py-6">

@@ -4,7 +4,7 @@ This repository is a React + Vite static SPA hosted via Docker, using Bun, TanSt
 
 ## Core Rules
 
-- Use Bun for all commands.
+- Must prefix every CLI command with `rtk` (e.g., `rtk git status`, `rtk bun dev`, `rtk bun check`, `rtk bunx shadcn`).
 - Use TanStack Router, not React Router.
 - Use TanStack Query for server state.
 - Use generated hey-api SDK for backend endpoints.
@@ -16,16 +16,16 @@ This repository is a React + Vite static SPA hosted via Docker, using Bun, TanSt
 
 | Task                 | Command                    |
 | -------------------- | -------------------------- |
-| Install dependencies | `bun install`              |
-| Dev server           | `bun run dev`              |
-| Build                | `bun run build`            |
-| Preview              | `bun run preview`          |
-| Type check           | `bun run check`            |
-| Lint                 | `bun run lint`             |
-| Format               | `bun run format`           |
-| Format + lint        | `bun run fl`               |
-| Tests                | `bun run test`             |
-| Generate API SDK     | `bun run openapi:generate` |
+| Install dependencies | `rtk bun install`              |
+| Dev server           | `rtk bun run dev`              |
+| Build                | `rtk bun run build`            |
+| Preview              | `rtk bun run preview`          |
+| Type check           | `rtk bun run check`            |
+| Lint                 | `rtk bun run lint`             |
+| Format               | `rtk bun run format`           |
+| Format + lint        | `rtk bun run fl`               |
+| Tests                | `rtk bun run test`             |
+| Generate API SDK     | `rtk bun run openapi:generate` |
 
 ## Architecture
 
