@@ -12,6 +12,7 @@ import { client } from '../client.gen';
 import {
   getCurrentSession,
   getCurrentUser,
+  getCurrentUserFinancialSummary,
   getProductById,
   getProductBySlug,
   healthCheck,
@@ -21,6 +22,10 @@ import {
   logoutUser,
   onboardUser,
   type Options,
+  privateAdminEndpoint,
+  privateBuyerEndpoint,
+  privateDriverEndpoint,
+  privateSellerEndpoint,
   registerUser,
   selectActiveRole,
   submitReview,
@@ -31,6 +36,9 @@ import type {
   GetCurrentSessionResponse,
   GetCurrentUserData,
   GetCurrentUserError,
+  GetCurrentUserFinancialSummaryData,
+  GetCurrentUserFinancialSummaryError,
+  GetCurrentUserFinancialSummaryResponse,
   GetCurrentUserResponse,
   GetProductByIdData,
   GetProductByIdError,
@@ -55,6 +63,18 @@ import type {
   OnboardUserData,
   OnboardUserError,
   OnboardUserResponse,
+  PrivateAdminEndpointData,
+  PrivateAdminEndpointError,
+  PrivateAdminEndpointResponse,
+  PrivateBuyerEndpointData,
+  PrivateBuyerEndpointError,
+  PrivateBuyerEndpointResponse,
+  PrivateDriverEndpointData,
+  PrivateDriverEndpointError,
+  PrivateDriverEndpointResponse,
+  PrivateSellerEndpointData,
+  PrivateSellerEndpointError,
+  PrivateSellerEndpointResponse,
   RegisterUserData,
   RegisterUserError,
   RegisterUserResponse,
@@ -222,6 +242,34 @@ export const getCurrentUserOptions = (options?: Options<GetCurrentUserData>) =>
       return data;
     },
     queryKey: getCurrentUserQueryKey(options),
+  });
+
+export const getCurrentUserFinancialSummaryQueryKey = (
+  options?: Options<GetCurrentUserFinancialSummaryData>,
+) => createQueryKey('getCurrentUserFinancialSummary', options);
+
+/**
+ * Get financial summary placeholder of currently authenticated user
+ */
+export const getCurrentUserFinancialSummaryOptions = (
+  options?: Options<GetCurrentUserFinancialSummaryData>,
+) =>
+  queryOptions<
+    GetCurrentUserFinancialSummaryResponse,
+    GetCurrentUserFinancialSummaryError,
+    GetCurrentUserFinancialSummaryResponse,
+    ReturnType<typeof getCurrentUserFinancialSummaryQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getCurrentUserFinancialSummary({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getCurrentUserFinancialSummaryQueryKey(options),
   });
 
 /**
@@ -498,3 +546,103 @@ export const submitReviewMutation = (
   };
   return mutationOptions;
 };
+
+export const privateAdminEndpointQueryKey = (options?: Options<PrivateAdminEndpointData>) =>
+  createQueryKey('privateAdminEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Admin role
+ */
+export const privateAdminEndpointOptions = (options?: Options<PrivateAdminEndpointData>) =>
+  queryOptions<
+    PrivateAdminEndpointResponse,
+    PrivateAdminEndpointError,
+    PrivateAdminEndpointResponse,
+    ReturnType<typeof privateAdminEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateAdminEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateAdminEndpointQueryKey(options),
+  });
+
+export const privateSellerEndpointQueryKey = (options?: Options<PrivateSellerEndpointData>) =>
+  createQueryKey('privateSellerEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Seller role
+ */
+export const privateSellerEndpointOptions = (options?: Options<PrivateSellerEndpointData>) =>
+  queryOptions<
+    PrivateSellerEndpointResponse,
+    PrivateSellerEndpointError,
+    PrivateSellerEndpointResponse,
+    ReturnType<typeof privateSellerEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateSellerEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateSellerEndpointQueryKey(options),
+  });
+
+export const privateBuyerEndpointQueryKey = (options?: Options<PrivateBuyerEndpointData>) =>
+  createQueryKey('privateBuyerEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Buyer role
+ */
+export const privateBuyerEndpointOptions = (options?: Options<PrivateBuyerEndpointData>) =>
+  queryOptions<
+    PrivateBuyerEndpointResponse,
+    PrivateBuyerEndpointError,
+    PrivateBuyerEndpointResponse,
+    ReturnType<typeof privateBuyerEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateBuyerEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateBuyerEndpointQueryKey(options),
+  });
+
+export const privateDriverEndpointQueryKey = (options?: Options<PrivateDriverEndpointData>) =>
+  createQueryKey('privateDriverEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Driver role
+ */
+export const privateDriverEndpointOptions = (options?: Options<PrivateDriverEndpointData>) =>
+  queryOptions<
+    PrivateDriverEndpointResponse,
+    PrivateDriverEndpointError,
+    PrivateDriverEndpointResponse,
+    ReturnType<typeof privateDriverEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateDriverEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateDriverEndpointQueryKey(options),
+  });

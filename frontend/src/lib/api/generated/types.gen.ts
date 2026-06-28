@@ -201,6 +201,51 @@ export type GetCurrentUserResponses = {
 
 export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
 
+export type GetCurrentUserFinancialSummaryData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/auth/me/financial-summary';
+};
+
+export type GetCurrentUserFinancialSummaryErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetCurrentUserFinancialSummaryError =
+  GetCurrentUserFinancialSummaryErrors[keyof GetCurrentUserFinancialSummaryErrors];
+
+export type GetCurrentUserFinancialSummaryResponses = {
+  /**
+   * Current user financial summary
+   */
+  200: {
+    buyer?: {
+      balance: number;
+    };
+    seller?: {
+      income: number;
+    };
+    driver?: {
+      earnings: number;
+    };
+  };
+};
+
+export type GetCurrentUserFinancialSummaryResponse =
+  GetCurrentUserFinancialSummaryResponses[keyof GetCurrentUserFinancialSummaryResponses];
+
 export type OnboardUserData = {
   body: {
     roles: Array<'buyer' | 'seller' | 'driver'>;
@@ -533,3 +578,179 @@ export type SubmitReviewResponses = {
 };
 
 export type SubmitReviewResponse = SubmitReviewResponses[keyof SubmitReviewResponses];
+
+export type PrivateAdminEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/admin';
+};
+
+export type PrivateAdminEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type PrivateAdminEndpointError =
+  PrivateAdminEndpointErrors[keyof PrivateAdminEndpointErrors];
+
+export type PrivateAdminEndpointResponses = {
+  /**
+   * Private admin endpoint message
+   */
+  200: {
+    message: string;
+    activeRole: string;
+  };
+};
+
+export type PrivateAdminEndpointResponse =
+  PrivateAdminEndpointResponses[keyof PrivateAdminEndpointResponses];
+
+export type PrivateSellerEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/seller';
+};
+
+export type PrivateSellerEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type PrivateSellerEndpointError =
+  PrivateSellerEndpointErrors[keyof PrivateSellerEndpointErrors];
+
+export type PrivateSellerEndpointResponses = {
+  /**
+   * Private seller endpoint message
+   */
+  200: {
+    message: string;
+    activeRole: string;
+  };
+};
+
+export type PrivateSellerEndpointResponse =
+  PrivateSellerEndpointResponses[keyof PrivateSellerEndpointResponses];
+
+export type PrivateBuyerEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/buyer';
+};
+
+export type PrivateBuyerEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type PrivateBuyerEndpointError =
+  PrivateBuyerEndpointErrors[keyof PrivateBuyerEndpointErrors];
+
+export type PrivateBuyerEndpointResponses = {
+  /**
+   * Private buyer endpoint message
+   */
+  200: {
+    message: string;
+    activeRole: string;
+  };
+};
+
+export type PrivateBuyerEndpointResponse =
+  PrivateBuyerEndpointResponses[keyof PrivateBuyerEndpointResponses];
+
+export type PrivateDriverEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/driver';
+};
+
+export type PrivateDriverEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type PrivateDriverEndpointError =
+  PrivateDriverEndpointErrors[keyof PrivateDriverEndpointErrors];
+
+export type PrivateDriverEndpointResponses = {
+  /**
+   * Private driver endpoint message
+   */
+  200: {
+    message: string;
+    activeRole: string;
+  };
+};
+
+export type PrivateDriverEndpointResponse =
+  PrivateDriverEndpointResponses[keyof PrivateDriverEndpointResponses];
