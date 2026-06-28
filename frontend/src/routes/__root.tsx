@@ -33,12 +33,6 @@ function RootComponent() {
                 Home
               </Link>
               <Link
-                to="/products"
-                className="transition-colors hover:text-foreground/80 text-foreground"
-              >
-                Products
-              </Link>
-              <Link
                 to="/profile"
                 className="transition-colors hover:text-foreground/80 text-foreground flex items-center gap-1"
               >
