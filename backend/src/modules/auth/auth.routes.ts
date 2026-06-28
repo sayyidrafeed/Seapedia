@@ -10,6 +10,7 @@ import {
   loginSchema,
   selectRoleSchema,
   userResponseSchema,
+  onboardSchema,
   sessionResponseSchema,
 } from './auth.schemas';
 import { AuthService } from './auth.service';
@@ -126,8 +127,33 @@ authRouter.get(
       username: user.username,
       email: user.email,
       name: user.name,
+      isOnboarded: user.isOnboarded,
       createdAt: user.createdAt.toISOString(),
     });
+  },
+);
+
+authRouter.post(
+  '/onboard',
+  describeRoute({
+    operationId: 'onboardUser',
+    tags: ['Auth'],
+    summary: 'Onboard a new user with selected roles',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(successSchema, 'Onboarding successful'),
+      ...errorResponses(400, 401, 500),
+    },
+  }),
+  requireSession,
+  validator('json', onboardSchema),
+  async (c) => {
+    const userId = c.get('userId')!;
+    const { roles } = c.req.valid('json');
+
+    await AuthService.onboard(userId, roles);
+
+    return c.json({ success: true as const });
   },
 );
 

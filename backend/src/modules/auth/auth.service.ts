@@ -178,4 +178,27 @@ export class AuthService {
       roles: roles.map((r) => r.role),
     };
   }
+
+  static async onboard(userId: string, selectedRoles: ('buyer' | 'seller' | 'driver')[]) {
+    const uniqueRoles = Array.from(new Set(['buyer', ...selectedRoles]));
+
+    return await db.transaction(async (tx) => {
+      // Clear roles first
+      await tx.delete(userRole).where(eq(userRole.userId, userId));
+
+      // Re-insert
+      for (const role of uniqueRoles) {
+        await tx.insert(userRole).values({
+          userId,
+          role,
+        });
+      }
+
+      // Update users
+      await tx
+        .update(users)
+        .set({ isOnboarded: true, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    });
+  }
 }
