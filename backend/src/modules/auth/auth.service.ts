@@ -201,4 +201,17 @@ export class AuthService {
         .where(eq(users.id, userId));
     });
   }
+
+  static async getFinancialSummary(userId: string) {
+    const roles = await db.select().from(userRole).where(eq(userRole.userId, userId));
+    const roleStrings = roles.map((r) => r.role);
+
+    return {
+      buyer: roleStrings.includes('buyer') ? { balance: 0 } : undefined,
+      seller: roleStrings.includes('seller') ? { income: 0 } : undefined,
+      driver: roleStrings.includes('driver') ? { earnings: 0 } : undefined,
+    };
+  }
 }
+
+

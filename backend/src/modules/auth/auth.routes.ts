@@ -12,6 +12,7 @@ import {
   userResponseSchema,
   onboardSchema,
   sessionResponseSchema,
+  financialSummarySchema,
 } from './auth.schemas';
 import { AuthService } from './auth.service';
 import { signJwt } from '@/lib/jwt';
@@ -132,6 +133,27 @@ authRouter.get(
     });
   },
 );
+
+authRouter.get(
+  '/me/financial-summary',
+  describeRoute({
+    operationId: 'getCurrentUserFinancialSummary',
+    tags: ['Auth'],
+    summary: 'Get financial summary placeholder of currently authenticated user',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(financialSummarySchema, 'Current user financial summary'),
+      ...errorResponses(401, 500),
+    },
+  }),
+  requireSession,
+  async (c) => {
+    const userId = c.get('userId')!;
+    const summary = await AuthService.getFinancialSummary(userId);
+    return c.json(summary);
+  },
+);
+
 
 authRouter.post(
   '/onboard',
