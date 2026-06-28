@@ -4,17 +4,42 @@ import {
   Outlet,
   ScrollRestoration,
   useNavigate,
+  useLocation,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useAuth } from '@/lib/auth/context';
+import { useState, useEffect } from 'react';
 
 function RootComponent() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
+
+  useEffect(() => {
+    if (
+      !auth.isLoading &&
+      auth.user &&
+      !auth.user.isOnboarded &&
+      location.pathname !== '/onboard'
+    ) {
+      navigate({ to: '/onboard' });
+    }
+  }, [auth.user, auth.isLoading, location.pathname, navigate]);
 
   const handleLogout = async () => {
     await auth.logout();
     navigate({ to: '/' });
+  };
+
+  const handleSelectRoleAndNavigate = async (role: string) => {
+    try {
+      await auth.selectRole(role as 'admin' | 'seller' | 'buyer' | 'driver');
+      navigate({ to: `/dashboard/${role}` });
+      setShowDashboardDropdown(false);
+    } catch {
+      // ignore
+    }
   };
 
   return (
@@ -65,14 +90,41 @@ function RootComponent() {
                   </Link>
                 )}
 
-                {auth.activeRole && (
-                  <Link
-                    to={`/dashboard/${auth.activeRole}` as unknown as '/dashboard/admin'}
-                    className="text-xs font-medium hover:underline text-muted-foreground"
-                  >
-                    Dashboard
-                  </Link>
-                )}
+                {auth.activeRole &&
+                  (auth.roles.length > 1 ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowDashboardDropdown(!showDashboardDropdown)}
+                        className="text-xs font-medium hover:underline text-muted-foreground flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
+                      >
+                        Dashboard <span className="text-[10px]">▼</span>
+                      </button>
+                      {showDashboardDropdown && (
+                        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-card border border-border py-1 z-50">
+                          {auth.roles.map((role) => (
+                            <button
+                              key={role}
+                              onClick={() => handleSelectRoleAndNavigate(role)}
+                              className={`w-full text-left px-4 py-2 text-xs hover:bg-accent/50 capitalize block cursor-pointer bg-transparent border-none ${
+                                auth.activeRole === role
+                                  ? 'font-bold text-primary'
+                                  : 'text-foreground'
+                              }`}
+                            >
+                              {role} Dashboard
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      to={`/dashboard/${auth.activeRole}` as unknown as '/dashboard/admin'}
+                      className="text-xs font-medium hover:underline text-muted-foreground"
+                    >
+                      Dashboard
+                    </Link>
+                  ))}
 
                 <button
                   onClick={handleLogout}
