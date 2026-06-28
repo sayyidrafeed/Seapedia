@@ -78,17 +78,17 @@ Your task is to build the first public-facing pages of SEAPEDIA. These pages sho
 
 #### Requirements:
 
-- Create a landing page or home page for SEAPEDIA.
-- Create a product listing page that can be accessed by guests.
-- Create a read-only product detail page.
-- Create a login page and a register page.
-- Use dummy product data if the product backend is not integrated yet.
+- [x] Create a landing page or home page for SEAPEDIA.
+- [x] Create a product listing page that can be accessed by guests.
+- [x] Create a read-only product detail page.
+- [x] Create a login page and a register page.
+- [x] Use dummy product data if the product backend is not integrated yet.
 
 #### Business Rules:
 
-- Guests may browse products and product details only.
-- Guests must not be shown private dashboard actions such as checkout, product management, or delivery job management.
-- The public interface should clearly communicate that SEAPEDIA is a marketplace, not only a single-store catalog.
+- [x] Guests may browse products and product details only.
+- [x] Guests must not be shown private dashboard actions such as checkout, product management, or delivery job management.
+- [x] The public interface should clearly communicate that SEAPEDIA is a marketplace, not only a single-store catalog.
 
 ### Implement Basic Authentication and Role Awareness (8 pts)
 
