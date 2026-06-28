@@ -4,7 +4,7 @@ This repository is a Hono REST API deployed on a Bun HTTP server, using TypeScri
 
 ## Core Rules
 
-- Use Bun for all commands.
+- Must prefix every CLI command with `rtk` (e.g., `rtk git status`, `rtk bun dev`, `rtk bun check`, `rtk bunx shadcn`).
 - Use Hono, not Express.
 - Use Zod runtime validation for every HTTP boundary.
 - Serve Scalar docs at `/docs`.
@@ -18,16 +18,16 @@ This repository is a Hono REST API deployed on a Bun HTTP server, using TypeScri
 
 | Task                  | Command               |
 | --------------------- | --------------------- |
-| Install dependencies  | `bun install`         |
-| Dev server            | `bun run dev`         |
-| Type check            | `bun run check`       |
-| Lint                  | `bun run lint`        |
-| Format                | `bun run format`      |
-| Format + lint         | `bun run fl`          |
-| Tests                 | `bun test`            |
-| Generate DB migration | `bun run db:generate` |
-| Apply DB migration    | `bun run db:migrate`  |
-| Drizzle Studio        | `bun run db:studio`   |
+| Install dependencies  | `rtk bun install`         |
+| Dev server            | `rtk bun run dev`         |
+| Type check            | `rtk bun run check`       |
+| Lint                  | `rtk bun run lint`        |
+| Format                | `rtk bun run format`      |
+| Format + lint         | `rtk bun run fl`          |
+| Tests                 | `rtk bun test`            |
+| Generate DB migration | `rtk bun run db:generate` |
+| Apply DB migration    | `rtk bun run db:migrate`  |
+| Drizzle Studio        | `rtk bun run db:studio`   |
 
 ## Architecture
 
