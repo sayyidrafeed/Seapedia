@@ -57,12 +57,14 @@ function RootComponent() {
               <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground">
                 Home
               </Link>
-              <Link
-                to="/profile"
-                className="transition-colors hover:text-foreground/80 text-foreground flex items-center gap-1"
-              >
-                Profile
-              </Link>
+              {auth.user && (
+                <Link
+                  to="/profile"
+                  className="transition-colors hover:text-foreground/80 text-foreground flex items-center gap-1"
+                >
+                  Profile
+                </Link>
+              )}
             </nav>
           </div>
 
