@@ -1,0 +1,48 @@
+{
+  "name": "seapedia-frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "tsc --noEmit",
+    "lint": "oxlint",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check",
+    "fl": "bun run format && bun run lint",
+    "test": "vitest run",
+    "openapi:generate": "openapi-ts && oxfmt --write src/lib/api"
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "latest",
+    "@radix-ui/react-slot": "latest",
+    "@t3-oss/env-core": "^0.13.11",
+    "@tanstack/react-query": "latest",
+    "@tanstack/react-router": "latest",
+    "class-variance-authority": "latest",
+    "clsx": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "sonner": "latest",
+    "tailwind-merge": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "latest",
+    "@tailwindcss/vite": "latest",
+    "@tanstack/react-query-devtools": "latest",
+    "@tanstack/react-router-devtools": "latest",
+    "@tanstack/router-plugin": "latest",
+    "@types/node": "^26.0.1",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "oxfmt": "latest",
+    "oxlint": "latest",
+    "tailwindcss": "latest",
+    "tw-animate-css": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  }
+}

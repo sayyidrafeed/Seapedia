@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: seapedia-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: seapedia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d seapedia"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_URL=postgres://postgres:postgrespassword@postgres:5432/seapedia
+      - JWT_SECRET=supersecretjwtkey
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bun run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3001
+      - VITE_APP_URL=http://localhost:5173
+    command: bun run dev
+
+volumes:
+  pgdata:

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://oxlint.io/schema.json",
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": "error",
+    "no-explicit-any": "error",
+    "max-lines": ["warn", 220]
+  },
+  "ignorePatterns": ["node_modules", "dist", "*.gen.ts", "src/lib/api/generated/"]
+}
