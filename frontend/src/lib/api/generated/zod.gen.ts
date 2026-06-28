@@ -7,8 +7,11 @@ export const zProduct = z.object({
   name: z.string(),
   description: z.string(),
   price: z.number(),
+  currency: z.string().optional().default('IDR'),
   stock: z.number(),
   storeName: z.string(),
+  storeSlug: z.string(),
+  slug: z.string(),
 });
 
 export const zReview = z.object({
@@ -122,8 +125,31 @@ export const zGetProductByIdResponse = z.object({
   name: z.string(),
   description: z.string(),
   price: z.number(),
+  currency: z.string().optional().default('IDR'),
   stock: z.number(),
   storeName: z.string(),
+  storeSlug: z.string(),
+  slug: z.string(),
+});
+
+export const zGetProductBySlugPath = z.object({
+  storeSlug: z.string(),
+  productSlug: z.string(),
+});
+
+/**
+ * Product details
+ */
+export const zGetProductBySlugResponse = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  price: z.number(),
+  currency: z.string().optional().default('IDR'),
+  stock: z.number(),
+  storeName: z.string(),
+  storeSlug: z.string(),
+  slug: z.string(),
 });
 
 /**

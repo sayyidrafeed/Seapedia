@@ -9,8 +9,11 @@ export type Product = {
   name: string;
   description: string;
   price: number;
+  currency?: string;
   stock: number;
   storeName: string;
+  storeSlug: string;
+  slug: string;
 };
 
 export type Review = {
@@ -361,12 +364,61 @@ export type GetProductByIdResponses = {
     name: string;
     description: string;
     price: number;
+    currency?: string;
     stock: number;
     storeName: string;
+    storeSlug: string;
+    slug: string;
   };
 };
 
 export type GetProductByIdResponse = GetProductByIdResponses[keyof GetProductByIdResponses];
+
+export type GetProductBySlugData = {
+  body?: never;
+  path: {
+    storeSlug: string;
+    productSlug: string;
+  };
+  query?: never;
+  url: '/api/products/by-slug/{storeSlug}/{productSlug}';
+};
+
+export type GetProductBySlugErrors = {
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetProductBySlugError = GetProductBySlugErrors[keyof GetProductBySlugErrors];
+
+export type GetProductBySlugResponses = {
+  /**
+   * Product details
+   */
+  200: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    currency?: string;
+    stock: number;
+    storeName: string;
+    storeSlug: string;
+    slug: string;
+  };
+};
+
+export type GetProductBySlugResponse = GetProductBySlugResponses[keyof GetProductBySlugResponses];
 
 export type ListReviewsData = {
   body?: never;
