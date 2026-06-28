@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
+import { formatCurrency } from '@/lib/utils';
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -105,7 +106,7 @@ function ProfilePage() {
             <span className="text-xs font-semibold text-muted-foreground uppercase">
               Buyer Wallet Balance
             </span>
-            <p className="text-2xl font-bold text-foreground mt-2">Rp 0</p>
+            <p className="text-2xl font-bold text-foreground mt-2">{formatCurrency(0)}</p>
             <p className="text-xs text-muted-foreground mt-1">Simulated transaction wallet</p>
           </div>
 
@@ -113,7 +114,7 @@ function ProfilePage() {
             <span className="text-xs font-semibold text-muted-foreground uppercase">
               Seller Earnings
             </span>
-            <p className="text-2xl font-bold text-foreground mt-2">Rp 0</p>
+            <p className="text-2xl font-bold text-foreground mt-2">{formatCurrency(0)}</p>
             <p className="text-xs text-muted-foreground mt-1">Accumulated store sales revenue</p>
           </div>
 
@@ -121,7 +122,7 @@ function ProfilePage() {
             <span className="text-xs font-semibold text-muted-foreground uppercase">
               Driver Payouts
             </span>
-            <p className="text-2xl font-bold text-foreground mt-2">Rp 0</p>
+            <p className="text-2xl font-bold text-foreground mt-2">{formatCurrency(0)}</p>
             <p className="text-xs text-muted-foreground mt-1">Completed shipping job payouts</p>
           </div>
         </div>
