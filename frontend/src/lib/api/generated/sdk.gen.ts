@@ -29,6 +29,9 @@ import type {
   LogoutUserData,
   LogoutUserErrors,
   LogoutUserResponses,
+  OnboardUserData,
+  OnboardUserErrors,
+  OnboardUserResponses,
   RegisterUserData,
   RegisterUserErrors,
   RegisterUserResponses,
@@ -133,6 +136,28 @@ export const getCurrentUser = <ThrowOnError extends boolean = false>(
     ],
     url: '/api/auth/me',
     ...options,
+  });
+
+/**
+ * Onboard a new user with selected roles
+ */
+export const onboardUser = <ThrowOnError extends boolean = false>(
+  options: Options<OnboardUserData, ThrowOnError>,
+): RequestResult<OnboardUserResponses, OnboardUserErrors, ThrowOnError> =>
+  (options.client ?? client).post<OnboardUserResponses, OnboardUserErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/auth/onboard',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 /**

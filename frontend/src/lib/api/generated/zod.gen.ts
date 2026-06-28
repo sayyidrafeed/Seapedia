@@ -74,7 +74,19 @@ export const zGetCurrentUserResponse = z.object({
   username: z.string(),
   email: z.string(),
   name: z.union([z.string(), z.unknown()]),
+  isOnboarded: z.boolean(),
   createdAt: z.string(),
+});
+
+export const zOnboardUserBody = z.object({
+  roles: z.array(z.enum(['buyer', 'seller', 'driver'])),
+});
+
+/**
+ * Onboarding successful
+ */
+export const zOnboardUserResponse = z.object({
+  success: z.boolean(),
 });
 
 /**

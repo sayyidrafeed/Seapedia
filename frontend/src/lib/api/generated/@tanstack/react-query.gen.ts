@@ -19,6 +19,7 @@ import {
   listReviews,
   loginUser,
   logoutUser,
+  onboardUser,
   type Options,
   registerUser,
   selectActiveRole,
@@ -51,6 +52,9 @@ import type {
   LogoutUserData,
   LogoutUserError,
   LogoutUserResponse,
+  OnboardUserData,
+  OnboardUserError,
+  OnboardUserResponse,
   RegisterUserData,
   RegisterUserError,
   RegisterUserResponse,
@@ -219,6 +223,29 @@ export const getCurrentUserOptions = (options?: Options<GetCurrentUserData>) =>
     },
     queryKey: getCurrentUserQueryKey(options),
   });
+
+/**
+ * Onboard a new user with selected roles
+ */
+export const onboardUserMutation = (
+  options?: Partial<Options<OnboardUserData>>,
+): UseMutationOptions<OnboardUserResponse, OnboardUserError, Options<OnboardUserData>> => {
+  const mutationOptions: UseMutationOptions<
+    OnboardUserResponse,
+    OnboardUserError,
+    Options<OnboardUserData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await onboardUser({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
 
 export const getCurrentSessionQueryKey = (options?: Options<GetCurrentSessionData>) =>
   createQueryKey('getCurrentSession', options);

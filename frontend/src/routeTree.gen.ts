@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SelectRoleRouteImport } from './routes/select-role'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OnboardRouteImport } from './routes/onboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsProductIdRouteImport } from './routes/products/$productId'
@@ -34,6 +35,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardRoute = OnboardRouteImport.update({
+  id: '/onboard',
+  path: '/onboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -80,6 +86,7 @@ const StoreSlugProductSlugRoute = StoreSlugProductSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboard': typeof OnboardRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboard': typeof OnboardRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboard': typeof OnboardRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/onboard'
     | '/profile'
     | '/register'
     | '/select-role'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/onboard'
     | '/profile'
     | '/register'
     | '/select-role'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/onboard'
     | '/profile'
     | '/register'
     | '/select-role'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  OnboardRoute: typeof OnboardRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   SelectRoleRoute: typeof SelectRoleRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboard': {
+      id: '/onboard'
+      path: '/onboard'
+      fullPath: '/onboard'
+      preLoaderRoute: typeof OnboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -258,6 +278,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  OnboardRoute: OnboardRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   SelectRoleRoute: SelectRoleRoute,

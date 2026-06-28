@@ -194,11 +194,55 @@ export type GetCurrentUserResponses = {
     username: string;
     email: string;
     name: string | unknown;
+    isOnboarded: boolean;
     createdAt: string;
   };
 };
 
 export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
+
+export type OnboardUserData = {
+  body: {
+    roles: Array<'buyer' | 'seller' | 'driver'>;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/auth/onboard';
+};
+
+export type OnboardUserErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type OnboardUserError = OnboardUserErrors[keyof OnboardUserErrors];
+
+export type OnboardUserResponses = {
+  /**
+   * Onboarding successful
+   */
+  200: {
+    success: boolean;
+  };
+};
+
+export type OnboardUserResponse = OnboardUserResponses[keyof OnboardUserResponses];
 
 export type GetCurrentSessionData = {
   body?: never;
