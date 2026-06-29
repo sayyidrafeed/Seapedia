@@ -57,11 +57,15 @@ mock.module('@/db', () => {
     return () => ({
       values: () => {
         const idx = dbState.insertIdx;
+        const returningFn = () => {
+          dbState.insertIdx++;
+          return Promise.resolve(dbState.insertQueue[idx] ?? []);
+        };
         return {
-          returning: () => {
-            dbState.insertIdx++;
-            return Promise.resolve(dbState.insertQueue[idx] ?? []);
-          },
+          returning: returningFn,
+          onConflictDoUpdate: () => ({
+            returning: returningFn,
+          }),
         };
       },
     });
@@ -92,11 +96,30 @@ mock.module('@/db', () => {
     });
   }
 
+  const dbSelect = makeSelect();
+  const dbInsert = makeInsert();
+  const dbUpdate = makeUpdate();
+  const dbDelete = makeDelete();
+
   const db = {
-    select: makeSelect(),
-    insert: makeInsert(),
-    update: makeUpdate(),
-    delete: makeDelete(),
+    select: dbSelect,
+    insert: dbInsert,
+    update: dbUpdate,
+    delete: dbDelete,
+    transaction: <T>(
+      cb: (tx: {
+        select: typeof dbSelect;
+        insert: typeof dbInsert;
+        update: typeof dbUpdate;
+        delete: typeof dbDelete;
+      }) => Promise<T>,
+    ) =>
+      cb({
+        select: dbSelect,
+        insert: dbInsert,
+        update: dbUpdate,
+        delete: dbDelete,
+      }),
   };
 
   return { db };
@@ -111,7 +134,13 @@ describe('BuyersCartService', () => {
   });
 
   test('getOrCreateCart returns existing cart', async () => {
-    const existing = { id: 'c1', buyerId: 'b1', storeId: null, createdAt: new Date(), updatedAt: new Date() };
+    const existing = {
+      id: 'c1',
+      buyerId: 'b1',
+      storeId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     dbState.addSelect([existing]);
 
     const cart = await BuyersCartService.getOrCreateCart('b1');
@@ -121,7 +150,13 @@ describe('BuyersCartService', () => {
 
   test('getOrCreateCart creates new cart when none exists', async () => {
     dbState.addSelect([]); // select returns empty
-    const created = { id: 'c1', buyerId: 'b1', storeId: null, createdAt: new Date(), updatedAt: new Date() };
+    const created = {
+      id: 'c1',
+      buyerId: 'b1',
+      storeId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     dbState.addInsert([created]);
 
     const cart = await BuyersCartService.getOrCreateCart('b1');
@@ -134,15 +169,30 @@ describe('BuyersCartService', () => {
     // 1. select product (exists in store A)
     dbState.addSelect([{ id: 'p1', storeId: 'storeA', name: 'Product 1', price: 1000, stock: 10 }]);
     // 2. select cart (belongs to store B)
-    dbState.addSelect([{ id: 'c1', buyerId: 'b1', storeId: 'storeB', createdAt: new Date(), updatedAt: new Date() }]);
+    dbState.addSelect([
+      { id: 'c1', buyerId: 'b1', storeId: 'storeB', createdAt: new Date(), updatedAt: new Date() },
+    ]);
 
     expect(BuyersCartService.addItemToCart('b1', 'p1', 1)).rejects.toThrow(ConflictError);
   });
 
   test('addItemToCart inserts new cart item successfully', async () => {
     const product = { id: 'p1', storeId: 'storeA', name: 'Product 1', price: 1000, stock: 10 };
-    const cart = { id: 'c1', buyerId: 'b1', storeId: null, createdAt: new Date(), updatedAt: new Date() };
-    const newItem = { id: 'ci1', cartId: 'c1', productId: 'p1', quantity: 2, createdAt: new Date(), updatedAt: new Date() };
+    const cart = {
+      id: 'c1',
+      buyerId: 'b1',
+      storeId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const newItem = {
+      id: 'ci1',
+      cartId: 'c1',
+      productId: 'p1',
+      quantity: 2,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
     dbState.addSelect([product]);
     dbState.addSelect([cart]);
@@ -154,10 +204,26 @@ describe('BuyersCartService', () => {
     expect(result).toEqual(newItem);
   });
 
-  test('addItemToCart throws ValidationError if quantity exceeds stock', async () => {
-    const product = { id: 'p1', storeId: 'storeA', name: 'Product 1', price: 1000, stock: 1 };
-    dbState.addSelect([product]);
+  test('addItemToCart throws ValidationError if quantity is zero or negative', async () => {
+    expect(BuyersCartService.addItemToCart('b1', 'p1', 0)).rejects.toThrow(ValidationError);
+    expect(BuyersCartService.addItemToCart('b1', 'p1', -2)).rejects.toThrow(ValidationError);
+  });
 
-    expect(BuyersCartService.addItemToCart('b1', 'p1', 5)).rejects.toThrow(ValidationError);
+  test('getOrCreateCart resets storeId to null if cart has storeId but contains no items (self-healing)', async () => {
+    const corruptedCart = {
+      id: 'c1',
+      buyerId: 'b1',
+      storeId: 'storeA',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const fixedCart = { ...corruptedCart, storeId: null };
+
+    dbState.addSelect([corruptedCart]);
+    dbState.addSelect([]); // cartItems empty
+    dbState.addUpdate([fixedCart]); // update resets storeId
+
+    const result = await BuyersCartService.getOrCreateCart('b1');
+    expect(result.storeId).toBeNull();
   });
 });

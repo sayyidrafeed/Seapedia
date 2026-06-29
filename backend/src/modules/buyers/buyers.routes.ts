@@ -349,7 +349,10 @@ buyersRouter.post(
     summary: 'Add an item to the buyer cart',
     security: [{ cookieAuth: [] }],
     responses: {
-      200: jsonContent(z.object({ id: z.string(), productId: z.string(), quantity: z.number().int() }), 'Item added/updated successfully'),
+      200: jsonContent(
+        z.object({ id: z.string(), productId: z.string(), quantity: z.number().int() }),
+        'Item added/updated successfully',
+      ),
       ...errorResponses(400, 401, 403, 409, 500),
     },
   }),
@@ -376,7 +379,10 @@ buyersRouter.put(
     summary: 'Update quantity of an item in the buyer cart',
     security: [{ cookieAuth: [] }],
     responses: {
-      200: jsonContent(z.object({ id: z.string(), productId: z.string(), quantity: z.number().int() }), 'Item quantity updated successfully'),
+      200: jsonContent(
+        z.object({ id: z.string(), productId: z.string(), quantity: z.number().int() }),
+        'Item quantity updated successfully',
+      ),
       ...errorResponses(400, 401, 403, 404, 500),
     },
   }),

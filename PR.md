@@ -1,20 +1,31 @@
 ## Description
 
-This PR implements **Level 3 — Buyer Wallet and Address Management** (5 pts) for SEAPEDIA. Buyers can now manage their wallet balance, simulate top-ups, view transaction history, and maintain delivery addresses — all gated behind the active Buyer role.
+Implements Level 3 — **Cart Management** for SEAPEDIA buyers. Buyers can now add products to a cart, update quantities, remove items, and clear the cart — all while enforcing the **single-store checkout rule** required by the marketplace.
+
+### Key Features
+
+- **Backend cart service** with full CRUD: add, update quantity, remove item, clear cart, get summary
+- **Single-store checkout enforcement**: adding a product from a different store returns a 409 Conflict error
+- **Stock validation** before adding/updating cart items
+- **Frontend cart page** at `/dashboard/buyer/cart` with quantity controls (increment/decrement), remove, clear, and subtotal display
+- **Add to Cart button** on product detail pages with single-store conflict dialog
+- **Cart badge** in navbar showing live item count (buyer role only)
+- **Cart summary card** on buyer dashboard
+- **Service layer unit tests** covering core cart operations
 
 ## Related Issue
 
-Closes requirement: **Build Buyer Wallet and Address Management** (Level 3, first subsection)
+Completes the **Implement Cart Management** subsection of Level 3 (PLAN.md).
 
 ## Type of Change
 
 - [x] New feature (non-breaking change that adds functionality)
 - [ ] Bug fix (non-breaking change that fixes an issue)
 - [ ] Breaking change (fix or feature that changes existing behavior)
-- [ ] Refactor (no functional changes, only code improvements)
+- [x] Refactor (no functional changes, only code improvements)
 - [ ] Performance improvement
+- [x] Documentation update
 - [ ] Chore (tooling, dependencies, CI/CD)
-- [ ] Documentation update
 - [ ] Security fix
 
 ## Level Checklist
@@ -27,100 +38,62 @@ Closes requirement: **Build Buyer Wallet and Address Management** (Level 3, firs
 - [ ] Level 6 — Admin Monitoring and Overdue Handling
 - [ ] Level 7 — Security Hardening and Finalization
 
+## PR Highlights (Design Decisions)
+
+1. **Lazy cart creation** — carts are auto-created on first add-to-cart, no separate create step.
+2. **Upsert semantics** — adding a product already in the cart increments quantity instead of creating a duplicate.
+3. **Cart store reset** — when the last item is removed or cart is cleared, the `storeId` resets to null, unlocking cross-store shopping again.
+4. **Per-route middleware** — migrated existing wallet/address routes from global to per-route middleware for consistency with cart routes and proper OpenAPI security schema output.
+5. **OpenAPI cache removed** — `/openapi.json` now regenerates on every request, keeping the frontend SDK generation in sync without server restarts.
+
 ## How Has This Been Tested?
 
 - [x] Backend type check (`bun run check`)
 - [x] Frontend type check (`bun run check`)
 - [x] Backend lint & format (`bun run fl`)
 - [x] Frontend lint & format (`bun run fl`)
-- [x] Backend tests pass (`bun test` — 67 tests, 0 fail)
+- [x] Backend tests (`bun test`)
 - [x] Manual testing (describe steps below)
 
 **Test steps:**
 
-1. **Register as buyer**: Create account with non-admin roles including `buyer`, select Buyer as active role
-2. **View wallet**: Navigate to /dashboard/buyer → see balance card (defaults to Rp 0), default address card (shows if address exists or CTA)
-3. **Request top-up**: Go to Wallet & Top-up → select preset amount or custom → choose payment channel → click "Request Top-Up"
-4. **Simulate payment**: See Virtual Account screen → click "Simulate Payment Success" → balance updates immediately
-5. **Check transaction history**: Transaction table below shows pending/success entries with type, method, reference, and formatted amounts
-6. **Add address**: Go to Manage Addresses → click "Tambah Alamat" → fill form with label, recipient, phone, province, city, district, postal code, full address → Save
-7. **Edit/Delete/Set default**: Use card action buttons (Ubah/Hapus/Jadikan Utama)
-8. **Role guard**: Switch to non-buyer role → /dashboard/buyer redirects to /select-role
+1. Run `docker compose up -d` to start PostgreSQL, then `rtk bun run db:migrate && rtk bun run db:seed`
+2. Start backend `rtk bun run dev` and frontend `rtk bun run dev` (from frontend directory)
+3. Log in as a buyer, navigate to any product page and click **Add to Cart**
+4. Verify cart badge updates in the navbar
+5. Open cart page at `/dashboard/buyer/cart`, adjust quantities, remove items, clear cart
+6. Try adding a product from a different store — verify the conflict dialog appears
+7. Run `rtk bun test` — verify cart service tests pass
 
 ## API Changes
 
 ### New Endpoints
 
-#### Buyer Wallet (`/api/buyers/wallet/*`)
-- `GET /api/buyers/wallet` — Get buyer wallet balance
-- `POST /api/buyers/wallet/topup/request` — Initiate a simulated top-up request
-- `POST /api/buyers/wallet/topup/{transactionId}/simulate` — Simulate successful payment
-- `GET /api/buyers/wallet/transactions` — Get wallet transaction history
+- `GET /api/buyers/cart` — Get buyer cart summary (items, subtotal, store info)
+- `POST /api/buyers/cart/items` — Add item to cart (enforces single-store rule)
+- `PUT /api/buyers/cart/items/:id` — Update cart item quantity
+- `DELETE /api/buyers/cart/items/:id` — Remove item from cart
+- `DELETE /api/buyers/cart` — Clear entire cart
 
-#### Buyer Addresses (`/api/buyers/addresses/*`)
-- `GET /api/buyers/addresses` — List delivery addresses
-- `POST /api/buyers/addresses` — Add a new delivery address
-- `PUT /api/buyers/addresses/{id}` — Update delivery address
-- `PUT /api/buyers/addresses/{id}/default` — Set address as default
-- `DELETE /api/buyers/addresses/{id}` — Delete a delivery address
+### Modified Endpoints
 
-All endpoints are protected by `requireSession` + `requireRole('buyer')`.
+- `GET/POST/PUT/DELETE /api/buyers/wallet/*` — Added `security: [{ cookieAuth: [] }]` OpenAPI metadata; moved auth middleware from global to per-route
+- `GET/POST/PUT/DELETE /api/buyers/addresses/*` — Same security and middleware changes
 
-## Database Changes
+## Checklist
 
-### New Tables (via Drizzle ORM)
+- [x] My code follows the project's coding conventions and style
+- [x] I have performed a self-review of my own code
+- [x] I have commented complex code where necessary
+- [x] I have updated the documentation (README, API docs, etc.) if needed
+- [x] No new warnings or errors are introduced
+- [x] Environment variables are documented if added
+- [x] Security considerations have been addressed (input validation, XSS, SQLi, RBAC)
 
-- **`wallets`** — One wallet per user (unique user_id), balance stored as integer (IDR), with timestamps
-- **`wallet_transactions`** — Transaction log with amount, type (topup/payment/refund), payment_method, status (pending/success/failed), and reference number
-- **`addresses`** — Full shipping address with label, recipient name, phone, province, city, district, postal code, full address, and is_default boolean
+## Considerations / Open Questions for Reviewer
 
-> Migration file `0005_fuzzy_gabe_jones.sql` contains all three table definitions. The drizzle/ directory was unignored from .gitignore to ensure migrations are version-controlled.
+1. **Cart item uniqueness**: The schema enforces a unique constraint on `(cartId, productId)`. The service upserts (increments quantity if exists, inserts if not). Is the increment behavior preferred, or should it always insert a new line item? Current approach matches common e-commerce UX.
 
-## Commit History
+2. **Stock validation on add**: Currently validates `product.stock < quantity` at add time. Should we also validate stock at cart summary read time (to warn about items that are now out of stock)?
 
-```
-12 commits — logical atomic split across backend and frontend layers:
-
-chore:        allow drizzle migration files to be tracked in version control
-chore(backend): add drizzle SQL migration files for database schema
-feat(backend):  add buyer wallet and address database schema
-feat(backend):  implement buyer wallet and address service with tests
-feat(backend):  add buyer wallet and address API endpoints with Zod validation
-feat(backend):  register buyers module under /api/buyers
-feat(frontend): regenerate API client SDK for buyer wallet and address endpoints
-feat(frontend): add buyer dashboard layout with wallet and address navigation
-feat(frontend): add buyer dashboard index with wallet balance and address cards
-feat(frontend): implement wallet top-up page with simulated payment flow
-feat(frontend): implement delivery address management page with full CRUD
-chore(frontend): update route tree for buyer dashboard child pages
-```
-
-## Additional Context
-
-### Design Decisions
-
-- **Wallet auto-creation**: `getOrCreateWallet` lazily creates a wallet with 0 balance on first access — no separate registration step needed
-- **Top-up simulation**: The flow generates a virtual account reference (prefixed `880`), stores a `pending` transaction, then `simulateTopUpPayment` atomically credits the wallet in a DB transaction. This mirrors real payment gateways without external integration
-- **Address default logic**: First address is auto-default. Setting a different default unsets others. Deleting the default promotes the next address. All within DB transactions
-- **Role guard**: All endpoints use `buyersRouter.use('*', requireSession, requireRole('buyer'))` — consistent with existing middleware patterns
-
-### Requirements Covered (PLAN.md)
-
-- ✅ Buyer wallet/balance resource
-- ✅ Dummy top-up flow with transaction history
-- ✅ Wallet transaction history display
-- ✅ Delivery address management (CRUD + default)
-- ✅ Buyer balance and top-up history in dashboard
-- ✅ Only active Buyer role may access these features
-
-### Next Steps (Level 3 remaining)
-
-Cart management, checkout flow, and order creation are still needed to complete Level 3.
-
-## PLANNED FOR NEXT
-
-- Cart system with single-store checkout enforcement
-- Checkout flow with delivery method selection, PPN 12%, fee calculation
-- Order creation with stock reduction and status history
-- Buyer order history and detail views
-- Seller incoming order list
+3. **Conflict dialog UX**: The current implementation shows a dialog with "Clear Cart & Add" or "Cancel". Would a "Replace item" flow (remove old store items, add new ones automatically) be preferred over requiring a manual clear?
