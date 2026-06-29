@@ -82,7 +82,13 @@ function SellerOnboarding() {
               />
               {field.state.meta.errors ? (
                 <em className="text-xs text-destructive block mt-1">
-                  {field.state.meta.errors.join(', ')}
+                  {field.state.meta.errors
+                    .map((err) =>
+                      typeof err === 'object' && err !== null && 'message' in err
+                        ? (err as { message: string }).message
+                        : String(err),
+                    )
+                    .join(', ')}
                 </em>
               ) : null}
             </div>
@@ -107,7 +113,13 @@ function SellerOnboarding() {
               />
               {field.state.meta.errors ? (
                 <em className="text-xs text-destructive block mt-1">
-                  {field.state.meta.errors.join(', ')}
+                  {field.state.meta.errors
+                    .map((err) =>
+                      typeof err === 'object' && err !== null && 'message' in err
+                        ? (err as { message: string }).message
+                        : String(err),
+                    )
+                    .join(', ')}
                 </em>
               ) : null}
             </div>
