@@ -6,6 +6,7 @@ import {
 } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { deleteSellerProduct } from '@/lib/api/generated';
 import { ProductList } from '@/components/products/product-list';
+import type { ProductItem } from '@/components/products/product-list';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -68,7 +69,11 @@ function SellerProductsPage() {
           </span>
         </div>
       ) : (
-        <ProductList products={data?.products ?? []} onDelete={handleDelete} />
+        <ProductList
+          products={(data?.products as ProductItem[]) ?? []}
+          onDelete={handleDelete}
+          isDeleting={deleteMutation.isPending}
+        />
       )}
     </div>
   );

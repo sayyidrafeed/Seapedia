@@ -7,9 +7,19 @@ import { useState } from 'react';
 // We base the validation on zCreateSellerProductBody but price and stock are parsed as numbers
 const formSchema = zCreateSellerProductBody;
 
+function formatErrors(errors: unknown[]): string {
+  return errors
+    .map((err) =>
+      typeof err === 'object' && err !== null && 'message' in err
+        ? (err as { message: string }).message
+        : String(err),
+    )
+    .join(', ');
+}
+
 export interface ProductFormValues {
   name: string;
-  description?: unknown;
+  description?: string;
   price: number;
   stock: number;
 }
@@ -32,7 +42,7 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
       stock: initialValues?.stock ?? 0,
     } as ProductFormValues,
     validators: {
-      onChange: formSchema,
+      onChange: formSchema as never,
     },
     onSubmit: async ({ value }) => {
       setErrorMap(null);
@@ -72,13 +82,7 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
             />
             {field.state.meta.errors ? (
               <em className="text-xs text-destructive block mt-1">
-                {field.state.meta.errors
-                  .map((err) =>
-                    typeof err === 'object' && err !== null && 'message' in err
-                      ? (err as { message: string }).message
-                      : String(err),
-                  )
-                  .join(', ')}
+                {formatErrors(field.state.meta.errors)}
               </em>
             ) : null}
           </div>
@@ -95,7 +99,7 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
             <textarea
               id={field.name}
               name={field.name}
-              value={(field.state.value as string) || ''}
+              value={field.state.value || ''}
               onBlur={field.handleBlur}
               onChange={(e) => field.handleChange(e.target.value)}
               placeholder="Provide a detailed description of the product..."
@@ -103,13 +107,7 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
             />
             {field.state.meta.errors ? (
               <em className="text-xs text-destructive block mt-1">
-                {field.state.meta.errors
-                  .map((err) =>
-                    typeof err === 'object' && err !== null && 'message' in err
-                      ? (err as { message: string }).message
-                      : String(err),
-                  )
-                  .join(', ')}
+                {formatErrors(field.state.meta.errors)}
               </em>
             ) : null}
           </div>
@@ -137,13 +135,7 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
               />
               {field.state.meta.errors ? (
                 <em className="text-xs text-destructive block mt-1">
-                  {field.state.meta.errors
-                    .map((err) =>
-                      typeof err === 'object' && err !== null && 'message' in err
-                        ? (err as { message: string }).message
-                        : String(err),
-                    )
-                    .join(', ')}
+                  {formatErrors(field.state.meta.errors)}
                 </em>
               ) : null}
             </div>
@@ -170,13 +162,7 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
               />
               {field.state.meta.errors ? (
                 <em className="text-xs text-destructive block mt-1">
-                  {field.state.meta.errors
-                    .map((err) =>
-                      typeof err === 'object' && err !== null && 'message' in err
-                        ? (err as { message: string }).message
-                        : String(err),
-                    )
-                    .join(', ')}
+                  {formatErrors(field.state.meta.errors)}
                 </em>
               ) : null}
             </div>
