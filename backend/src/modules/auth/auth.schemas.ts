@@ -28,9 +28,16 @@ export const userResponseSchema = z
     username: z.string(),
     email: z.string(),
     name: z.string().nullable(),
+    isOnboarded: z.boolean(),
     createdAt: z.string(),
   })
   .meta({ id: 'UserResponse' });
+
+export const onboardSchema = z
+  .object({
+    roles: z.array(z.enum(['buyer', 'seller', 'driver'])),
+  })
+  .meta({ id: 'OnboardInput' });
 
 export const sessionResponseSchema = z
   .object({
@@ -39,3 +46,25 @@ export const sessionResponseSchema = z
     roles: z.array(z.string()),
   })
   .meta({ id: 'SessionResponse' });
+
+export const financialSummarySchema = z
+  .object({
+    buyer: z
+      .object({
+        balance: z.number(),
+      })
+      .optional(),
+    seller: z
+      .object({
+        income: z.number(),
+      })
+      .optional(),
+    driver: z
+      .object({
+        earnings: z.number(),
+      })
+      .optional(),
+  })
+  .meta({ id: 'FinancialSummary' });
+
+

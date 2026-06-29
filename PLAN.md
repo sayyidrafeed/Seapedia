@@ -96,19 +96,19 @@ Your task is to implement the first working authentication flow and introduce th
 
 #### Requirements:
 
-- Implement user registration.
-- Implement user login and logout.
-- Store passwords securely using password hashing.
-- Use a token, JWT, or session-based mechanism to authenticate requests.
-- Create a data model that supports Admin, Seller, Buyer, and Driver roles.
-- Allow one non-admin username to own more than one role at the same time.
-- Return the list of roles owned by the logged-in user.
-- Provide a way to choose the active role after login or during the session.
-- Show a role selection page or modal if a user has more than one non-admin role.
-- Protect private routes and API endpoints based on the active role.
-- Provide an endpoint or payload that returns the currently logged-in user profile.
-- Create a profile or dashboard summary page that shows the roles owned by the user and the active role currently being used.
-- Create an entry point or placeholder for balance or financial summaries across roles owned by the same username. Real wallet balance, Seller income, and Driver earnings will be introduced in later levels.
+- [x] Implement user registration.
+- [x] Implement user login and logout.
+- [x] Store passwords securely using password hashing.
+- [x] Use a token, JWT, or session-based mechanism to authenticate requests.
+- [x] Create a data model that supports Admin, Seller, Buyer, and Driver roles.
+- [x] Allow one non-admin username to own more than one role at the same time.
+- [x] Return the list of roles owned by the logged-in user.
+- [x] Provide a way to choose the active role after login or during the session.
+- [x] Show a role selection page or modal if a user has more than one non-admin role.
+- [x] Protect private routes and API endpoints based on the active role.
+- [x] Provide an endpoint or payload that returns the currently logged-in user profile.
+- [x] Create a profile or dashboard summary page that shows the roles owned by the user and the active role currently being used.
+- [x] Create an entry point or placeholder for balance or financial summaries across roles owned by the same username. Real wallet balance, Seller income, and Driver earnings will be introduced in later levels.
 
 #### Role Information:
 
@@ -119,10 +119,10 @@ Your task is to implement the first working authentication flow and introduce th
 
 #### Business Rules:
 
-- A user with multiple non-admin roles must not be redirected to a private dashboard before choosing an active role.
-- Authorization must be based on the active role, not only on the list of all roles owned by the username.
-- The active role must be clearly visible in the UI.
-- Admin behavior may be handled separately from non-admin multi-role behavior, but it must be documented clearly.
+- [x] A user with multiple non-admin roles must not be redirected to a private dashboard before choosing an active role.
+- [x] Authorization must be based on the active role, not only on the list of all roles owned by the username.
+- [x] The active role must be clearly visible in the UI.
+- [x] Admin behavior may be handled separately from non-admin multi-role behavior, but it must be documented clearly.
 
 ### Add Public Application Reviews (4 pts)
 
@@ -164,6 +164,8 @@ Since future levels will add many screens, your application should already have 
 - Reusable UI components and a clean routing structure ready for future levels.
 
 After finishing this level, SEAPEDIA should already feel like a marketplace that can be used by different types of users. Guests can explore the public experience, early visitors can leave application reviews, and registered users can enter the system with a clear role context.
+
+#### Level 1 — Complete
 
 ---
 
