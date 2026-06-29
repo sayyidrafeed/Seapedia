@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   getCurrentSellerStoreOptions,
   listSellerProductsOptions,
+  listSellerOrdersOptions,
 } from '@/lib/api/generated/@tanstack/react-query.gen';
 
 export const Route = createFileRoute('/dashboard/seller/')({
@@ -20,7 +21,13 @@ function SellerDashboardIndex() {
     retry: false,
   });
 
+  const { data: orders } = useQuery({
+    ...listSellerOrdersOptions(),
+    retry: false,
+  });
+
   const totalProducts = productsData?.total ?? 0;
+  const pendingOrders = orders?.filter((o) => o.status === 'sedang_dikemas').length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -39,10 +46,12 @@ function SellerDashboardIndex() {
             <p className="text-3xl font-extrabold">{totalProducts}</p>
           </div>
         </Link>
-        <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-          <h3 className="font-semibold text-muted-foreground mb-2">Pending Orders</h3>
-          <p className="text-3xl font-extrabold">0</p>
-        </div>
+        <Link to="/dashboard/seller/orders" className="block hover:opacity-90 transition-opacity">
+          <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
+            <h3 className="font-semibold text-muted-foreground mb-2">Pending Orders</h3>
+            <p className="text-3xl font-extrabold">{pendingOrders}</p>
+          </div>
+        </Link>
         <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
           <h3 className="font-semibold text-muted-foreground mb-2">Total Income</h3>
           <p className="text-3xl font-extrabold">Rp 0</p>

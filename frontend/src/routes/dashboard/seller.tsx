@@ -82,25 +82,31 @@ function SellerLayout() {
           <div className="space-x-4">
             <button
               onClick={() => navigate({ to: '/dashboard/seller' })}
-              className="text-sm font-medium hover:underline text-primary"
+              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
             >
               Dashboard
             </button>
             <button
               onClick={() => navigate({ to: '/dashboard/seller/products' })}
-              className="text-sm font-medium hover:underline text-primary"
+              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
             >
               Products
             </button>
             <button
+              onClick={() => navigate({ to: '/dashboard/seller/orders' })}
+              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
+            >
+              Incoming Orders
+            </button>
+            <button
               onClick={() => navigate({ to: '/dashboard/seller/store' })}
-              className="text-sm font-medium hover:underline text-primary"
+              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
             >
               Store Profile
             </button>
             <button
-              onClick={() => navigate({ to: `/${store.name}` })}
-              className="text-sm font-medium hover:underline text-muted-foreground"
+              onClick={() => navigate({ to: `/${store.slug}` })}
+              className="text-sm font-medium hover:underline text-muted-foreground cursor-pointer border-none bg-transparent"
             >
               View Public Store
             </button>

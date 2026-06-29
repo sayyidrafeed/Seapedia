@@ -27,10 +27,15 @@ import { Route as DashboardBuyerIndexRouteImport } from './routes/dashboard/buye
 import { Route as DashboardSellerStoreRouteImport } from './routes/dashboard/seller/store'
 import { Route as DashboardSellerOnboardingRouteImport } from './routes/dashboard/seller/onboarding'
 import { Route as DashboardBuyerWalletRouteImport } from './routes/dashboard/buyer/wallet'
+import { Route as DashboardBuyerCheckoutRouteImport } from './routes/dashboard/buyer/checkout'
 import { Route as DashboardBuyerCartRouteImport } from './routes/dashboard/buyer/cart'
 import { Route as DashboardBuyerAddressesRouteImport } from './routes/dashboard/buyer/addresses'
 import { Route as DashboardSellerProductsIndexRouteImport } from './routes/dashboard/seller/products/index'
+import { Route as DashboardSellerOrdersIndexRouteImport } from './routes/dashboard/seller/orders/index'
+import { Route as DashboardBuyerOrdersIndexRouteImport } from './routes/dashboard/buyer/orders/index'
 import { Route as DashboardSellerProductsCreateRouteImport } from './routes/dashboard/seller/products/create'
+import { Route as DashboardSellerOrdersOrderIdRouteImport } from './routes/dashboard/seller/orders/$orderId'
+import { Route as DashboardBuyerOrdersOrderIdRouteImport } from './routes/dashboard/buyer/orders/$orderId'
 import { Route as DashboardSellerProductsProductIdEditRouteImport } from './routes/dashboard/seller/products/$productId/edit'
 
 const SelectRoleRoute = SelectRoleRouteImport.update({
@@ -124,6 +129,11 @@ const DashboardBuyerWalletRoute = DashboardBuyerWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => DashboardBuyerRoute,
 } as any)
+const DashboardBuyerCheckoutRoute = DashboardBuyerCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => DashboardBuyerRoute,
+} as any)
 const DashboardBuyerCartRoute = DashboardBuyerCartRouteImport.update({
   id: '/cart',
   path: '/cart',
@@ -140,11 +150,35 @@ const DashboardSellerProductsIndexRoute =
     path: '/products/',
     getParentRoute: () => DashboardSellerRoute,
   } as any)
+const DashboardSellerOrdersIndexRoute =
+  DashboardSellerOrdersIndexRouteImport.update({
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => DashboardSellerRoute,
+  } as any)
+const DashboardBuyerOrdersIndexRoute =
+  DashboardBuyerOrdersIndexRouteImport.update({
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => DashboardBuyerRoute,
+  } as any)
 const DashboardSellerProductsCreateRoute =
   DashboardSellerProductsCreateRouteImport.update({
     id: '/products/create',
     path: '/products/create',
     getParentRoute: () => DashboardSellerRoute,
+  } as any)
+const DashboardSellerOrdersOrderIdRoute =
+  DashboardSellerOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => DashboardSellerRoute,
+  } as any)
+const DashboardBuyerOrdersOrderIdRoute =
+  DashboardBuyerOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => DashboardBuyerRoute,
   } as any)
 const DashboardSellerProductsProductIdEditRoute =
   DashboardSellerProductsProductIdEditRouteImport.update({
@@ -169,12 +203,17 @@ export interface FileRoutesByFullPath {
   '/$storeSlug/': typeof StoreSlugIndexRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
+  '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/buyer/': typeof DashboardBuyerIndexRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
+  '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
+  '/dashboard/seller/orders/$orderId': typeof DashboardSellerOrdersOrderIdRoute
   '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
+  '/dashboard/buyer/orders/': typeof DashboardBuyerOrdersIndexRoute
+  '/dashboard/seller/orders/': typeof DashboardSellerOrdersIndexRoute
   '/dashboard/seller/products/': typeof DashboardSellerProductsIndexRoute
   '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
 }
@@ -192,12 +231,17 @@ export interface FileRoutesByTo {
   '/$storeSlug': typeof StoreSlugIndexRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
+  '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/buyer': typeof DashboardBuyerIndexRoute
   '/dashboard/seller': typeof DashboardSellerIndexRoute
+  '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
+  '/dashboard/seller/orders/$orderId': typeof DashboardSellerOrdersOrderIdRoute
   '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
+  '/dashboard/buyer/orders': typeof DashboardBuyerOrdersIndexRoute
+  '/dashboard/seller/orders': typeof DashboardSellerOrdersIndexRoute
   '/dashboard/seller/products': typeof DashboardSellerProductsIndexRoute
   '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
 }
@@ -218,12 +262,17 @@ export interface FileRoutesById {
   '/$storeSlug/': typeof StoreSlugIndexRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
+  '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/buyer/': typeof DashboardBuyerIndexRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
+  '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
+  '/dashboard/seller/orders/$orderId': typeof DashboardSellerOrdersOrderIdRoute
   '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
+  '/dashboard/buyer/orders/': typeof DashboardBuyerOrdersIndexRoute
+  '/dashboard/seller/orders/': typeof DashboardSellerOrdersIndexRoute
   '/dashboard/seller/products/': typeof DashboardSellerProductsIndexRoute
   '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
 }
@@ -245,12 +294,17 @@ export interface FileRouteTypes {
     | '/$storeSlug/'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
+    | '/dashboard/buyer/checkout'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
     | '/dashboard/buyer/'
     | '/dashboard/seller/'
+    | '/dashboard/buyer/orders/$orderId'
+    | '/dashboard/seller/orders/$orderId'
     | '/dashboard/seller/products/create'
+    | '/dashboard/buyer/orders/'
+    | '/dashboard/seller/orders/'
     | '/dashboard/seller/products/'
     | '/dashboard/seller/products/$productId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -268,12 +322,17 @@ export interface FileRouteTypes {
     | '/$storeSlug'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
+    | '/dashboard/buyer/checkout'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
     | '/dashboard/buyer'
     | '/dashboard/seller'
+    | '/dashboard/buyer/orders/$orderId'
+    | '/dashboard/seller/orders/$orderId'
     | '/dashboard/seller/products/create'
+    | '/dashboard/buyer/orders'
+    | '/dashboard/seller/orders'
     | '/dashboard/seller/products'
     | '/dashboard/seller/products/$productId/edit'
   id:
@@ -293,12 +352,17 @@ export interface FileRouteTypes {
     | '/$storeSlug/'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
+    | '/dashboard/buyer/checkout'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
     | '/dashboard/buyer/'
     | '/dashboard/seller/'
+    | '/dashboard/buyer/orders/$orderId'
+    | '/dashboard/seller/orders/$orderId'
     | '/dashboard/seller/products/create'
+    | '/dashboard/buyer/orders/'
+    | '/dashboard/seller/orders/'
     | '/dashboard/seller/products/'
     | '/dashboard/seller/products/$productId/edit'
   fileRoutesById: FileRoutesById
@@ -447,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBuyerWalletRouteImport
       parentRoute: typeof DashboardBuyerRoute
     }
+    '/dashboard/buyer/checkout': {
+      id: '/dashboard/buyer/checkout'
+      path: '/checkout'
+      fullPath: '/dashboard/buyer/checkout'
+      preLoaderRoute: typeof DashboardBuyerCheckoutRouteImport
+      parentRoute: typeof DashboardBuyerRoute
+    }
     '/dashboard/buyer/cart': {
       id: '/dashboard/buyer/cart'
       path: '/cart'
@@ -468,12 +539,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSellerProductsIndexRouteImport
       parentRoute: typeof DashboardSellerRoute
     }
+    '/dashboard/seller/orders/': {
+      id: '/dashboard/seller/orders/'
+      path: '/orders'
+      fullPath: '/dashboard/seller/orders/'
+      preLoaderRoute: typeof DashboardSellerOrdersIndexRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/buyer/orders/': {
+      id: '/dashboard/buyer/orders/'
+      path: '/orders'
+      fullPath: '/dashboard/buyer/orders/'
+      preLoaderRoute: typeof DashboardBuyerOrdersIndexRouteImport
+      parentRoute: typeof DashboardBuyerRoute
+    }
     '/dashboard/seller/products/create': {
       id: '/dashboard/seller/products/create'
       path: '/products/create'
       fullPath: '/dashboard/seller/products/create'
       preLoaderRoute: typeof DashboardSellerProductsCreateRouteImport
       parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/seller/orders/$orderId': {
+      id: '/dashboard/seller/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/dashboard/seller/orders/$orderId'
+      preLoaderRoute: typeof DashboardSellerOrdersOrderIdRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/buyer/orders/$orderId': {
+      id: '/dashboard/buyer/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/dashboard/buyer/orders/$orderId'
+      preLoaderRoute: typeof DashboardBuyerOrdersOrderIdRouteImport
+      parentRoute: typeof DashboardBuyerRoute
     }
     '/dashboard/seller/products/$productId/edit': {
       id: '/dashboard/seller/products/$productId/edit'
@@ -488,15 +587,21 @@ declare module '@tanstack/react-router' {
 interface DashboardBuyerRouteChildren {
   DashboardBuyerAddressesRoute: typeof DashboardBuyerAddressesRoute
   DashboardBuyerCartRoute: typeof DashboardBuyerCartRoute
+  DashboardBuyerCheckoutRoute: typeof DashboardBuyerCheckoutRoute
   DashboardBuyerWalletRoute: typeof DashboardBuyerWalletRoute
   DashboardBuyerIndexRoute: typeof DashboardBuyerIndexRoute
+  DashboardBuyerOrdersOrderIdRoute: typeof DashboardBuyerOrdersOrderIdRoute
+  DashboardBuyerOrdersIndexRoute: typeof DashboardBuyerOrdersIndexRoute
 }
 
 const DashboardBuyerRouteChildren: DashboardBuyerRouteChildren = {
   DashboardBuyerAddressesRoute: DashboardBuyerAddressesRoute,
   DashboardBuyerCartRoute: DashboardBuyerCartRoute,
+  DashboardBuyerCheckoutRoute: DashboardBuyerCheckoutRoute,
   DashboardBuyerWalletRoute: DashboardBuyerWalletRoute,
   DashboardBuyerIndexRoute: DashboardBuyerIndexRoute,
+  DashboardBuyerOrdersOrderIdRoute: DashboardBuyerOrdersOrderIdRoute,
+  DashboardBuyerOrdersIndexRoute: DashboardBuyerOrdersIndexRoute,
 }
 
 const DashboardBuyerRouteWithChildren = DashboardBuyerRoute._addFileChildren(
@@ -507,7 +612,9 @@ interface DashboardSellerRouteChildren {
   DashboardSellerOnboardingRoute: typeof DashboardSellerOnboardingRoute
   DashboardSellerStoreRoute: typeof DashboardSellerStoreRoute
   DashboardSellerIndexRoute: typeof DashboardSellerIndexRoute
+  DashboardSellerOrdersOrderIdRoute: typeof DashboardSellerOrdersOrderIdRoute
   DashboardSellerProductsCreateRoute: typeof DashboardSellerProductsCreateRoute
+  DashboardSellerOrdersIndexRoute: typeof DashboardSellerOrdersIndexRoute
   DashboardSellerProductsIndexRoute: typeof DashboardSellerProductsIndexRoute
   DashboardSellerProductsProductIdEditRoute: typeof DashboardSellerProductsProductIdEditRoute
 }
@@ -516,7 +623,9 @@ const DashboardSellerRouteChildren: DashboardSellerRouteChildren = {
   DashboardSellerOnboardingRoute: DashboardSellerOnboardingRoute,
   DashboardSellerStoreRoute: DashboardSellerStoreRoute,
   DashboardSellerIndexRoute: DashboardSellerIndexRoute,
+  DashboardSellerOrdersOrderIdRoute: DashboardSellerOrdersOrderIdRoute,
   DashboardSellerProductsCreateRoute: DashboardSellerProductsCreateRoute,
+  DashboardSellerOrdersIndexRoute: DashboardSellerOrdersIndexRoute,
   DashboardSellerProductsIndexRoute: DashboardSellerProductsIndexRoute,
   DashboardSellerProductsProductIdEditRoute:
     DashboardSellerProductsProductIdEditRoute,
