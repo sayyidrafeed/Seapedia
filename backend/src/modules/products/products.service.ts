@@ -1,15 +1,24 @@
 import { db } from '@/db';
-import { products } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { products, stores } from '@/db/schema';
+import { eq, and, ilike, or } from 'drizzle-orm';
 import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/errors';
 import { StoreService } from '@/modules/stores/stores.service';
 
 export class ProductsService {
+  static slugify(text: string) {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '')
+      .replace(/-+/g, '-');
+  }
+
   static async createSellerProduct(
     sellerId: string,
     input: { name: string; description?: string | null; price: number; stock: number },
   ) {
-    // A Seller may only create products under their own store.
     const store = await StoreService.getBySellerId(sellerId);
     if (!store) {
       throw new ForbiddenError('You must have a store to create products');
@@ -22,11 +31,14 @@ export class ProductsService {
       throw new ValidationError('Stock cannot be negative');
     }
 
+    const slug = ProductsService.slugify(input.name);
+
     const [product] = await db
       .insert(products)
       .values({
         storeId: store.id,
         name: input.name,
+        slug,
         description: input.description,
         price: input.price,
         stock: input.stock,
@@ -91,10 +103,16 @@ export class ProductsService {
       throw new ValidationError('Stock cannot be negative');
     }
 
+    let slug = product.slug;
+    if (input.name && input.name !== product.name) {
+      slug = ProductsService.slugify(input.name);
+    }
+
     const [updatedProduct] = await db
       .update(products)
       .set({
         name: input.name ?? product.name,
+        slug,
         description: input.description !== undefined ? input.description : product.description,
         price: input.price ?? product.price,
         stock: input.stock ?? product.stock,

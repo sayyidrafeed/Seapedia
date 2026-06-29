@@ -4,6 +4,16 @@ import { eq, ilike } from 'drizzle-orm';
 import { ConflictError, NotFoundError } from '@/lib/errors';
 
 export class StoreService {
+  static slugify(text: string) {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-') // Replace spaces with -
+      .replace(/[^\w-]+/g, '') // Remove all non-word chars
+      .replace(/-+/g, '-'); // Replace multiple - with single -
+  }
+
   static async create(userId: string, input: { name: string; description?: string }) {
     const existingStore = await db.query.stores.findFirst({
       where: eq(stores.sellerId, userId),
@@ -21,11 +31,14 @@ export class StoreService {
       throw new ConflictError('Store name is already used');
     }
 
+    const slug = StoreService.slugify(input.name);
+
     const [newStore] = await db
       .insert(stores)
       .values({
         sellerId: userId,
         name: input.name,
+        slug,
         description: input.description,
       })
       .returning();
@@ -54,6 +67,7 @@ export class StoreService {
       throw new NotFoundError('Store not found');
     }
 
+    let slug = store.slug;
     if (input.name && input.name !== store.name) {
       const existingName = await db.query.stores.findFirst({
         where: ilike(stores.name, input.name),
@@ -62,12 +76,14 @@ export class StoreService {
       if (existingName) {
         throw new ConflictError('Store name is already used');
       }
+      slug = StoreService.slugify(input.name);
     }
 
     const [updatedStore] = await db
       .update(stores)
       .set({
         name: input.name ?? store.name,
+        slug,
         description: input.description ?? store.description,
         updatedAt: new Date(),
       })
