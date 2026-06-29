@@ -223,28 +223,32 @@ The public catalog should now stop relying only on dummy data. Buyers and guests
 
 #### Requirements:
 
-- Create a public endpoint for listing products.
-- Create a public endpoint for viewing product details.
-- Display store information in the product listing or product detail page.
-- Create a store detail page or at least a store information block inside product details.
+- [x] Create a public endpoint for listing products.
+- [x] Create a public endpoint for viewing product details.
+- [x] Display store information in the product listing or product detail page.
+- [x] Create a store detail page or at least a store information block inside product details.
 
 #### Business Rules:
 
-- Guests may view the catalog and product details without logging in.
-- Guests must not be able to create, update, delete, or checkout products.
+- [x] Guests may view the catalog and product details without logging in.
+- [x] Guests must not be able to create, update, delete, or checkout products.
 
 #### Deliverables:
 
-- A functional Seller dashboard.
-- Integrated product CRUD for Sellers.
-- A public product catalog using backend data.
-- A complete demo flow for guest browsing, login, role selection, store creation, and product management.
+- [x] A functional Seller dashboard.
+- [x] Integrated product CRUD for Sellers.
+- [x] A public product catalog using backend data.
+- [x] A complete demo flow for guest browsing, login, role selection, store creation, and product management.
 
 After this level, SEAPEDIA should have a real seller-side foundation. Guests can browse products, Sellers can manage their stores and products, and the marketplace is ready for buyer-side transaction features.
+
+#### Level 2 — Complete
 
 ---
 
 ## Level 3: Buyer Wallet, Cart, and Checkout (Total 20 pts)
+
+> **Current focus — Level 3 in progress**
 
 SEAPEDIA is now ready to support the Buyer experience. Buyers need more than a product catalog: they need a wallet, delivery address, cart, shipping method, and checkout process. This level introduces the first real transaction flow in the application, so the frontend and backend must work together carefully.
 
@@ -254,16 +258,16 @@ Your task is to create the buyer-side resources that are needed before checkout 
 
 #### Requirements:
 
-- Create a Buyer wallet or balance resource.
-- Create a dummy top-up flow for Buyers.
-- Store and display wallet transaction history.
-- Create delivery address management for Buyers.
-- Display the Buyer balance and top-up history in the Buyer dashboard.
+- [ ] Create a Buyer wallet or balance resource.
+- [ ] Create a dummy top-up flow for Buyers.
+- [ ] Store and display wallet transaction history.
+- [ ] Create delivery address management for Buyers.
+- [ ] Display the Buyer balance and top-up history in the Buyer dashboard.
 
 #### Business Rules:
 
-- Only users with the active Buyer role may access Buyer wallet and address features.
-- The Buyer wallet must be usable by the checkout flow.
+- [ ] Only users with the active Buyer role may access Buyer wallet and address features.
+- [ ] The Buyer wallet must be usable by the checkout flow.
 
 ### Implement Cart Management (5 pts)
 
@@ -271,16 +275,16 @@ Your task is to build a cart system that allows Buyers to prepare products befor
 
 #### Requirements:
 
-- Allow Buyers to add products to cart.
-- Allow Buyers to update product quantities.
-- Allow Buyers to remove products from cart.
-- Create a cart summary endpoint and cart summary UI.
-- Implement single-store checkout: one cart can only contain products from one store.
+- [ ] Allow Buyers to add products to cart.
+- [ ] Allow Buyers to update product quantities.
+- [ ] Allow Buyers to remove products from cart.
+- [ ] Create a cart summary endpoint and cart summary UI.
+- [ ] Implement single-store checkout: one cart can only contain products from one store.
 
 #### Business Rules:
 
-- The cart must reject products from a different store or clearly handle the conflict before adding them.
-- The single-store checkout behavior must be visible in the UI and documented in the README.
+- [ ] The cart must reject products from a different store or clearly handle the conflict before adding them.
+- [ ] The single-store checkout behavior must be visible in the UI and documented in the README.
 
 ### Create Checkout and Basic Orders (10 pts)
 
@@ -288,30 +292,30 @@ Your task is to implement the first working checkout flow. This is where product
 
 #### Requirements:
 
-- Create a checkout or create order endpoint.
-- Support delivery methods: Instant, Next Day, and Regular.
-- Calculate subtotal, delivery fee, PPN 12%, and final total.
-- Display the checkout summary in the UI before confirmation.
-- Create an order based on the single-store checkout behavior.
-- Reduce product stock safely after a successful checkout.
-- Create order history and order detail views for Buyers.
-- Create an incoming order list for Sellers.
-- Store order status history with timestamps.
+- [ ] Create a checkout or create order endpoint.
+- [ ] Support delivery methods: Instant, Next Day, and Regular.
+- [ ] Calculate subtotal, delivery fee, PPN 12%, and final total.
+- [ ] Display the checkout summary in the UI before confirmation.
+- [ ] Create an order based on the single-store checkout behavior.
+- [ ] Reduce product stock safely after a successful checkout.
+- [ ] Create order history and order detail views for Buyers.
+- [ ] Create an incoming order list for Sellers.
+- [ ] Store order status history with timestamps.
 
 #### Business Rules:
 
-- Buyers cannot checkout if their wallet balance is insufficient.
-- Delivery fee must be different depending on the selected delivery method.
-- PPN must be shown as 12% in the checkout summary. If your tax base differs, explain it clearly in the README.
-- After successful checkout, the initial order status must be Sedang Dikemas.
-- Stock reduction must not allow negative stock.
+- [ ] Buyers cannot checkout if their wallet balance is insufficient.
+- [ ] Delivery fee must be different depending on the selected delivery method.
+- [ ] PPN must be shown as 12% in the checkout summary. If your tax base differs, explain it clearly in the README.
+- [ ] After successful checkout, the initial order status must be Sedang Dikemas.
+- [ ] Stock reduction must not allow negative stock.
 
 #### Deliverables:
 
-- A working flow from Buyer top-up to cart to checkout.
-- Buyer order history and order detail pages.
-- Seller incoming order list.
-- Backend APIs for wallet, address, cart, checkout, tax calculation, and basic order history.
+- [ ] A working flow from Buyer top-up to cart to checkout.
+- [ ] Buyer order history and order detail pages.
+- [ ] Seller incoming order list.
+- [ ] Backend APIs for wallet, address, cart, checkout, tax calculation, and basic order history.
 
 After this level, SEAPEDIA should be able to process a complete basic purchase. The order does not need discounts or delivery drivers yet, but Buyers should already be able to pay using their wallet and see the order appear in the system.
 
@@ -593,43 +597,43 @@ For the final assessment, the project should be demonstrable as one integrated s
 
 ### Guest, Review, and Authentication Flow
 
-- Guest can browse the product catalog and product details.
-- Guest or logged-in user can submit an application review with rating and comment without checkout or transaction history.
-- Submitted application reviews are displayed safely on the public interface.
-- User can register and login.
-- Multi-role user can choose an active role.
-- Private dashboards are protected based on the active role.
+- [x] Guest can browse the product catalog and product details.
+- [x] Guest or logged-in user can submit an application review with rating and comment without checkout or transaction history.
+- [x] Submitted application reviews are displayed safely on the public interface.
+- [x] User can register and login.
+- [x] Multi-role user can choose an active role.
+- [x] Private dashboards are protected based on the active role.
 
 ### Seller Flow
 
-- Seller can create a store with a unique store name.
-- Seller can create, update, and delete products.
-- Seller products appear in the public catalog.
-- Seller can process incoming orders from Sedang Dikemas to Menunggu Pengirim.
+- [x] Seller can create a store with a unique store name.
+- [x] Seller can create, update, and delete products.
+- [x] Seller products appear in the public catalog.
+- [ ] Seller can process incoming orders from Sedang Dikemas to Menunggu Pengirim.
 
 ### Buyer Flow
 
-- Buyer can top up balance using dummy top-up.
-- Buyer can manage delivery address and cart.
-- Buyer can checkout using a delivery method and optional Voucher or Promo.
-- Checkout summary shows subtotal, discount, delivery fee, PPN 12%, and final total.
-- Buyer can view order history, order detail, and status timeline.
+- [ ] Buyer can top up balance using dummy top-up.
+- [ ] Buyer can manage delivery address and cart.
+- [ ] Buyer can checkout using a delivery method and optional Voucher or Promo.
+- [ ] Checkout summary shows subtotal, discount, delivery fee, PPN 12%, and final total.
+- [ ] Buyer can view order history, order detail, and status timeline.
 
 ### Driver Flow
 
-- Driver can find available jobs.
-- Driver can take an available job.
-- Driver can confirm a completed job.
-- Driver can view job history and earnings.
+- [ ] Driver can find available jobs.
+- [ ] Driver can take an available job.
+- [ ] Driver can confirm a completed job.
+- [ ] Driver can view job history and earnings.
 
 ### Admin, Overdue, and Security Flow
 
-- Admin can monitor users, stores, products, orders, discounts, deliveries, and overdue orders.
-- Admin can generate and view Voucher and Promo data.
-- The system can simulate the next day or an equivalent time progression.
-- At least one auto return or auto refund scenario can be demonstrated successfully.
-- SQL Injection and XSS test cases can be demonstrated as safely handled.
-- Role-based access control works from the backend, not only from the frontend UI.
+- [ ] Admin can monitor users, stores, products, orders, discounts, deliveries, and overdue orders.
+- [ ] Admin can generate and view Voucher and Promo data.
+- [ ] The system can simulate the next day or an equivalent time progression.
+- [ ] At least one auto return or auto refund scenario can be demonstrated successfully.
+- [ ] SQL Injection and XSS test cases can be demonstrated as safely handled.
+- [ ] Role-based access control works from the backend, not only from the frontend UI.
 
 ---
 
