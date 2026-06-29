@@ -42,6 +42,15 @@ export function NavbarMobile({
             Profile
           </Link>
         )}
+        {auth.activeRole === 'buyer' && (
+          <Link
+            to="/dashboard/buyer/cart"
+            onClick={() => setMobileMenuOpen(false)}
+            className="transition-colors hover:text-foreground/80 text-foreground py-1 flex items-center justify-between"
+          >
+            <span>Cart</span>
+          </Link>
+        )}
       </nav>
 
       {auth.user ? (

@@ -49,35 +49,31 @@ app.route('/api/private', privateRouter);
 app.route('/api/stores', storesRouter);
 app.route('/api/buyers', buyersRouter);
 
-let openApiCache: Record<string, unknown> | null = null;
-
 app.get('/openapi.json', async (c) => {
-  if (!openApiCache) {
-    const spec = await generateSpecs(app, {
-      documentation: {
-        openapi: '3.0.0',
-        info: {
-          title: 'Seapedia API',
-          version: '1.0.0',
-          description: 'Seapedia REST API',
-        },
-        servers: [{ url: 'http://localhost:3001' }],
-        components: {
-          securitySchemes: {
-            cookieAuth: {
-              type: 'apiKey',
-              in: 'cookie',
-              name: '__session',
-            },
+  const spec = await generateSpecs(app, {
+    documentation: {
+      openapi: '3.0.0',
+      info: {
+        title: 'Seapedia API',
+        version: '1.0.0',
+        description: 'Seapedia REST API',
+      },
+      servers: [{ url: 'http://localhost:3001' }],
+      components: {
+        securitySchemes: {
+          cookieAuth: {
+            type: 'apiKey',
+            in: 'cookie',
+            name: '__session',
           },
         },
       },
-      excludeMethods: ['OPTIONS', 'HEAD'],
-    });
-    openApiCache = hoistDefs(spec) as Record<string, unknown>;
-  }
+    },
+    excludeMethods: ['OPTIONS', 'HEAD'],
+  });
+  const updatedSpec = hoistDefs(spec) as Record<string, unknown>;
 
-  return c.json(openApiCache);
+  return c.json(updatedSpec);
 });
 
 app.get(

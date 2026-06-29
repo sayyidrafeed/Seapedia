@@ -122,7 +122,7 @@ seapedia/
 
 ### Single-Store Checkout Rule
 
-SEAPEDIA is a multi-seller marketplace, but each cart may only contain products from **one store**. If a buyer tries to add a product from a different store, the system prevents the addition and displays an explanatory message. This rule is enforced on both the frontend (UI guard) and backend (API validation).
+SEAPEDIA is a multi-seller marketplace, but each cart may only contain products from **one store**. If a buyer tries to add a product from a different store, the system prevents the addition and displays an explanatory confirmation dialog. The buyer can choose to cancel the action or clear the cart and switch to the new store. This rule is enforced on both the frontend (UI guard) and backend (API validation).
 
 ### Discount System
 

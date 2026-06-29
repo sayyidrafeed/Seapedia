@@ -589,3 +589,87 @@ export const zSetDefaultAddressPath = z.object({
 export const zSetDefaultAddressResponse = z.object({
   success: z.boolean(),
 });
+
+/**
+ * Cart cleared successfully
+ */
+export const zClearCartResponse = z.object({
+  success: z.boolean(),
+});
+
+/**
+ * Cart summary details
+ */
+export const zGetBuyerCartResponse = z.object({
+  id: z.string(),
+  buyerId: z.string(),
+  storeId: z.union([z.string(), z.unknown()]),
+  storeName: z.union([z.string(), z.unknown()]),
+  storeSlug: z.union([z.string(), z.unknown()]),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      productId: z.string(),
+      quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+      product: z.object({
+        id: z.string(),
+        name: z.string(),
+        slug: z.string(),
+        price: z.int().gte(-9007199254740991).lte(9007199254740991),
+        stock: z.int().gte(-9007199254740991).lte(9007199254740991),
+      }),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+    }),
+  ),
+  subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalItems: z.int().gte(-9007199254740991).lte(9007199254740991),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zAddCartItemBody = z.object({
+  productId: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+  quantity: z.int().gte(1).lte(9007199254740991),
+});
+
+/**
+ * Item added/updated successfully
+ */
+export const zAddCartItemResponse = z.object({
+  id: z.string(),
+  productId: z.string(),
+  quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+});
+
+export const zDeleteCartItemPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Item deleted successfully
+ */
+export const zDeleteCartItemResponse = z.object({
+  success: z.boolean(),
+});
+
+export const zUpdateCartItemBody = z.object({
+  quantity: z.int().gte(1).lte(9007199254740991),
+});
+
+export const zUpdateCartItemPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Item quantity updated successfully
+ */
+export const zUpdateCartItemResponse = z.object({
+  id: z.string(),
+  productId: z.string(),
+  quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+});

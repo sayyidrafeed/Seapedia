@@ -1747,3 +1747,273 @@ export type SetDefaultAddressResponses = {
 
 export type SetDefaultAddressResponse =
   SetDefaultAddressResponses[keyof SetDefaultAddressResponses];
+
+export type ClearCartData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/buyers/cart';
+};
+
+export type ClearCartErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ClearCartError = ClearCartErrors[keyof ClearCartErrors];
+
+export type ClearCartResponses = {
+  /**
+   * Cart cleared successfully
+   */
+  200: {
+    success: boolean;
+  };
+};
+
+export type ClearCartResponse = ClearCartResponses[keyof ClearCartResponses];
+
+export type GetBuyerCartData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/buyers/cart';
+};
+
+export type GetBuyerCartErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetBuyerCartError = GetBuyerCartErrors[keyof GetBuyerCartErrors];
+
+export type GetBuyerCartResponses = {
+  /**
+   * Cart summary details
+   */
+  200: {
+    id: string;
+    buyerId: string;
+    storeId: string | unknown;
+    storeName: string | unknown;
+    storeSlug: string | unknown;
+    items: Array<{
+      id: string;
+      productId: string;
+      quantity: number;
+      product: {
+        id: string;
+        name: string;
+        slug: string;
+        price: number;
+        stock: number;
+      };
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    subtotal: number;
+    totalItems: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetBuyerCartResponse = GetBuyerCartResponses[keyof GetBuyerCartResponses];
+
+export type AddCartItemData = {
+  body: {
+    productId: string;
+    quantity: number;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/buyers/cart/items';
+};
+
+export type AddCartItemErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type AddCartItemError = AddCartItemErrors[keyof AddCartItemErrors];
+
+export type AddCartItemResponses = {
+  /**
+   * Item added/updated successfully
+   */
+  200: {
+    id: string;
+    productId: string;
+    quantity: number;
+  };
+};
+
+export type AddCartItemResponse = AddCartItemResponses[keyof AddCartItemResponses];
+
+export type DeleteCartItemData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/buyers/cart/items/{id}';
+};
+
+export type DeleteCartItemErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type DeleteCartItemError = DeleteCartItemErrors[keyof DeleteCartItemErrors];
+
+export type DeleteCartItemResponses = {
+  /**
+   * Item deleted successfully
+   */
+  200: {
+    success: boolean;
+  };
+};
+
+export type DeleteCartItemResponse = DeleteCartItemResponses[keyof DeleteCartItemResponses];
+
+export type UpdateCartItemData = {
+  body: {
+    quantity: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/buyers/cart/items/{id}';
+};
+
+export type UpdateCartItemErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type UpdateCartItemError = UpdateCartItemErrors[keyof UpdateCartItemErrors];
+
+export type UpdateCartItemResponses = {
+  /**
+   * Item quantity updated successfully
+   */
+  200: {
+    id: string;
+    productId: string;
+    quantity: number;
+  };
+};
+
+export type UpdateCartItemResponse = UpdateCartItemResponses[keyof UpdateCartItemResponses];
