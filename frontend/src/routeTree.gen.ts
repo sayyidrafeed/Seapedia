@@ -25,6 +25,9 @@ import { Route as StoreSlugProductSlugRouteImport } from './routes/$storeSlug/$p
 import { Route as DashboardSellerIndexRouteImport } from './routes/dashboard/seller/index'
 import { Route as DashboardSellerStoreRouteImport } from './routes/dashboard/seller/store'
 import { Route as DashboardSellerOnboardingRouteImport } from './routes/dashboard/seller/onboarding'
+import { Route as DashboardSellerProductsIndexRouteImport } from './routes/dashboard/seller/products/index'
+import { Route as DashboardSellerProductsCreateRouteImport } from './routes/dashboard/seller/products/create'
+import { Route as DashboardSellerProductsProductIdEditRouteImport } from './routes/dashboard/seller/products/$productId/edit'
 
 const SelectRoleRoute = SelectRoleRouteImport.update({
   id: '/select-role',
@@ -107,6 +110,24 @@ const DashboardSellerOnboardingRoute =
     path: '/onboarding',
     getParentRoute: () => DashboardSellerRoute,
   } as any)
+const DashboardSellerProductsIndexRoute =
+  DashboardSellerProductsIndexRouteImport.update({
+    id: '/products/',
+    path: '/products/',
+    getParentRoute: () => DashboardSellerRoute,
+  } as any)
+const DashboardSellerProductsCreateRoute =
+  DashboardSellerProductsCreateRouteImport.update({
+    id: '/products/create',
+    path: '/products/create',
+    getParentRoute: () => DashboardSellerRoute,
+  } as any)
+const DashboardSellerProductsProductIdEditRoute =
+  DashboardSellerProductsProductIdEditRouteImport.update({
+    id: '/products/$productId/edit',
+    path: '/products/$productId/edit',
+    getParentRoute: () => DashboardSellerRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -125,6 +146,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
+  '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
+  '/dashboard/seller/products/': typeof DashboardSellerProductsIndexRoute
+  '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +166,9 @@ export interface FileRoutesByTo {
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/seller': typeof DashboardSellerIndexRoute
+  '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
+  '/dashboard/seller/products': typeof DashboardSellerProductsIndexRoute
+  '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -161,6 +188,9 @@ export interface FileRoutesById {
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
+  '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
+  '/dashboard/seller/products/': typeof DashboardSellerProductsIndexRoute
+  '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +211,9 @@ export interface FileRouteTypes {
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
     | '/dashboard/seller/'
+    | '/dashboard/seller/products/create'
+    | '/dashboard/seller/products/'
+    | '/dashboard/seller/products/$productId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -198,6 +231,9 @@ export interface FileRouteTypes {
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
     | '/dashboard/seller'
+    | '/dashboard/seller/products/create'
+    | '/dashboard/seller/products'
+    | '/dashboard/seller/products/$productId/edit'
   id:
     | '__root__'
     | '/'
@@ -216,6 +252,9 @@ export interface FileRouteTypes {
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
     | '/dashboard/seller/'
+    | '/dashboard/seller/products/create'
+    | '/dashboard/seller/products/'
+    | '/dashboard/seller/products/$productId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -348,6 +387,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSellerOnboardingRouteImport
       parentRoute: typeof DashboardSellerRoute
     }
+    '/dashboard/seller/products/': {
+      id: '/dashboard/seller/products/'
+      path: '/products'
+      fullPath: '/dashboard/seller/products/'
+      preLoaderRoute: typeof DashboardSellerProductsIndexRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/seller/products/create': {
+      id: '/dashboard/seller/products/create'
+      path: '/products/create'
+      fullPath: '/dashboard/seller/products/create'
+      preLoaderRoute: typeof DashboardSellerProductsCreateRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/seller/products/$productId/edit': {
+      id: '/dashboard/seller/products/$productId/edit'
+      path: '/products/$productId/edit'
+      fullPath: '/dashboard/seller/products/$productId/edit'
+      preLoaderRoute: typeof DashboardSellerProductsProductIdEditRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
   }
 }
 
@@ -355,12 +415,19 @@ interface DashboardSellerRouteChildren {
   DashboardSellerOnboardingRoute: typeof DashboardSellerOnboardingRoute
   DashboardSellerStoreRoute: typeof DashboardSellerStoreRoute
   DashboardSellerIndexRoute: typeof DashboardSellerIndexRoute
+  DashboardSellerProductsCreateRoute: typeof DashboardSellerProductsCreateRoute
+  DashboardSellerProductsIndexRoute: typeof DashboardSellerProductsIndexRoute
+  DashboardSellerProductsProductIdEditRoute: typeof DashboardSellerProductsProductIdEditRoute
 }
 
 const DashboardSellerRouteChildren: DashboardSellerRouteChildren = {
   DashboardSellerOnboardingRoute: DashboardSellerOnboardingRoute,
   DashboardSellerStoreRoute: DashboardSellerStoreRoute,
   DashboardSellerIndexRoute: DashboardSellerIndexRoute,
+  DashboardSellerProductsCreateRoute: DashboardSellerProductsCreateRoute,
+  DashboardSellerProductsIndexRoute: DashboardSellerProductsIndexRoute,
+  DashboardSellerProductsProductIdEditRoute:
+    DashboardSellerProductsProductIdEditRoute,
 }
 
 const DashboardSellerRouteWithChildren = DashboardSellerRoute._addFileChildren(
