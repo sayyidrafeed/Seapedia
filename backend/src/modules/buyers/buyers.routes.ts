@@ -12,13 +12,16 @@ import {
   addressRequestSchema,
   addressResponseSchema,
 } from './buyers.schemas';
+import {
+  cartItemRequestSchema,
+  updateCartItemRequestSchema,
+  cartSummaryResponseSchema,
+} from './buyers-cart.schemas';
 import { BuyersService } from './buyers.service';
+import { BuyersCartService } from './buyers-cart.service';
 import { z } from 'zod';
 
 export const buyersRouter = factory.createApp();
-
-// Secure all endpoints with session + buyer role checks
-buyersRouter.use('*', requireSession, requireRole('buyer'));
 
 buyersRouter.get(
   '/wallet',
@@ -26,11 +29,14 @@ buyersRouter.get(
     operationId: 'getBuyerWallet',
     tags: ['Buyer Wallet'],
     summary: 'Get buyer wallet balance',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(walletResponseSchema, 'Wallet details'),
       ...errorResponses(401, 403, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   async (c) => {
     const userId = c.get('userId') as string;
     const wallet = await BuyersService.getOrCreateWallet(userId);
@@ -51,11 +57,14 @@ buyersRouter.post(
     operationId: 'requestTopUp',
     tags: ['Buyer Wallet'],
     summary: 'Initiate a simulated top-up request',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(topUpResponseSchema, 'Top-up transaction initialized'),
       ...errorResponses(400, 401, 403, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   validator('json', topUpRequestSchema),
   async (c) => {
     const userId = c.get('userId') as string;
@@ -85,11 +94,14 @@ buyersRouter.post(
     operationId: 'simulateTopUp',
     tags: ['Buyer Wallet'],
     summary: 'Simulate successful payment for a top-up transaction',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(walletTransactionResponseSchema, 'Payment successful, wallet updated'),
       ...errorResponses(401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   async (c) => {
     const userId = c.get('userId') as string;
     const transactionId = c.req.param('transactionId');
@@ -115,11 +127,14 @@ buyersRouter.get(
     operationId: 'getWalletTransactions',
     tags: ['Buyer Wallet'],
     summary: 'Get wallet transaction history',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(walletTransactionsListSchema, 'List of transactions'),
       ...errorResponses(401, 403, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   async (c) => {
     const userId = c.get('userId') as string;
     const list = await BuyersService.getWalletTransactions(userId);
@@ -145,11 +160,14 @@ buyersRouter.get(
     operationId: 'getAddresses',
     tags: ['Buyer Addresses'],
     summary: 'List buyer delivery addresses',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(addressListResponseSchema, 'List of addresses'),
       ...errorResponses(401, 403, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   async (c) => {
     const userId = c.get('userId') as string;
     const list = await BuyersService.getAddresses(userId);
@@ -180,11 +198,14 @@ buyersRouter.post(
     operationId: 'createAddress',
     tags: ['Buyer Addresses'],
     summary: 'Add a new delivery address',
+    security: [{ cookieAuth: [] }],
     responses: {
       201: jsonContent(addressResponseSchema, 'Address created'),
       ...errorResponses(400, 401, 403, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   validator('json', addressRequestSchema),
   async (c) => {
     const userId = c.get('userId') as string;
@@ -217,11 +238,14 @@ buyersRouter.put(
     operationId: 'updateAddress',
     tags: ['Buyer Addresses'],
     summary: 'Update delivery address details',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(addressResponseSchema, 'Address updated'),
       ...errorResponses(400, 401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   validator('json', addressRequestSchema),
   async (c) => {
     const userId = c.get('userId') as string;
@@ -254,11 +278,14 @@ buyersRouter.put(
     operationId: 'setDefaultAddress',
     tags: ['Buyer Addresses'],
     summary: 'Set address as the default delivery address',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(z.object({ success: z.boolean() }), 'Default address set'),
       ...errorResponses(401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   async (c) => {
     const userId = c.get('userId') as string;
     const addressId = c.req.param('id');
@@ -275,17 +302,139 @@ buyersRouter.delete(
     operationId: 'deleteAddress',
     tags: ['Buyer Addresses'],
     summary: 'Delete a delivery address',
+    security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(z.object({ success: z.boolean() }), 'Address deleted'),
       ...errorResponses(401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('buyer'),
   async (c) => {
     const userId = c.get('userId') as string;
     const addressId = c.req.param('id');
 
     const result = await BuyersService.deleteAddress(userId, addressId);
 
+    return c.json(result);
+  },
+);
+
+buyersRouter.get(
+  '/cart',
+  describeRoute({
+    operationId: 'getBuyerCart',
+    tags: ['Buyer Cart'],
+    summary: 'Get buyer cart summary',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(cartSummaryResponseSchema, 'Cart summary details'),
+      ...errorResponses(401, 403, 500),
+    },
+  }),
+  requireSession,
+  requireRole('buyer'),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const summary = await BuyersCartService.getCartSummary(userId);
+    return c.json(summary);
+  },
+);
+
+buyersRouter.post(
+  '/cart/items',
+  describeRoute({
+    operationId: 'addCartItem',
+    tags: ['Buyer Cart'],
+    summary: 'Add an item to the buyer cart',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(z.object({ id: z.string(), productId: z.string(), quantity: z.number().int() }), 'Item added/updated successfully'),
+      ...errorResponses(400, 401, 403, 409, 500),
+    },
+  }),
+  requireSession,
+  requireRole('buyer'),
+  validator('json', cartItemRequestSchema),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const { productId, quantity } = c.req.valid('json');
+    const item = await BuyersCartService.addItemToCart(userId, productId, quantity);
+    return c.json({
+      id: item.id,
+      productId: item.productId,
+      quantity: item.quantity,
+    });
+  },
+);
+
+buyersRouter.put(
+  '/cart/items/:id',
+  describeRoute({
+    operationId: 'updateCartItem',
+    tags: ['Buyer Cart'],
+    summary: 'Update quantity of an item in the buyer cart',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(z.object({ id: z.string(), productId: z.string(), quantity: z.number().int() }), 'Item quantity updated successfully'),
+      ...errorResponses(400, 401, 403, 404, 500),
+    },
+  }),
+  requireSession,
+  requireRole('buyer'),
+  validator('json', updateCartItemRequestSchema),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const cartItemId = c.req.param('id');
+    const { quantity } = c.req.valid('json');
+    const item = await BuyersCartService.updateCartItemQuantity(userId, cartItemId, quantity);
+    return c.json({
+      id: item.id,
+      productId: item.productId,
+      quantity: item.quantity,
+    });
+  },
+);
+
+buyersRouter.delete(
+  '/cart/items/:id',
+  describeRoute({
+    operationId: 'deleteCartItem',
+    tags: ['Buyer Cart'],
+    summary: 'Delete an item from the buyer cart',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(z.object({ success: z.boolean() }), 'Item deleted successfully'),
+      ...errorResponses(401, 403, 404, 500),
+    },
+  }),
+  requireSession,
+  requireRole('buyer'),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const cartItemId = c.req.param('id');
+    const result = await BuyersCartService.removeCartItem(userId, cartItemId);
+    return c.json(result);
+  },
+);
+
+buyersRouter.delete(
+  '/cart',
+  describeRoute({
+    operationId: 'clearCart',
+    tags: ['Buyer Cart'],
+    summary: 'Clear all items from the buyer cart',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(z.object({ success: z.boolean() }), 'Cart cleared successfully'),
+      ...errorResponses(401, 403, 500),
+    },
+  }),
+  requireSession,
+  requireRole('buyer'),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const result = await BuyersCartService.clearCart(userId);
     return c.json(result);
   },
 );
