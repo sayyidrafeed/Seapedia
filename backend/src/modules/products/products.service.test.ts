@@ -1,0 +1,245 @@
+import { describe, expect, test, mock, beforeEach } from 'bun:test';
+
+const dbState = {
+  selectQueue: [] as unknown[][],
+  insertQueue: [] as unknown[][],
+  updateQueue: [] as unknown[][],
+  selectIdx: 0,
+  insertIdx: 0,
+  updateIdx: 0,
+
+  reset() {
+    this.selectQueue = [];
+    this.insertQueue = [];
+    this.updateQueue = [];
+    this.selectIdx = 0;
+    this.insertIdx = 0;
+    this.updateIdx = 0;
+  },
+
+  addSelect(data: unknown[]) {
+    this.selectQueue.push(data);
+  },
+  addInsert(data: unknown[]) {
+    this.insertQueue.push(data);
+  },
+  addUpdate(data: unknown[]) {
+    this.updateQueue.push(data);
+  },
+};
+
+mock.module('@/db', () => {
+  function makeSelect() {
+    return () => ({
+      from: () => ({
+        where: () => {
+          const idx = dbState.selectIdx++;
+          const data = dbState.selectQueue[idx] ?? [];
+          return Promise.resolve(data);
+        },
+      }),
+    });
+  }
+
+  function makeInsert() {
+    return () => ({
+      values: () => {
+        const idx = dbState.insertIdx;
+        return {
+          returning: () => {
+            dbState.insertIdx++;
+            return Promise.resolve(dbState.insertQueue[idx] ?? []);
+          },
+        };
+      },
+    });
+  }
+
+  function makeUpdate() {
+    return () => ({
+      set: () => ({
+        where: () => {
+          const idx = dbState.updateIdx;
+          return {
+            returning: () => {
+              dbState.updateIdx++;
+              return Promise.resolve(dbState.updateQueue[idx] ?? []);
+            },
+          };
+        },
+      }),
+    });
+  }
+
+  function makeDelete() {
+    return () => ({
+      where: () => Promise.resolve(),
+    });
+  }
+
+  const findFirstFn = () => {
+    return () => {
+      const idx = dbState.selectIdx++;
+      const data = dbState.selectQueue[idx] ?? [];
+      return Promise.resolve(data[0]);
+    };
+  };
+
+  const findManyFn = () => {
+    return () => {
+      const idx = dbState.selectIdx++;
+      const data = dbState.selectQueue[idx] ?? [];
+      return Promise.resolve(data);
+    };
+  };
+
+  const db = {
+    query: {
+      products: {
+        findFirst: findFirstFn(),
+        findMany: findManyFn(),
+      },
+      stores: {
+        findFirst: findFirstFn(),
+      },
+    },
+    select: makeSelect(),
+    insert: makeInsert(),
+    update: makeUpdate(),
+    delete: makeDelete(),
+  };
+
+  return { db };
+});
+
+import { ProductsService } from './products.service';
+
+const makeStore = (overrides: Record<string, unknown> = {}) => ({
+  id: 'store-1',
+  sellerId: 'seller-1',
+  name: 'Seller Store',
+  description: 'Desc',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...overrides,
+});
+
+const makeProduct = (overrides: Record<string, unknown> = {}) => ({
+  id: 'prod-1',
+  storeId: 'store-1',
+  name: 'Product Name',
+  description: 'Product Desc',
+  price: 100000,
+  stock: 10,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...overrides,
+});
+
+describe('ProductsService', () => {
+  beforeEach(() => {
+    dbState.reset();
+  });
+
+  describe('createSellerProduct', () => {
+    test('creates product under seller store', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addInsert([makeProduct()]); // Products insert
+
+      const result = await ProductsService.createSellerProduct('seller-1', {
+        name: 'Product Name',
+        description: 'Product Desc',
+        price: 100000,
+        stock: 10,
+      });
+
+      expect(result.id).toBe('prod-1');
+      expect(result.storeId).toBe('store-1');
+    });
+
+    test('throws error if seller has no store', async () => {
+      dbState.addSelect([]); // StoreService.getBySellerId returns null/undefined -> throws Store not found
+
+      await expect(
+        ProductsService.createSellerProduct('seller-1', {
+          name: 'Product Name',
+          price: 100000,
+          stock: 10,
+        }),
+      ).rejects.toThrow('Store not found');
+    });
+
+    test('throws ValidationError if price is negative', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+
+      await expect(
+        ProductsService.createSellerProduct('seller-1', {
+          name: 'Product Name',
+          price: -100,
+          stock: 10,
+        }),
+      ).rejects.toThrow('Price cannot be negative');
+    });
+
+    test('throws ValidationError if stock is negative', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+
+      await expect(
+        ProductsService.createSellerProduct('seller-1', {
+          name: 'Product Name',
+          price: 100000,
+          stock: -10,
+        }),
+      ).rejects.toThrow('Stock cannot be negative');
+    });
+  });
+
+  describe('getSellerProducts', () => {
+    test('returns seller products list', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([makeProduct(), makeProduct({ id: 'prod-2' })]); // findMany products
+
+      const result = await ProductsService.getSellerProducts('seller-1');
+
+      expect(result.length).toBe(2);
+      expect(result[0].id).toBe('prod-1');
+      expect(result[1].id).toBe('prod-2');
+    });
+  });
+
+  describe('updateSellerProduct', () => {
+    test('updates product successfully', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([makeProduct()]); // products.findFirst
+      dbState.addUpdate([makeProduct({ name: 'Updated Product Name' })]); // update products
+
+      const result = await ProductsService.updateSellerProduct('seller-1', 'prod-1', {
+        name: 'Updated Product Name',
+      });
+
+      expect(result.name).toBe('Updated Product Name');
+    });
+
+    test('throws NotFoundError if product is not found or from other store', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([]); // products.findFirst returns null
+
+      await expect(
+        ProductsService.updateSellerProduct('seller-1', 'prod-1', {
+          name: 'Updated Product Name',
+        }),
+      ).rejects.toThrow('Product not found or does not belong to your store');
+    });
+  });
+
+  describe('deleteSellerProduct', () => {
+    test('deletes product successfully', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([makeProduct()]); // products.findFirst
+
+      const result = await ProductsService.deleteSellerProduct('seller-1', 'prod-1');
+
+      expect(result.success).toBe(true);
+    });
+  });
+});
