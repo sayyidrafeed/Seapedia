@@ -75,17 +75,28 @@ export class ProductsService {
     return product;
   }
 
-  static async getSellerProducts(sellerId: string) {
+  static async getSellerProducts(sellerId: string, options?: { page?: number; limit?: number }) {
+    const { page = 1, limit = 20 } = options ?? {};
+    const offset = (page - 1) * limit;
+
     const store = await StoreService.getBySellerId(sellerId);
     if (!store) {
-      return [];
+      return { products: [], total: 0 };
     }
+
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(products)
+      .where(eq(products.storeId, store.id));
+    const total = Number(countResult[0]?.count ?? 0);
 
     const results = await db.query.products.findMany({
       where: eq(products.storeId, store.id),
+      limit,
+      offset,
     });
 
-    return results;
+    return { products: results, total };
   }
 
   static async getSellerProductById(sellerId: string, productId: string) {

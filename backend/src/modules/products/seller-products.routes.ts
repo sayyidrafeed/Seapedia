@@ -11,6 +11,7 @@ import {
 import { ProductsService } from './products.service';
 import { z } from 'zod';
 import { HTTPException } from 'hono/http-exception';
+import { paginationQuerySchema } from '@/lib/schemas';
 
 export const sellerProductsRouter = factory.createApp();
 
@@ -29,11 +30,13 @@ sellerProductsRouter.get(
       ...errorResponses(401, 403, 500),
     },
   }),
+  validator('query', paginationQuerySchema),
   async (c) => {
     const userId = c.get('userId');
     if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
 
-    const products = await ProductsService.getSellerProducts(userId);
+    const { page, limit } = c.req.valid('query');
+    const { products, total } = await ProductsService.getSellerProducts(userId, { page, limit });
     const formatted = products.map((p) => ({
       ...p,
       createdAt: p.createdAt.toISOString(),
@@ -42,7 +45,7 @@ sellerProductsRouter.get(
 
     return c.json({
       products: formatted,
-      total: formatted.length,
+      total,
     });
   },
 );
