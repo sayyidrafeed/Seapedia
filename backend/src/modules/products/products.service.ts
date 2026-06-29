@@ -15,6 +15,33 @@ export class ProductsService {
       .replace(/-+/g, '-');
   }
 
+  static async getUniqueProductSlug(
+    storeId: string,
+    name: string,
+    excludeProductId?: string,
+  ): Promise<string> {
+    const baseSlug = ProductsService.slugify(name);
+    let slug = baseSlug;
+    let suffix = 1;
+    while (true) {
+      const existing = await db.query.products.findFirst({
+        where: (products, { eq, ne, and }) => {
+          const conds = [eq(products.storeId, storeId), eq(products.slug, slug)];
+          if (excludeProductId) {
+            conds.push(ne(products.id, excludeProductId));
+          }
+          return and(...conds);
+        },
+      });
+      if (!existing) {
+        break;
+      }
+      slug = `${baseSlug}-${suffix}`;
+      suffix++;
+    }
+    return slug;
+  }
+
   static async createSellerProduct(
     sellerId: string,
     input: { name: string; description?: string | null; price: number; stock: number },
@@ -31,7 +58,7 @@ export class ProductsService {
       throw new ValidationError('Stock cannot be negative');
     }
 
-    const slug = ProductsService.slugify(input.name);
+    const slug = await ProductsService.getUniqueProductSlug(store.id, input.name);
 
     const [product] = await db
       .insert(products)
@@ -105,7 +132,7 @@ export class ProductsService {
 
     let slug = product.slug;
     if (input.name && input.name !== product.name) {
-      slug = ProductsService.slugify(input.name);
+      slug = await ProductsService.getUniqueProductSlug(store.id, input.name, productId);
     }
 
     const [updatedProduct] = await db

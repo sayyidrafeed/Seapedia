@@ -14,6 +14,29 @@ export class StoreService {
       .replace(/-+/g, '-'); // Replace multiple - with single -
   }
 
+  static async getUniqueSlug(name: string, excludeStoreId?: string): Promise<string> {
+    const baseSlug = StoreService.slugify(name);
+    let slug = baseSlug;
+    let suffix = 1;
+    while (true) {
+      const existing = await db.query.stores.findFirst({
+        where: (stores, { eq, ne, and }) => {
+          const conds = [eq(stores.slug, slug)];
+          if (excludeStoreId) {
+            conds.push(ne(stores.id, excludeStoreId));
+          }
+          return and(...conds);
+        },
+      });
+      if (!existing) {
+        break;
+      }
+      slug = `${baseSlug}-${suffix}`;
+      suffix++;
+    }
+    return slug;
+  }
+
   static async create(userId: string, input: { name: string; description?: string }) {
     const existingStore = await db.query.stores.findFirst({
       where: eq(stores.sellerId, userId),
@@ -31,7 +54,7 @@ export class StoreService {
       throw new ConflictError('Store name is already used');
     }
 
-    const slug = StoreService.slugify(input.name);
+    const slug = await StoreService.getUniqueSlug(input.name);
 
     const [newStore] = await db
       .insert(stores)
@@ -76,7 +99,7 @@ export class StoreService {
       if (existingName) {
         throw new ConflictError('Store name is already used');
       }
-      slug = StoreService.slugify(input.name);
+      slug = await StoreService.getUniqueSlug(input.name, store.id);
     }
 
     const [updatedStore] = await db
