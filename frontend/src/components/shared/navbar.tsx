@@ -1,6 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuth } from '@/lib/auth/context';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getBuyerCartOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 import {
   Menu,
   X,
@@ -11,6 +13,7 @@ import {
   Store,
   ShoppingBag,
   Truck,
+  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { NavbarMobile } from './navbar-mobile';
@@ -20,6 +23,11 @@ export function Navbar() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
+
+  const { data: cart } = useQuery({
+    ...getBuyerCartOptions(),
+    enabled: auth.activeRole === 'buyer',
+  });
 
   const handleLogout = async () => {
     await auth.logout();
@@ -106,6 +114,21 @@ export function Navbar() {
                 </Link>
               )}
 
+              {auth.activeRole === 'buyer' && (
+                <Link
+                  to="/dashboard/buyer/cart"
+                  className="relative p-2 text-foreground hover:bg-accent rounded-md transition-colors"
+                  title="Cart"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {cart && cart.totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                      {cart.totalItems}
+                    </span>
+                  )}
+                </Link>
+              )}
+
               {auth.activeRole && (
                 <div className="relative">
                   <Button
@@ -167,6 +190,21 @@ export function Navbar() {
 
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
+          {auth.activeRole === 'buyer' && (
+            <Link
+              to="/dashboard/buyer/cart"
+              className="relative p-2 text-foreground hover:bg-accent rounded-md transition-colors mr-1"
+              title="Cart"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cart && cart.totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {cart.totalItems}
+                </span>
+              )}
+            </Link>
+          )}
           {auth.isLoading ? (
             <span className="text-xs text-muted-foreground animate-pulse">Loading...</span>
           ) : (
