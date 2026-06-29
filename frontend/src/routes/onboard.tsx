@@ -46,7 +46,11 @@ function OnboardPage() {
         throwOnError: true,
       });
       await auth.refetchSession();
-      navigate({ to: '/' });
+      if (selectedRoles.includes('seller')) {
+        navigate({ to: '/dashboard/seller/onboarding' });
+      } else {
+        navigate({ to: '/' });
+      }
     } catch (err) {
       const msg =
         err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'

@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { createStore } from '@/lib/api/generated';
 import { useQueryClient } from '@tanstack/react-query';
+import { getCurrentSellerStoreQueryKey } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { zCreateStoreBody } from '@/lib/api/generated/zod.gen';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { z } from 'zod';
 
 export const Route = createFileRoute('/dashboard/seller/onboarding')({
@@ -15,6 +16,7 @@ function SellerOnboarding() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [errorMap, setErrorMap] = useState<string | null>(null);
+  const submitLock = useRef(false);
 
   const form = useForm({
     defaultValues: {
@@ -25,24 +27,30 @@ function SellerOnboarding() {
       onChange: zCreateStoreBody,
     },
     onSubmit: async ({ value }) => {
+      if (submitLock.current) return;
+      submitLock.current = true;
       setErrorMap(null);
-      const { error } = await createStore({
-        body: value,
-      });
+      try {
+        const { error } = await createStore({
+          body: value,
+        });
 
-      if (error) {
-        const err = error as { error?: string };
-        if (err.error === 'Store name is already used') {
-          setErrorMap('This store name is already taken. Please choose another.');
-        } else {
-          toast.error(err.error || 'Failed to create store');
+        if (error) {
+          const err = error as { error?: string };
+          if (err.error === 'Store name is already used') {
+            setErrorMap('This store name is already taken. Please choose another.');
+          } else {
+            toast.error(err.error || 'Failed to create store');
+          }
+          return;
         }
-        return;
-      }
 
-      toast.success('Store created successfully!');
-      await queryClient.invalidateQueries({ queryKey: ['getCurrentSellerStore'] });
-      navigate({ to: '/dashboard/seller' });
+        toast.success('Store created successfully!');
+        await queryClient.invalidateQueries({ queryKey: getCurrentSellerStoreQueryKey() });
+        navigate({ to: '/dashboard/seller' });
+      } finally {
+        submitLock.current = false;
+      }
     },
   });
 

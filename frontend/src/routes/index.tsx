@@ -95,14 +95,18 @@ function HomePage() {
                 className="group bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div className="space-y-2">
-                  <span className="text-xs text-primary font-semibold uppercase tracking-wider">
+                  <Link
+                    to="/$storeSlug"
+                    params={{ storeSlug: product.storeSlug }}
+                    className="text-xs text-primary font-semibold uppercase tracking-wider hover:underline"
+                  >
                     Store: {product.storeName}
-                  </span>
+                  </Link>
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                     {product.name}
                   </h3>
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {product.description}
+                    {(product.description as string) || ''}
                   </p>
                 </div>
 

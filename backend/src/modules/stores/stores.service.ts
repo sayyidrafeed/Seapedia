@@ -106,6 +106,12 @@ export class StoreService {
 
     if (!store) {
       store = await db.query.stores.findFirst({
+        where: eq(stores.slug, slugOrId.toLowerCase()),
+      });
+    }
+
+    if (!store) {
+      store = await db.query.stores.findFirst({
         where: ilike(stores.name, slugOrId),
       });
     }
