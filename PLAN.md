@@ -165,6 +165,8 @@ Since future levels will add many screens, your application should already have 
 
 After finishing this level, SEAPEDIA should already feel like a marketplace that can be used by different types of users. Guests can explore the public experience, early visitors can leave application reviews, and registered users can enter the system with a clear role context.
 
+#### Level 1 — Complete
+
 ---
 
 ## Level 2: Building the Seller Experience (Total 15 pts)
