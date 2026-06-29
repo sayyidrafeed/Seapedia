@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { OrderPriceSummary } from '@/components/orders/order-price-summary';
+import { DiscountCodeInput } from '@/components/orders/discount-code-input';
 import { formatCurrency } from '@/lib/utils';
 import { MapPin, Wallet, AlertCircle, ArrowLeft, Truck, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,6 +26,8 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('regular');
+  const [discountCode, setDiscountCode] = useState<string | null>(null);
+  const [discountType, setDiscountType] = useState<string | null>(null);
 
   // 1. Fetch Cart, Addresses, and Wallet
   const { data: cart, isLoading: isCartLoading } = useQuery(getBuyerCartOptions());
@@ -34,11 +37,14 @@ function CheckoutPage() {
   const defaultAddress = addresses?.find((a) => a.isDefault) || addresses?.[0];
 
   const { data: preview, isLoading: isPreviewLoading } = useQuery({
-    queryKey: ['checkout-preview', deliveryMethod, cart, defaultAddress?.id],
+    queryKey: ['checkout-preview', deliveryMethod, cart, defaultAddress?.id, discountCode],
     queryFn: async () => {
       if (!cart || cart.items.length === 0) return null;
       const { data, error } = await checkoutPreview({
-        body: { deliveryMethod },
+        body: {
+          deliveryMethod,
+          discountCode: discountCode || undefined,
+        },
       });
       if (error) {
         throw new Error(error.error || 'Failed to calculate checkout preview');
@@ -58,6 +64,7 @@ function CheckoutPage() {
         body: {
           deliveryMethod,
           addressId: defaultAddress.id,
+          discountCode: discountCode || undefined,
         },
       });
       if (error) {
@@ -255,6 +262,32 @@ function CheckoutPage() {
             </Card>
           )}
 
+          {/* Discount Section */}
+          {defaultAddress && cart && (
+            <Card className="border border-border/80 shadow-sm overflow-hidden hover:border-primary/20 transition duration-200">
+              <CardContent className="p-6">
+                <DiscountCodeInput
+                  subtotal={cart.subtotal}
+                  appliedCode={discountCode}
+                  appliedType={discountType}
+                  appliedAmount={preview?.discountAmount || null}
+                  onApply={(code, amount, type) => {
+                    setDiscountCode(code);
+                    setDiscountType(type);
+                    toast.success(
+                      `Discount code ${code} applied successfully! Saved ${formatCurrency(amount)}`,
+                    );
+                  }}
+                  onRemove={() => {
+                    setDiscountCode(null);
+                    setDiscountType(null);
+                    toast.info('Discount code removed');
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           {/* Items Summary (Read-Only) */}
           <Card className="border border-border/80 shadow-sm overflow-hidden hover:border-primary/20 transition duration-200">
             <div className="bg-muted/50 p-4 border-b border-border/80">
@@ -304,6 +337,9 @@ function CheckoutPage() {
             ) : preview ? (
               <OrderPriceSummary
                 subtotal={preview.subtotal}
+                discountAmount={preview.discountAmount}
+                discountCode={preview.discountCode as string | null}
+                discountType={preview.discountType as string | null}
                 deliveryFee={preview.deliveryFee}
                 ppn={preview.ppn}
                 totalAmount={preview.totalAmount}

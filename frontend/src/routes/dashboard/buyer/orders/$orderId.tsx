@@ -183,6 +183,9 @@ function BuyerOrderDetailPage() {
 
             <OrderPriceSummary
               subtotal={order.subtotal}
+              discountAmount={order.discountAmount}
+              discountCode={order.discountCode as string | null}
+              discountType={order.discountType as string | null}
               deliveryFee={order.deliveryFee}
               ppn={order.ppn}
               totalAmount={order.totalAmount}
