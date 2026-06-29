@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { listProducts } from '@/lib/api/generated/sdk.gen';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,16 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
 
   // Products query
   const {
@@ -21,10 +31,10 @@ function HomePage() {
     isLoading: loadingProducts,
     error: productsError,
   } = useQuery({
-    queryKey: ['products', search],
+    queryKey: ['products', debouncedSearch],
     queryFn: async () => {
       const res = await listProducts({
-        query: { search: search || undefined },
+        query: { search: debouncedSearch || undefined },
         throwOnError: true,
       });
       return res.data;
