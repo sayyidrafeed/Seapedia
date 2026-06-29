@@ -201,17 +201,21 @@ After creating a store, Sellers need tools to manage the products they want to s
 
 #### Requirements:
 
-- Create product data with fields such as product name, description, price, stock, and store owner.
-- Create Seller endpoints and UI for creating products.
-- Create Seller endpoints and UI for updating products.
-- Create Seller endpoints and UI for deleting products.
-- Create a Seller dashboard page that lists products owned by the logged-in Seller.
+- [x] Create product data with fields such as product name, description, price, stock, and store owner.
+- [x] Create Seller endpoints and UI for creating products.
+- [x] Create Seller endpoints and UI for updating products.
+- [x] Create Seller endpoints and UI for deleting products.
+- [x] Create a Seller dashboard page that lists products owned by the logged-in Seller.
 
 #### Business Rules:
 
-- A Seller may only create products under their own store.
-- A Seller may only update or delete products that belong to them.
-- Product stock must be stored because it will be used during checkout in later levels.
+- [x] A Seller may only create products under their own store.
+- [x] A Seller may only update or delete products that belong to them.
+- [x] Product stock must be stored because it will be used during checkout in later levels.
+
+#### Implement Product Management for Sellers — Complete
+
+---
 
 ### Connect Products to the Public Catalog (4 pts)
 
