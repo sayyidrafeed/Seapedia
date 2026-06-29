@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ export const Route = createFileRoute('/dashboard/seller')({
 function SellerLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     data: store,
@@ -46,15 +47,15 @@ function SellerLayout() {
 
       if (isNotFoundError) {
         // No store found, redirect to onboarding if not already there
-        if (window.location.pathname !== '/dashboard/seller/onboarding') {
+        if (location.pathname !== '/dashboard/seller/onboarding') {
           navigate({ to: '/dashboard/seller/onboarding' });
         }
-      } else if (store && window.location.pathname === '/dashboard/seller/onboarding') {
+      } else if (store && location.pathname === '/dashboard/seller/onboarding') {
         // Store exists, redirect away from onboarding
         navigate({ to: '/dashboard/seller' });
       }
     }
-  }, [auth.activeRole, isStoreLoading, storeError, store, navigate]);
+  }, [auth.activeRole, isStoreLoading, storeError, store, navigate, location.pathname]);
 
   if (auth.isLoading || auth.activeRole !== 'seller' || isStoreLoading) {
     return (
@@ -92,7 +93,7 @@ function SellerLayout() {
               Store Profile
             </button>
             <button
-              onClick={() => navigate({ to: `/store/${store.name}` })}
+              onClick={() => navigate({ to: `/${store.name}` })}
               className="text-sm font-medium hover:underline text-muted-foreground"
             >
               View Public Store

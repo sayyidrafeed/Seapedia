@@ -36,8 +36,10 @@ import {
 } from '../sdk.gen';
 import type {
   CreateStoreData,
+  CreateStoreError,
   CreateStoreResponse,
   GetCurrentSellerStoreData,
+  GetCurrentSellerStoreError,
   GetCurrentSellerStoreResponse,
   GetCurrentSessionData,
   GetCurrentSessionError,
@@ -55,6 +57,7 @@ import type {
   GetProductBySlugError,
   GetProductBySlugResponse,
   GetPublicStoreInfoData,
+  GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
   HealthCheckData,
   HealthCheckResponse,
@@ -95,6 +98,7 @@ import type {
   SubmitReviewError,
   SubmitReviewResponse,
   UpdateCurrentSellerStoreData,
+  UpdateCurrentSellerStoreError,
   UpdateCurrentSellerStoreResponse,
 } from '../types.gen';
 
@@ -666,10 +670,10 @@ export const privateDriverEndpointOptions = (options?: Options<PrivateDriverEndp
  */
 export const createStoreMutation = (
   options?: Partial<Options<CreateStoreData>>,
-): UseMutationOptions<CreateStoreResponse, DefaultError, Options<CreateStoreData>> => {
+): UseMutationOptions<CreateStoreResponse, CreateStoreError, Options<CreateStoreData>> => {
   const mutationOptions: UseMutationOptions<
     CreateStoreResponse,
-    DefaultError,
+    CreateStoreError,
     Options<CreateStoreData>
   > = {
     mutationFn: async (fnOptions) => {
@@ -695,7 +699,7 @@ export const getCurrentSellerStoreQueryKey = (options?: Options<GetCurrentSeller
 export const getCurrentSellerStoreOptions = (options?: Options<GetCurrentSellerStoreData>) =>
   queryOptions<
     GetCurrentSellerStoreResponse,
-    DefaultError,
+    GetCurrentSellerStoreError,
     GetCurrentSellerStoreResponse,
     ReturnType<typeof getCurrentSellerStoreQueryKey>
   >({
@@ -720,12 +724,12 @@ export const updateCurrentSellerStoreMutation = (
   options?: Partial<Options<UpdateCurrentSellerStoreData>>,
 ): UseMutationOptions<
   UpdateCurrentSellerStoreResponse,
-  DefaultError,
+  UpdateCurrentSellerStoreError,
   Options<UpdateCurrentSellerStoreData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateCurrentSellerStoreResponse,
-    DefaultError,
+    UpdateCurrentSellerStoreError,
     Options<UpdateCurrentSellerStoreData>
   > = {
     mutationFn: async (fnOptions) => {
@@ -751,7 +755,7 @@ export const getPublicStoreInfoQueryKey = (options: Options<GetPublicStoreInfoDa
 export const getPublicStoreInfoOptions = (options: Options<GetPublicStoreInfoData>) =>
   queryOptions<
     GetPublicStoreInfoResponse,
-    DefaultError,
+    GetPublicStoreInfoError,
     GetPublicStoreInfoResponse,
     ReturnType<typeof getPublicStoreInfoQueryKey>
   >({

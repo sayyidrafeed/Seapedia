@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { stores } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, ilike } from 'drizzle-orm';
 import { ConflictError, NotFoundError } from '@/lib/errors';
 
 export class StoreService {
@@ -14,7 +14,7 @@ export class StoreService {
     }
 
     const existingName = await db.query.stores.findFirst({
-      where: eq(stores.name, input.name),
+      where: ilike(stores.name, input.name),
     });
 
     if (existingName) {
@@ -56,7 +56,7 @@ export class StoreService {
 
     if (input.name && input.name !== store.name) {
       const existingName = await db.query.stores.findFirst({
-        where: eq(stores.name, input.name),
+        where: ilike(stores.name, input.name),
       });
 
       if (existingName) {
@@ -90,7 +90,7 @@ export class StoreService {
 
     if (!store) {
       store = await db.query.stores.findFirst({
-        where: eq(stores.name, slugOrId),
+        where: ilike(stores.name, slugOrId),
       });
     }
 

@@ -286,7 +286,7 @@ export const zUpdateCurrentSellerStoreResponse = z.object({
 });
 
 export const zGetPublicStoreInfoPath = z.object({
-  slugOrId: z.string(),
+  slugOrId: z.string().min(3),
 });
 
 /**

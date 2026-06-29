@@ -2,14 +2,14 @@ import { z } from 'zod';
 
 export const createStoreSchema = z
   .object({
-    name: z.string().min(3).max(255),
+    name: z.string().trim().min(3).max(255),
     description: z.string().optional(),
   })
   .meta({ id: 'CreateStoreInput' });
 
 export const updateStoreSchema = z
   .object({
-    name: z.string().min(3).max(255).optional(),
+    name: z.string().trim().min(3).max(255).optional(),
     description: z.string().optional(),
   })
   .meta({ id: 'UpdateStoreInput' });

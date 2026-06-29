@@ -1,7 +1,7 @@
 import { factory } from '@/lib/factory';
 import { requireRole, requireSession } from '@/middleware/auth';
 import { describeRoute, validator } from 'hono-openapi';
-import { jsonContent } from '@/lib/openapi';
+import { jsonContent, errorResponses } from '@/lib/openapi';
 import { createStoreSchema, storeResponseSchema, updateStoreSchema } from './stores.schemas';
 import { StoreService } from './stores.service';
 import { z } from 'zod';
@@ -19,7 +19,7 @@ storesRouter.post(
     security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(storeResponseSchema, 'Store created successfully'),
-      400: { description: 'Bad Request' },
+      ...errorResponses(400, 401, 409),
     },
   }),
   requireSession,
@@ -53,7 +53,7 @@ storesRouter.get(
     security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(storeResponseSchema, 'Store found'),
-      404: { description: 'Store not found' },
+      ...errorResponses(401, 404),
     },
   }),
   requireSession,
@@ -85,8 +85,7 @@ storesRouter.put(
     security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(storeResponseSchema, 'Store updated successfully'),
-      400: { description: 'Bad Request' },
-      404: { description: 'Store not found' },
+      ...errorResponses(400, 401, 404, 409),
     },
   }),
   requireSession,
@@ -119,10 +118,10 @@ storesRouter.get(
     description: 'Get public information about a store by ID or slug (name).',
     responses: {
       200: jsonContent(storeResponseSchema, 'Store found'),
-      404: { description: 'Store not found' },
+      ...errorResponses(404),
     },
   }),
-  validator('param', z.object({ slugOrId: z.string() })),
+  validator('param', z.object({ slugOrId: z.string().min(3) })),
   async (c) => {
     const { slugOrId } = c.req.valid('param');
     const store = await StoreService.getPublic(slugOrId);

@@ -769,8 +769,24 @@ export type CreateStoreErrors = {
   /**
    * Bad Request
    */
-  400: unknown;
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
 };
+
+export type CreateStoreError = CreateStoreErrors[keyof CreateStoreErrors];
 
 export type CreateStoreResponses = {
   /**
@@ -797,10 +813,21 @@ export type GetCurrentSellerStoreData = {
 
 export type GetCurrentSellerStoreErrors = {
   /**
-   * Store not found
+   * Unauthorized
    */
-  404: unknown;
+  401: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
 };
+
+export type GetCurrentSellerStoreError =
+  GetCurrentSellerStoreErrors[keyof GetCurrentSellerStoreErrors];
 
 export type GetCurrentSellerStoreResponses = {
   /**
@@ -833,12 +860,31 @@ export type UpdateCurrentSellerStoreErrors = {
   /**
    * Bad Request
    */
-  400: unknown;
+  400: {
+    error: string;
+  };
   /**
-   * Store not found
+   * Unauthorized
    */
-  404: unknown;
+  401: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
 };
+
+export type UpdateCurrentSellerStoreError =
+  UpdateCurrentSellerStoreErrors[keyof UpdateCurrentSellerStoreErrors];
 
 export type UpdateCurrentSellerStoreResponses = {
   /**
@@ -868,10 +914,14 @@ export type GetPublicStoreInfoData = {
 
 export type GetPublicStoreInfoErrors = {
   /**
-   * Store not found
+   * Not Found
    */
-  404: unknown;
+  404: {
+    error: string;
+  };
 };
+
+export type GetPublicStoreInfoError = GetPublicStoreInfoErrors[keyof GetPublicStoreInfoErrors];
 
 export type GetPublicStoreInfoResponses = {
   /**
