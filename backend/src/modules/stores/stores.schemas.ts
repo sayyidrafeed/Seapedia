@@ -19,6 +19,7 @@ export const storeResponseSchema = z
     id: z.string(),
     sellerId: z.string(),
     name: z.string(),
+    slug: z.string(),
     description: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),

@@ -6,12 +6,18 @@ import type {
   AddCartItemData,
   AddCartItemErrors,
   AddCartItemResponses,
+  CheckoutPreviewData,
+  CheckoutPreviewErrors,
+  CheckoutPreviewResponses,
   ClearCartData,
   ClearCartErrors,
   ClearCartResponses,
   CreateAddressData,
   CreateAddressErrors,
   CreateAddressResponses,
+  CreateOrderData,
+  CreateOrderErrors,
+  CreateOrderResponses,
   CreateSellerProductData,
   CreateSellerProductErrors,
   CreateSellerProductResponses,
@@ -33,6 +39,9 @@ import type {
   GetBuyerCartData,
   GetBuyerCartErrors,
   GetBuyerCartResponses,
+  GetBuyerOrderDetailData,
+  GetBuyerOrderDetailErrors,
+  GetBuyerOrderDetailResponses,
   GetBuyerWalletData,
   GetBuyerWalletErrors,
   GetBuyerWalletResponses,
@@ -57,6 +66,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
+  GetSellerOrderDetailData,
+  GetSellerOrderDetailErrors,
+  GetSellerOrderDetailResponses,
   GetSellerProductByIdData,
   GetSellerProductByIdErrors,
   GetSellerProductByIdResponses,
@@ -65,12 +77,18 @@ import type {
   GetWalletTransactionsResponses,
   HealthCheckData,
   HealthCheckResponses,
+  ListBuyerOrdersData,
+  ListBuyerOrdersErrors,
+  ListBuyerOrdersResponses,
   ListProductsData,
   ListProductsErrors,
   ListProductsResponses,
   ListReviewsData,
   ListReviewsErrors,
   ListReviewsResponses,
+  ListSellerOrdersData,
+  ListSellerOrdersErrors,
+  ListSellerOrdersResponses,
   ListSellerProductsData,
   ListSellerProductsErrors,
   ListSellerProductsResponses,
@@ -945,4 +963,128 @@ export const updateCartItem = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+/**
+ * Preview order calculations before checking out
+ */
+export const checkoutPreview = <ThrowOnError extends boolean = false>(
+  options: Options<CheckoutPreviewData, ThrowOnError>,
+): RequestResult<CheckoutPreviewResponses, CheckoutPreviewErrors, ThrowOnError> =>
+  (options.client ?? client).post<CheckoutPreviewResponses, CheckoutPreviewErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders/preview',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * List buyer orders
+ */
+export const listBuyerOrders = <ThrowOnError extends boolean = false>(
+  options?: Options<ListBuyerOrdersData, ThrowOnError>,
+): RequestResult<ListBuyerOrdersResponses, ListBuyerOrdersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListBuyerOrdersResponses, ListBuyerOrdersErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders',
+    ...options,
+  });
+
+/**
+ * Confirm checkout and create a new order
+ */
+export const createOrder = <ThrowOnError extends boolean = false>(
+  options: Options<CreateOrderData, ThrowOnError>,
+): RequestResult<CreateOrderResponses, CreateOrderErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateOrderResponses, CreateOrderErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get details of a specific buyer order
+ */
+export const getBuyerOrderDetail = <ThrowOnError extends boolean = false>(
+  options: Options<GetBuyerOrderDetailData, ThrowOnError>,
+): RequestResult<GetBuyerOrderDetailResponses, GetBuyerOrderDetailErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetBuyerOrderDetailResponses,
+    GetBuyerOrderDetailErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders/{id}',
+    ...options,
+  });
+
+/**
+ * List orders incoming to the seller store
+ */
+export const listSellerOrders = <ThrowOnError extends boolean = false>(
+  options?: Options<ListSellerOrdersData, ThrowOnError>,
+): RequestResult<ListSellerOrdersResponses, ListSellerOrdersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListSellerOrdersResponses, ListSellerOrdersErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/orders',
+    ...options,
+  });
+
+/**
+ * Get details of a specific incoming order
+ */
+export const getSellerOrderDetail = <ThrowOnError extends boolean = false>(
+  options: Options<GetSellerOrderDetailData, ThrowOnError>,
+): RequestResult<GetSellerOrderDetailResponses, GetSellerOrderDetailErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetSellerOrderDetailResponses,
+    GetSellerOrderDetailErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/orders/{id}',
+    ...options,
   });

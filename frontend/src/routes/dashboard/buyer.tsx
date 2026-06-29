@@ -38,21 +38,27 @@ function BuyerLayout() {
         <div className="space-x-4">
           <button
             onClick={() => navigate({ to: '/dashboard/buyer' })}
-            className="text-sm font-medium hover:underline text-primary"
+            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
           >
             Dashboard
           </button>
           <button
             onClick={() => navigate({ to: '/dashboard/buyer/wallet' })}
-            className="text-sm font-medium hover:underline text-primary"
+            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
           >
             Wallet & Top-up
           </button>
           <button
             onClick={() => navigate({ to: '/dashboard/buyer/addresses' })}
-            className="text-sm font-medium hover:underline text-primary"
+            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
           >
             Manage Addresses
+          </button>
+          <button
+            onClick={() => navigate({ to: '/dashboard/buyer/orders' })}
+            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
+          >
+            My Orders
           </button>
         </div>
       </div>

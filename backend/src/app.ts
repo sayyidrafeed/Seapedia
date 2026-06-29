@@ -12,6 +12,7 @@ import { reviewsRouter } from '@/modules/reviews/reviews.index';
 import { privateRouter } from '@/modules/private/private.index';
 import { storesRouter } from '@/modules/stores/stores.index';
 import { buyersRouter } from '@/modules/buyers/buyers.index';
+import { ordersRouter, sellerOrdersRouter } from '@/modules/orders/orders.index';
 import { frontendUrls } from '@/env';
 
 export const app = factory.createApp();
@@ -48,6 +49,8 @@ app.route('/api/reviews', reviewsRouter);
 app.route('/api/private', privateRouter);
 app.route('/api/stores', storesRouter);
 app.route('/api/buyers', buyersRouter);
+app.route('/api/orders', ordersRouter);
+app.route('/api/seller/orders', sellerOrdersRouter);
 
 app.get('/openapi.json', async (c) => {
   const spec = await generateSpecs(app, {
