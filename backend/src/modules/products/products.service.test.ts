@@ -197,13 +197,15 @@ describe('ProductsService', () => {
   describe('getSellerProducts', () => {
     test('returns seller products list', async () => {
       dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([{ count: 2 }]); // db.select count(*)
       dbState.addSelect([makeProduct(), makeProduct({ id: 'prod-2' })]); // findMany products
 
       const result = await ProductsService.getSellerProducts('seller-1');
 
-      expect(result.length).toBe(2);
-      expect(result[0].id).toBe('prod-1');
-      expect(result[1].id).toBe('prod-2');
+      expect(result.total).toBe(2);
+      expect(result.products.length).toBe(2);
+      expect(result.products[0].id).toBe('prod-1');
+      expect(result.products[1].id).toBe('prod-2');
     });
   });
 

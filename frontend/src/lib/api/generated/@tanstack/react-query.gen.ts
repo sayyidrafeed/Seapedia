@@ -560,6 +560,50 @@ export const listSellerProductsOptions = (options?: Options<ListSellerProductsDa
     queryKey: listSellerProductsQueryKey(options),
   });
 
+export const listSellerProductsInfiniteQueryKey = (
+  options?: Options<ListSellerProductsData>,
+): QueryKey<Options<ListSellerProductsData>> => createQueryKey('listSellerProducts', options, true);
+
+/**
+ * List products owned by logged-in Seller
+ */
+export const listSellerProductsInfiniteOptions = (options?: Options<ListSellerProductsData>) =>
+  infiniteQueryOptions<
+    ListSellerProductsResponse,
+    ListSellerProductsError,
+    InfiniteData<ListSellerProductsResponse>,
+    QueryKey<Options<ListSellerProductsData>>,
+    | number
+    | Pick<QueryKey<Options<ListSellerProductsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListSellerProductsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await listSellerProducts({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: listSellerProductsInfiniteQueryKey(options),
+    },
+  );
+
 /**
  * Create a new product under Seller store
  */

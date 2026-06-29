@@ -5,10 +5,11 @@ import * as z from 'zod';
 export const zProduct = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.string(),
+  description: z.union([z.string(), z.unknown()]),
   price: z.number(),
   currency: z.string().optional().default('IDR'),
   stock: z.number(),
+  storeId: z.string(),
   storeName: z.string(),
   storeSlug: z.string(),
   slug: z.string(),
@@ -147,6 +148,7 @@ export const zListProductsQuery = z.object({
   search: z.string().min(1).optional(),
   sortBy: z.string().optional(),
   order: z.enum(['asc', 'desc']).optional().default('desc'),
+  storeSlug: z.string().optional(),
 });
 
 /**
@@ -167,10 +169,11 @@ export const zGetProductByIdPath = z.object({
 export const zGetProductByIdResponse = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.string(),
+  description: z.union([z.string(), z.unknown()]),
   price: z.number(),
   currency: z.string().optional().default('IDR'),
   stock: z.number(),
+  storeId: z.string(),
   storeName: z.string(),
   storeSlug: z.string(),
   slug: z.string(),
@@ -187,13 +190,22 @@ export const zGetProductBySlugPath = z.object({
 export const zGetProductBySlugResponse = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.string(),
+  description: z.union([z.string(), z.unknown()]),
   price: z.number(),
   currency: z.string().optional().default('IDR'),
   stock: z.number(),
+  storeId: z.string(),
   storeName: z.string(),
   storeSlug: z.string(),
   slug: z.string(),
+});
+
+export const zListSellerProductsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 /**

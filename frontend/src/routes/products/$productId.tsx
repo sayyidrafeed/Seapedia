@@ -64,7 +64,7 @@ function ProductDetailPage() {
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed border-t border-b border-border/50 py-6">
-          {product.description}
+          {(product.description as string) || ''}
         </p>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">

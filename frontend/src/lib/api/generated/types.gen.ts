@@ -7,10 +7,11 @@ export type ClientOptions = {
 export type Product = {
   id: string;
   name: string;
-  description: string;
+  description: string | unknown;
   price: number;
   currency?: string;
   stock: number;
+  storeId: string;
   storeName: string;
   storeSlug: string;
   slug: string;
@@ -396,6 +397,7 @@ export type ListProductsData = {
     search?: string;
     sortBy?: string;
     order?: 'asc' | 'desc';
+    storeSlug?: string;
   };
   url: '/api/products';
 };
@@ -462,10 +464,11 @@ export type GetProductByIdResponses = {
   200: {
     id: string;
     name: string;
-    description: string;
+    description: string | unknown;
     price: number;
     currency?: string;
     stock: number;
+    storeId: string;
     storeName: string;
     storeSlug: string;
     slug: string;
@@ -508,10 +511,11 @@ export type GetProductBySlugResponses = {
   200: {
     id: string;
     name: string;
-    description: string;
+    description: string | unknown;
     price: number;
     currency?: string;
     stock: number;
+    storeId: string;
     storeName: string;
     storeSlug: string;
     slug: string;
@@ -523,7 +527,13 @@ export type GetProductBySlugResponse = GetProductBySlugResponses[keyof GetProduc
 export type ListSellerProductsData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  };
   url: '/api/seller/products';
 };
 

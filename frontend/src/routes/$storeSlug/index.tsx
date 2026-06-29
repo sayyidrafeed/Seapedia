@@ -1,6 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStoreInfoOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { listProducts } from '@/lib/api/generated/sdk.gen';
+import { formatCurrency } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/$storeSlug/')({
   component: PublicStorePage,
@@ -8,11 +12,13 @@ export const Route = createFileRoute('/$storeSlug/')({
 
 function PublicStorePage() {
   const { storeSlug } = Route.useParams();
+  const [page, setPage] = useState(1);
+  const limit = 20;
 
   const {
     data: store,
-    isLoading,
-    error,
+    isLoading: isStoreLoading,
+    error: storeError,
   } = useQuery({
     ...getPublicStoreInfoOptions({
       path: {
@@ -21,7 +27,23 @@ function PublicStorePage() {
     }),
   });
 
-  if (isLoading) {
+  const {
+    data: productsData,
+    isLoading: isProductsLoading,
+    error: productsError,
+  } = useQuery({
+    queryKey: ['store-products', storeSlug, page],
+    queryFn: async () => {
+      const res = await listProducts({
+        query: { storeSlug, page, limit },
+        throwOnError: true,
+      });
+      return res.data;
+    },
+    enabled: !!store,
+  });
+
+  if (isStoreLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
@@ -31,7 +53,7 @@ function PublicStorePage() {
     );
   }
 
-  if (error || !store) {
+  if (storeError || !store) {
     return (
       <div className="container mx-auto px-6 py-12 text-center">
         <h1 className="text-3xl font-bold mb-4">Store Not Found</h1>
@@ -39,6 +61,9 @@ function PublicStorePage() {
       </div>
     );
   }
+
+  const total = productsData?.total ?? 0;
+  const totalPages = Math.ceil(total / limit) || 1;
 
   return (
     <div className="container mx-auto px-6 py-12 space-y-8">
@@ -58,14 +83,93 @@ function PublicStorePage() {
         </div>
       </div>
 
-      {/* Products Placeholder */}
+      {/* Store Products */}
       <div className="space-y-4">
         <h2 className="text-2xl font-bold tracking-tight">Products</h2>
-        <div className="bg-muted/50 border border-border border-dashed p-12 rounded-xl text-center">
-          <p className="text-muted-foreground">
-            Products for this store will be listed here (Level 2).
-          </p>
-        </div>
+        {isProductsLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="border border-border p-5 rounded-lg space-y-3 animate-pulse bg-card"
+              >
+                <div className="h-4 bg-muted rounded w-2/3" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+                <div className="h-6 bg-muted rounded w-1/3 pt-3" />
+              </div>
+            ))}
+          </div>
+        ) : productsError ? (
+          <div className="text-center py-12 text-sm text-destructive">
+            Error loading products for this store.
+          </div>
+        ) : productsData?.products.length === 0 ? (
+          <div className="bg-muted/30 border border-border p-12 rounded-xl text-center">
+            <p className="text-muted-foreground text-sm">No products listed by this store yet.</p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {productsData?.products.map((product) => (
+                <div
+                  key={product.id}
+                  className="group bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {(product.description as string) || ''}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-6 mt-4 border-t border-border/50">
+                    <span className="text-base font-extrabold text-foreground">
+                      {formatCurrency(product.price)}
+                    </span>
+                    <Link
+                      to="/$storeSlug/$productSlug"
+                      params={{
+                        storeSlug: product.storeSlug,
+                        productSlug: product.slug,
+                      }}
+                    >
+                      <Button variant="secondary" size="sm" className="text-xs cursor-pointer">
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm font-medium">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

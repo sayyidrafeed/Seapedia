@@ -55,17 +55,38 @@ function StoreProductPage() {
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 capitalize">
+            <Link
+              to="/$storeSlug"
+              params={{ storeSlug: product.storeSlug }}
+              className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 capitalize hover:bg-primary/20"
+            >
               Store: {product.storeName}
-            </span>
+            </Link>
             <span className="text-xs text-muted-foreground">Stock: {product.stock} left</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{product.name}</h1>
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed border-t border-b border-border/50 py-6">
-          {product.description}
+          {(product.description as string) || ''}
         </p>
+
+        {/* Store Information Card */}
+        <div className="bg-muted/40 border border-border p-4 rounded-lg flex items-center justify-between gap-4">
+          <div>
+            <h4 className="text-sm font-bold text-foreground">Sells by {product.storeName}</h4>
+            <p className="text-xs text-muted-foreground mt-1">
+              Click to visit store page for more items.
+            </p>
+          </div>
+          <Link
+            to="/$storeSlug"
+            params={{ storeSlug: product.storeSlug }}
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-muted"
+          >
+            Visit Store
+          </Link>
+        </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
           <div>

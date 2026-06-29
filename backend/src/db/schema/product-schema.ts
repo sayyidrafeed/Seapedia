@@ -11,6 +11,7 @@ export const products = pgTable('products', {
     .notNull()
     .references(() => stores.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
   description: text('description'),
   price: integer('price').notNull(), // IDR only integer price
   stock: integer('stock').notNull(), // stored for checkout stock checks
