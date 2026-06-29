@@ -4,7 +4,11 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Star } from 'lucide-react';
 
 export function ApplicationReviewList() {
-  const { data: reviews, isLoading: loadingReviews } = useQuery({
+  const {
+    data: reviews,
+    isLoading: loadingReviews,
+    error: reviewsError,
+  } = useQuery({
     queryKey: ['reviews'],
     queryFn: async () => {
       const res = await listReviews({ throwOnError: true });
@@ -30,6 +34,10 @@ export function ApplicationReviewList() {
               </div>
             ))}
           </div>
+        ) : reviewsError ? (
+          <p className="text-sm text-destructive text-center py-4 border border-destructive/20 rounded-md bg-destructive/5">
+            Failed to load reviews. Please verify that the backend server is running.
+          </p>
         ) : reviews?.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No reviews have been submitted yet. Be the first!
