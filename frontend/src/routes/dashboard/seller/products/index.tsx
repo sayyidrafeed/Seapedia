@@ -11,14 +11,19 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useState } from 'react';
+
 export const Route = createFileRoute('/dashboard/seller/products/')({
   component: SellerProductsPage,
 });
 
 function SellerProductsPage() {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const limit = 20;
+
   const { data, isLoading } = useQuery({
-    ...listSellerProductsOptions(),
+    ...listSellerProductsOptions({ query: { page, limit } }),
   });
 
   const deleteMutation = useMutation({
@@ -45,6 +50,9 @@ function SellerProductsPage() {
     }
   };
 
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / limit) || 1;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -69,11 +77,38 @@ function SellerProductsPage() {
           </span>
         </div>
       ) : (
-        <ProductList
-          products={(data?.products as ProductItem[]) ?? []}
-          onDelete={handleDelete}
-          isDeleting={deleteMutation.isPending}
-        />
+        <div className="space-y-4">
+          <ProductList
+            products={(data?.products as ProductItem[]) ?? []}
+            onDelete={handleDelete}
+            isDeleting={deleteMutation.isPending}
+          />
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              <span className="text-sm font-medium">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
