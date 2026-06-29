@@ -248,7 +248,7 @@ After this level, SEAPEDIA should have a real seller-side foundation. Guests can
 
 ## Level 3: Buyer Wallet, Cart, and Checkout (Total 20 pts)
 
-> **Current focus — Level 3: Checkout and Orders (in progress)**
+> **Level 3 — Complete**
 
 SEAPEDIA is now ready to support the Buyer experience. Buyers need more than a product catalog: they need a wallet, delivery address, cart, shipping method, and checkout process. This level introduces the first real transaction flow in the application, so the frontend and backend must work together carefully.
 
@@ -296,32 +296,34 @@ Your task is to implement the first working checkout flow. This is where product
 
 #### Requirements:
 
-- [ ] Create a checkout or create order endpoint.
-- [ ] Support delivery methods: Instant, Next Day, and Regular.
-- [ ] Calculate subtotal, delivery fee, PPN 12%, and final total.
-- [ ] Display the checkout summary in the UI before confirmation.
-- [ ] Create an order based on the single-store checkout behavior.
-- [ ] Reduce product stock safely after a successful checkout.
-- [ ] Create order history and order detail views for Buyers.
-- [ ] Create an incoming order list for Sellers.
-- [ ] Store order status history with timestamps.
+- [x] Create a checkout or create order endpoint.
+- [x] Support delivery methods: Instant, Next Day, and Regular.
+- [x] Calculate subtotal, delivery fee, PPN 12%, and final total.
+- [x] Display the checkout summary in the UI before confirmation.
+- [x] Create an order based on the single-store checkout behavior.
+- [x] Reduce product stock safely after a successful checkout.
+- [x] Create order history and order detail views for Buyers.
+- [x] Create an incoming order list for Sellers.
+- [x] Store order status history with timestamps.
 
 #### Business Rules:
 
-- [ ] Buyers cannot checkout if their wallet balance is insufficient.
-- [ ] Delivery fee must be different depending on the selected delivery method.
-- [ ] PPN must be shown as 12% in the checkout summary. If your tax base differs, explain it clearly in the README.
-- [ ] After successful checkout, the initial order status must be Sedang Dikemas.
-- [ ] Stock reduction must not allow negative stock.
+- [x] Buyers cannot checkout if their wallet balance is insufficient.
+- [x] Delivery fee must be different depending on the selected delivery method.
+- [x] PPN must be shown as 12% in the checkout summary. If your tax base differs, explain it clearly in the README.
+- [x] After successful checkout, the initial order status must be Sedang Dikemas.
+- [x] Stock reduction must not allow negative stock.
 
 #### Deliverables:
 
-- [ ] A working flow from Buyer top-up to cart to checkout.
-- [ ] Buyer order history and order detail pages.
-- [ ] Seller incoming order list.
-- [ ] Backend APIs for wallet, address, cart, checkout, tax calculation, and basic order history.
+- [x] A working flow from Buyer top-up to cart to checkout.
+- [x] Buyer order history and order detail pages.
+- [x] Seller incoming order list.
+- [x] Backend APIs for wallet, address, cart, checkout, tax calculation, and basic order history.
 
 After this level, SEAPEDIA should be able to process a complete basic purchase. The order does not need discounts or delivery drivers yet, but Buyers should already be able to pay using their wallet and see the order appear in the system.
+
+#### Create Checkout and Basic Orders — Complete
 
 ---
 
@@ -620,9 +622,9 @@ For the final assessment, the project should be demonstrable as one integrated s
 - [x] Buyer can top up balance using dummy top-up.
 - [x] Buyer can manage delivery address.
 - [x] Buyer can manage cart.
-- [ ] Buyer can checkout using a delivery method and optional Voucher or Promo.
-- [ ] Checkout summary shows subtotal, discount, delivery fee, PPN 12%, and final total.
-- [ ] Buyer can view order history, order detail, and status timeline.
+- [x] Buyer can checkout using a delivery method.
+- [x] Checkout summary shows subtotal, delivery fee, PPN 12%, and final total.
+- [x] Buyer can view order history, order detail, and status timeline.
 
 ### Driver Flow
 
