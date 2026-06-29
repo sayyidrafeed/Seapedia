@@ -145,7 +145,8 @@ export class OrdersCheckoutService {
       }
 
       // 5. Verify and reduce stock for all items
-      for (const item of items) {
+      const sortedItems = [...items].sort((a, b) => a.productId.localeCompare(b.productId));
+      for (const item of sortedItems) {
         if (item.product.stock < item.quantity) {
           throw new ValidationError(
             `Insufficient stock for product "${item.product.name}". Only ${item.product.stock} items left.`,

@@ -61,16 +61,7 @@ function SellerOrderDetailPage() {
     timeStyle: 'short',
   });
 
-  const address = order.addressSnapshot as unknown as {
-    recipientName: string;
-    label: string;
-    phoneNumber: string;
-    fullAddress: string;
-    district: string;
-    city: string;
-    province: string;
-    postalCode: string;
-  };
+  const address = order.addressSnapshot;
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">

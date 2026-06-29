@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { orders, orderItems, orderStatusHistory, stores } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { NotFoundError } from '@/lib/errors';
 
 export class OrdersSellerService {
@@ -31,29 +31,55 @@ export class OrdersSellerService {
       .where(eq(orders.storeId, store.id))
       .orderBy(desc(orders.createdAt));
 
-    const result = [];
-    for (const order of ordersList) {
-      const items = await db
-        .select({
-          id: orderItems.id,
-          productId: orderItems.productId,
-          productName: orderItems.productName,
-          productPrice: orderItems.productPrice,
-          quantity: orderItems.quantity,
-        })
-        .from(orderItems)
-        .where(eq(orderItems.orderId, order.id));
-
-      result.push({
-        ...order,
-        addressSnapshot: JSON.parse(order.addressSnapshot),
-        createdAt: order.createdAt.toISOString(),
-        updatedAt: order.updatedAt.toISOString(),
-        items,
-      });
+    if (ordersList.length === 0) {
+      return [];
     }
 
-    return result;
+    const orderIds = ordersList.map((o) => o.id);
+    const allItems = await db
+      .select({
+        id: orderItems.id,
+        orderId: orderItems.orderId,
+        productId: orderItems.productId,
+        productName: orderItems.productName,
+        productPrice: orderItems.productPrice,
+        quantity: orderItems.quantity,
+      })
+      .from(orderItems)
+      .where(inArray(orderItems.orderId, orderIds));
+
+    type MappedItem = {
+      id: string;
+      productId: string | null;
+      productName: string;
+      productPrice: number;
+      quantity: number;
+    };
+
+    const itemsByOrderId = allItems.reduce(
+      (acc, item) => {
+        if (!acc[item.orderId]) {
+          acc[item.orderId] = [];
+        }
+        acc[item.orderId].push({
+          id: item.id,
+          productId: item.productId,
+          productName: item.productName,
+          productPrice: item.productPrice,
+          quantity: item.quantity,
+        });
+        return acc;
+      },
+      {} as Record<string, MappedItem[]>,
+    );
+
+    return ordersList.map((order) => ({
+      ...order,
+      addressSnapshot: JSON.parse(order.addressSnapshot),
+      createdAt: order.createdAt.toISOString(),
+      updatedAt: order.updatedAt.toISOString(),
+      items: itemsByOrderId[order.id] || [],
+    }));
   }
 
   static async getDetail(sellerId: string, orderId: string) {

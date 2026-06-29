@@ -33,9 +33,8 @@ function CheckoutPage() {
 
   const defaultAddress = addresses?.find((a) => a.isDefault) || addresses?.[0];
 
-  // 2. Fetch server-side preview of order totals whenever cart, address, or deliveryMethod changes
   const { data: preview, isLoading: isPreviewLoading } = useQuery({
-    queryKey: ['checkout-preview', deliveryMethod, cart?.subtotal, defaultAddress?.id],
+    queryKey: ['checkout-preview', deliveryMethod, cart, defaultAddress?.id],
     queryFn: async () => {
       if (!cart || cart.items.length === 0) return null;
       const { data, error } = await checkoutPreview({
