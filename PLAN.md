@@ -149,19 +149,19 @@ Since future levels will add many screens, your application should already have 
 
 #### Requirements:
 
-- Create reusable components such as Button, Input, Card, Navbar or Top Bar, and Footer or Bottom Navigation.
-- Prepare a routing structure that can support public pages and private dashboard pages.
-- Create dashboard shells or placeholders for Admin, Seller, Buyer, and Driver.
-- Make the navigation responsive for desktop and mobile layouts.
-- Show a clear difference between guest navigation and logged-in navigation.
+- [x] Create reusable components such as Button, Input, Card, Navbar or Top Bar, and Footer or Bottom Navigation.
+- [x] Prepare a routing structure that can support public pages and private dashboard pages.
+- [x] Create dashboard shells or placeholders for Admin, Seller, Buyer, and Driver.
+- [x] Make the navigation responsive for desktop and mobile layouts.
+- [x] Show a clear difference between guest navigation and logged-in navigation.
 
 #### Deliverables:
 
-- A navigable public UI for SEAPEDIA.
-- Working login, registration, logout, and role selection flow.
-- Role-aware dashboard entry points.
-- Public application review form and review display.
-- Reusable UI components and a clean routing structure ready for future levels.
+- [x] A navigable public UI for SEAPEDIA.
+- [x] Working login, registration, logout, and role selection flow.
+- [x] Role-aware dashboard entry points.
+- [x] Public application review form and review display.
+- [x] Reusable UI components and a clean routing structure ready for future levels.
 
 After finishing this level, SEAPEDIA should already feel like a marketplace that can be used by different types of users. Guests can explore the public experience, early visitors can leave application reviews, and registered users can enter the system with a clear role context.
 
