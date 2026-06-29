@@ -2,6 +2,9 @@ import { Separator } from '@/components/ui/separator';
 
 interface OrderPriceSummaryProps {
   subtotal: number;
+  discountAmount?: number;
+  discountCode?: string | null;
+  discountType?: string | null;
   deliveryFee: number;
   ppn: number;
   totalAmount: number;
@@ -10,6 +13,9 @@ interface OrderPriceSummaryProps {
 
 export function OrderPriceSummary({
   subtotal,
+  discountAmount,
+  discountCode,
+  discountType,
   deliveryFee,
   ppn,
   totalAmount,
@@ -39,6 +45,26 @@ export function OrderPriceSummary({
           <span>Subtotal</span>
           <span className="font-medium text-foreground">{formatCurrency(subtotal)}</span>
         </div>
+        {discountAmount !== undefined && discountAmount > 0 && (
+          <div className="flex justify-between text-emerald-600 font-semibold">
+            <span className="flex items-center gap-1.5">
+              Discount
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                  discountType === 'voucher'
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-emerald-100 text-emerald-800'
+                }`}
+              >
+                {discountType === 'voucher' ? 'Voucher' : 'Promo'}
+              </span>
+              {discountCode && (
+                <span className="text-xs text-muted-foreground font-mono">({discountCode})</span>
+              )}
+            </span>
+            <span>-{formatCurrency(discountAmount)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="flex items-center gap-1.5">
             Delivery Fee
