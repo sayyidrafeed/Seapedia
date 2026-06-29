@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { submitReview } from '@/lib/api/generated/sdk.gen';
 import { useAuth } from '@/lib/auth/context';
@@ -15,6 +15,15 @@ export function ApplicationReviewForm() {
   const [comment, setComment] = useState('');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  // Success message auto-dismissal
+  useEffect(() => {
+    if (!successMsg) return;
+    const timer = setTimeout(() => {
+      setSuccessMsg(null);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [successMsg]);
+
   const submitMutation = useMutation({
     mutationFn: async (body: { reviewerName: string; rating: number; comment: string }) => {
       const res = await submitReview({ body, throwOnError: true });
@@ -26,7 +35,6 @@ export function ApplicationReviewForm() {
       setComment('');
       setRating(5);
       setSuccessMsg('Thank you! Your review was submitted successfully.');
-      setTimeout(() => setSuccessMsg(null), 5000);
     },
   });
 
@@ -51,6 +59,14 @@ export function ApplicationReviewForm() {
         {successMsg && (
           <div className="mb-4 rounded-md bg-green-500/15 p-4 text-sm text-green-600 border border-green-500/20">
             {successMsg}
+          </div>
+        )}
+
+        {submitMutation.error && (
+          <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/20">
+            {submitMutation.error instanceof Error
+              ? submitMutation.error.message
+              : 'Failed to submit review. Please try again.'}
           </div>
         )}
 
