@@ -1,7 +1,18 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { getProductBySlug } from '@/lib/api/generated/sdk.gen';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getProductBySlug,
+  addCartItem,
+  clearCart,
+  getBuyerCart,
+} from '@/lib/api/generated/sdk.gen';
+import { getBuyerCartOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { formatCurrency } from '@/lib/utils';
+import { useAuth } from '@/lib/auth/context';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { CartConflictDialog } from '@/components/cart/CartConflictDialog';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute('/$storeSlug/$productSlug')({
   component: StoreProductPage,
@@ -9,6 +20,12 @@ export const Route = createFileRoute('/$storeSlug/$productSlug')({
 
 function StoreProductPage() {
   const { storeSlug, productSlug } = Route.useParams();
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [conflictOpen, setConflictOpen] = useState(false);
+  const [currentStoreName, setCurrentStoreName] = useState<string | null>(null);
 
   const {
     data: product,
@@ -24,6 +41,79 @@ function StoreProductPage() {
       return res.data;
     },
   });
+
+  const addToCartMutation = useMutation({
+    mutationFn: async (vars: { productId: string; quantity: number }) => {
+      const { data, error, response } = await addCartItem({
+        body: vars,
+      });
+
+      if (response && response.status === 409) {
+        // Fetch current cart to find out store name for the dialog
+        const { data: cartData } = await getBuyerCart();
+        throw { status: 409, currentStoreName: (cartData?.storeName as string) || 'another store' };
+      }
+
+      if (error) {
+        throw new Error(error.error || 'Failed to add item to cart');
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Added to cart successfully!');
+      queryClient.invalidateQueries({ queryKey: getBuyerCartOptions().queryKey });
+    },
+    onError: (err: unknown) => {
+      const errorObj = err as { status?: number; currentStoreName?: string; message?: string };
+      if (errorObj.status === 409) {
+        setCurrentStoreName(errorObj.currentStoreName || 'another store');
+        setConflictOpen(true);
+      } else {
+        toast.error(errorObj.message || 'An error occurred');
+      }
+    },
+  });
+
+  const clearAndAddMutation = useMutation({
+    mutationFn: async () => {
+      if (!product) return;
+      const { error: clearErr } = await clearCart();
+      if (clearErr) throw new Error(clearErr.error || 'Failed to clear cart');
+
+      const { data, error: addErr } = await addCartItem({
+        body: { productId: product.id, quantity: 1 },
+      });
+      if (addErr) throw new Error(addErr.error || 'Failed to add item to cart');
+
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Cleared previous store items & added new item!');
+      queryClient.invalidateQueries({ queryKey: getBuyerCartOptions().queryKey });
+      setConflictOpen(false);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  const handleAddToCart = () => {
+    if (!auth.user) {
+      toast.error('Please sign in to add items to cart');
+      navigate({ to: '/login' });
+      return;
+    }
+
+    if (auth.activeRole !== 'buyer') {
+      toast.error('Please switch to Buyer role to purchase items');
+      return;
+    }
+
+    if (!product) return;
+
+    addToCartMutation.mutate({ productId: product.id, quantity: 1 });
+  };
 
   if (isLoading) {
     return (
@@ -42,6 +132,8 @@ function StoreProductPage() {
       </div>
     );
   }
+
+  const isAdding = addToCartMutation.isPending || clearAndAddMutation.isPending;
 
   return (
     <div className="container mx-auto px-6 py-12 max-w-3xl space-y-8">
@@ -97,12 +189,24 @@ function StoreProductPage() {
           </div>
 
           <div>
-            <button className="w-full sm:w-auto rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-50 cursor-not-allowed">
-              Add to Cart (Level 3)
-            </button>
+            <Button
+              onClick={handleAddToCart}
+              disabled={product.stock <= 0 || isAdding}
+              className="w-full sm:w-auto cursor-pointer"
+            >
+              {product.stock <= 0 ? 'Out of Stock' : isAdding ? 'Adding...' : 'Add to Cart'}
+            </Button>
           </div>
         </div>
       </div>
+
+      <CartConflictDialog
+        isOpen={conflictOpen}
+        onClose={() => setConflictOpen(false)}
+        onConfirm={() => clearAndAddMutation.mutate()}
+        currentStoreName={currentStoreName}
+        newStoreName={product.storeName}
+      />
     </div>
   );
 }
