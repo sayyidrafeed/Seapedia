@@ -130,18 +130,18 @@ Before users start buying products, SEAPEDIA also wants to collect early feedbac
 
 #### Requirements:
 
-- Create a public review or testimonial section on the landing page or another public page.
-- Create a form that allows users to submit a review about the SEAPEDIA application or website experience.
-- The review form must include reviewer name, rating from 1 to 5, and comment text.
-- Display submitted reviews in a review list, testimonial section, carousel, or similar component.
-- Allow the review feature to be used without requiring checkout or transaction history.
-- At this level, the review may be stored in frontend state, local storage, or a backend resource, as long as the behavior is clear and can be demonstrated.
+- [x] Create a public review or testimonial section on the landing page or another public page.
+- [x] Create a form that allows users to submit a review about the SEAPEDIA application or website experience.
+- [x] The review form must include reviewer name, rating from 1 to 5, and comment text.
+- [x] Display submitted reviews in a review list, testimonial section, carousel, or similar component.
+- [x] Allow the review feature to be used without requiring checkout or transaction history.
+- [x] At this level, the review may be stored in frontend state, local storage, or a backend resource, as long as the behavior is clear and can be demonstrated.
 
 #### Business Rules:
 
-- Application reviews are about the website or application experience, not specific products or orders.
-- Guests may submit application reviews unless your implementation explicitly requires login and explains the reason.
-- Displayed comments should be rendered as normal text and should not break the page layout. Formal XSS prevention is assessed in Level 7.
+- [x] Application reviews are about the website or application experience, not specific products or orders.
+- [x] Guests may submit application reviews unless your implementation explicitly requires login and explains the reason.
+- [ ] Displayed comments should be rendered as normal text and should not break the page layout. Formal XSS prevention is assessed in Level 7.
 
 ### Build Reusable UI Foundations (4 pts)
 
