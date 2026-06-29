@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { env } from '@/config';
+import { privateSellerEndpoint } from '@/lib/api/generated';
 
 export const Route = createFileRoute('/dashboard/seller')({
   component: SellerDashboard,
@@ -25,20 +25,13 @@ function SellerDashboard() {
     setResult(null);
     setError(null);
     try {
-      const res = await fetch(`${env.VITE_API_URL}/api/private/seller`, {
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        try {
-          const body = JSON.parse(text);
-          throw new Error(body.error || `HTTP ${res.status}`);
-        } catch {
-          throw new Error(text || `HTTP ${res.status}`);
-        }
+      const { data, error: apiError } = await privateSellerEndpoint();
+      if (apiError) {
+        throw new Error((apiError as any).error || 'Request failed');
       }
-      const data = await res.json();
-      setResult(data.message);
+      if (data) {
+        setResult(data.message);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Request failed');
     } finally {
