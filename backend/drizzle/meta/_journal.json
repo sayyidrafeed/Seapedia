@@ -50,6 +50,13 @@
       "when": 1782752298800,
       "tag": "0006_hesitant_trauma",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782755622377,
+      "tag": "0007_lethal_marten_broadcloak",
+      "breakpoints": true
     }
   ]
 }
