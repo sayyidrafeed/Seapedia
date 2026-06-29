@@ -4,6 +4,7 @@ import { addressResponseSchema } from '@/modules/buyers/buyers.schemas';
 export const checkoutPreviewRequestSchema = z
   .object({
     deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
+    discountCode: z.string().optional(),
   })
   .meta({ id: 'CheckoutPreviewRequest' });
 
@@ -19,6 +20,9 @@ export const checkoutPreviewResponseSchema = z
   .object({
     items: z.array(checkoutPreviewItemSchema),
     subtotal: z.number().int(),
+    discountAmount: z.number().int(),
+    discountCode: z.string().nullable(),
+    discountType: z.string().nullable(),
     deliveryFee: z.number().int(),
     taxBase: z.number().int(),
     ppn: z.number().int(),
@@ -34,6 +38,7 @@ export const createOrderRequestSchema = z
   .object({
     deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
     addressId: z.string().uuid('Invalid address ID format'),
+    discountCode: z.string().optional(),
   })
   .meta({ id: 'CreateOrderRequest' });
 
@@ -60,6 +65,9 @@ export const orderResponseSchema = z
     storeName: z.string(),
     deliveryMethod: z.string(),
     subtotal: z.number().int(),
+    discountAmount: z.number().int(),
+    discountCode: z.string().nullable(),
+    discountType: z.string().nullable(),
     deliveryFee: z.number().int(),
     ppn: z.number().int(),
     totalAmount: z.number().int(),

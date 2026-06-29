@@ -330,4 +330,82 @@ describe('OrdersCheckoutService', () => {
     const result = await OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1');
     expect(result as unknown).toEqual(order);
   });
+
+  test('calculateTotals computes correctly with discountAmount', () => {
+    const { deliveryFee, taxBase, ppn, totalAmount, discountedSubtotal } =
+      OrdersCheckoutService.calculateTotals(
+        100000,
+        'regular',
+        20000, // Rp 20.000 discount
+      );
+    expect(deliveryFee).toBe(10000);
+    expect(discountedSubtotal).toBe(80000);
+    expect(taxBase).toBe(90000);
+    expect(ppn).toBe(10800); // 90000 * 0.12 = 10800
+    expect(totalAmount).toBe(100800);
+  });
+
+  test('createOrder with voucher applies discount and decrements usage', async () => {
+    const address = {
+      id: 'addr1',
+      userId: 'buyer1',
+      label: 'Home',
+      recipientName: 'Rafee',
+      phoneNumber: '08123456789',
+      province: 'DKI Jakarta',
+      city: 'Jakarta Selatan',
+      district: 'Kebayoran Baru',
+      postalCode: '12110',
+      fullAddress: 'Jl. Sudirman No. 1',
+      isDefault: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const cart = { id: 'cart1', buyerId: 'buyer1', storeId: 'store1' };
+    const cartItemWithProduct = [
+      {
+        cartItemId: 'ci1',
+        productId: 'prod1',
+        quantity: 2,
+        product: {
+          id: 'prod1',
+          name: 'Super Product',
+          price: 50000,
+          stock: 10,
+          storeId: 'store1',
+        },
+      },
+    ];
+    const wallet = { id: 'wallet1', userId: 'buyer1', balance: 200000 };
+    const voucher = {
+      id: 'v1',
+      code: 'SAVE20',
+      discountAmount: 20000,
+      minOrderAmount: 50000,
+      expiresAt: new Date(Date.now() + 100000),
+      remainingUsage: 5,
+    };
+    const order = { id: 'order1', buyerId: 'buyer1', storeId: 'store1' };
+
+    // Selects inside createOrder:
+    dbState.addSelect([address]); // 1. select address
+    dbState.addSelect([cart]); // 2. select cart
+    dbState.addSelect(cartItemWithProduct); // 3. select cartItems innerJoin products
+    dbState.addSelect([voucher]); // 4. select voucher (inside validateCode query)
+    dbState.addSelect([wallet]); // 5. select wallet
+
+    // Updates inside createOrder:
+    dbState.addUpdate([{ id: 'prod1', stock: 8 }]); // update stock returning
+    dbState.addUpdate([{ id: 'wallet1', balance: 100000 }]); // update wallet balance returning
+    dbState.addUpdate([{ id: 'v1', remainingUsage: 4 }]); // update voucher usage returning
+
+    // Inserts inside createOrder:
+    dbState.addInsert([{ id: 'wt1' }]); // insert wallet transaction returning
+    dbState.addInsert([order]); // insert order returning
+    dbState.addInsert([{ id: 'oi1' }]); // insert order item returning
+    dbState.addInsert([{ id: 'osh1' }]); // insert order status history returning
+
+    const result = await OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1', 'SAVE20');
+    expect(result as unknown).toEqual(order);
+  });
 });

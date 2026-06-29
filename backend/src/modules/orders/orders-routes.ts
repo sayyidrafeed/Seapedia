@@ -35,9 +35,9 @@ ordersRouter.post(
   validator('json', checkoutPreviewRequestSchema),
   async (c) => {
     const userId = c.get('userId') as string;
-    const { deliveryMethod } = c.req.valid('json');
+    const { deliveryMethod, discountCode } = c.req.valid('json');
 
-    const result = await OrdersCheckoutService.preview(userId, deliveryMethod);
+    const result = await OrdersCheckoutService.preview(userId, deliveryMethod, discountCode);
     return c.json(result);
   },
 );
@@ -60,9 +60,14 @@ ordersRouter.post(
   validator('json', createOrderRequestSchema),
   async (c) => {
     const userId = c.get('userId') as string;
-    const { deliveryMethod, addressId } = c.req.valid('json');
+    const { deliveryMethod, addressId, discountCode } = c.req.valid('json');
 
-    const order = await OrdersCheckoutService.createOrder(userId, deliveryMethod, addressId);
+    const order = await OrdersCheckoutService.createOrder(
+      userId,
+      deliveryMethod,
+      addressId,
+      discountCode,
+    );
     const detail = await OrdersBuyerService.getDetail(userId, order.id);
     return c.json(detail);
   },

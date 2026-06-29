@@ -13,6 +13,9 @@ export const orders = pgTable('orders', {
     .references(() => stores.id, { onDelete: 'cascade' }),
   deliveryMethod: varchar('delivery_method', { length: 50 }).notNull(), // 'instant', 'next_day', 'regular'
   subtotal: integer('subtotal').notNull(),
+  discountAmount: integer('discount_amount').default(0).notNull(),
+  discountCode: varchar('discount_code', { length: 255 }),
+  discountType: varchar('discount_type', { length: 50 }), // 'voucher' | 'promo'
   deliveryFee: integer('delivery_fee').notNull(),
   ppn: integer('ppn').notNull(),
   totalAmount: integer('total_amount').notNull(),
