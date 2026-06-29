@@ -240,6 +240,28 @@ export const zDeleteSellerProductResponse = z.object({
   success: z.boolean(),
 });
 
+export const zGetSellerProductByIdPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Product details
+ */
+export const zGetSellerProductByIdResponse = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  stock: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const zUpdateSellerProductBody = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.union([z.string(), z.unknown()]).optional(),

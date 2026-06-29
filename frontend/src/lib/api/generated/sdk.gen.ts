@@ -33,6 +33,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
+  GetSellerProductByIdData,
+  GetSellerProductByIdErrors,
+  GetSellerProductByIdResponses,
   HealthCheckData,
   HealthCheckResponses,
   ListProductsData,
@@ -359,6 +362,28 @@ export const deleteSellerProduct = <ThrowOnError extends boolean = false>(
   (options.client ?? client).delete<
     DeleteSellerProductResponses,
     DeleteSellerProductErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/products/{id}',
+    ...options,
+  });
+
+/**
+ * Get details of a product owned by logged-in Seller
+ */
+export const getSellerProductById = <ThrowOnError extends boolean = false>(
+  options: Options<GetSellerProductByIdData, ThrowOnError>,
+): RequestResult<GetSellerProductByIdResponses, GetSellerProductByIdErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetSellerProductByIdResponses,
+    GetSellerProductByIdErrors,
     ThrowOnError
   >({
     security: [

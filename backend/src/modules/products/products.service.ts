@@ -49,6 +49,23 @@ export class ProductsService {
     return results;
   }
 
+  static async getSellerProductById(sellerId: string, productId: string) {
+    const store = await StoreService.getBySellerId(sellerId);
+    if (!store) {
+      throw new ForbiddenError('You must have a store to view products');
+    }
+
+    const product = await db.query.products.findFirst({
+      where: and(eq(products.id, productId), eq(products.storeId, store.id)),
+    });
+
+    if (!product) {
+      throw new NotFoundError('Product not found or does not belong to your store');
+    }
+
+    return product;
+  }
+
   static async updateSellerProduct(
     sellerId: string,
     productId: string,

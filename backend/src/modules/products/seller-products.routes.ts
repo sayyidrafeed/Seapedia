@@ -47,6 +47,34 @@ sellerProductsRouter.get(
   },
 );
 
+sellerProductsRouter.get(
+  '/:id',
+  describeRoute({
+    operationId: 'getSellerProductById',
+    tags: ['Seller Products'],
+    summary: 'Get details of a product owned by logged-in Seller',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(sellerProductResponseSchema, 'Product details'),
+      ...errorResponses(401, 403, 404, 500),
+    },
+  }),
+  validator('param', z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const userId = c.get('userId');
+    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
+
+    const { id } = c.req.valid('param');
+    const product = await ProductsService.getSellerProductById(userId, id);
+
+    return c.json({
+      ...product,
+      createdAt: product.createdAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
+    });
+  },
+);
+
 sellerProductsRouter.post(
   '/',
   describeRoute({

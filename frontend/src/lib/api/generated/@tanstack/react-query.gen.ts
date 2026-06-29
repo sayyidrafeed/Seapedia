@@ -20,6 +20,7 @@ import {
   getProductById,
   getProductBySlug,
   getPublicStoreInfo,
+  getSellerProductById,
   healthCheck,
   listProducts,
   listReviews,
@@ -69,6 +70,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
+  GetSellerProductByIdData,
+  GetSellerProductByIdError,
+  GetSellerProductByIdResponse,
   HealthCheckData,
   HealthCheckResponse,
   ListProductsData,
@@ -609,6 +613,31 @@ export const deleteSellerProductMutation = (
   };
   return mutationOptions;
 };
+
+export const getSellerProductByIdQueryKey = (options: Options<GetSellerProductByIdData>) =>
+  createQueryKey('getSellerProductById', options);
+
+/**
+ * Get details of a product owned by logged-in Seller
+ */
+export const getSellerProductByIdOptions = (options: Options<GetSellerProductByIdData>) =>
+  queryOptions<
+    GetSellerProductByIdResponse,
+    GetSellerProductByIdError,
+    GetSellerProductByIdResponse,
+    ReturnType<typeof getSellerProductByIdQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getSellerProductById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getSellerProductByIdQueryKey(options),
+  });
 
 /**
  * Update a product owned by Seller

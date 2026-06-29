@@ -207,6 +207,26 @@ describe('ProductsService', () => {
     });
   });
 
+  describe('getSellerProductById', () => {
+    test('returns seller product by id', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([makeProduct()]); // findFirst product
+
+      const result = await ProductsService.getSellerProductById('seller-1', 'prod-1');
+
+      expect(result.id).toBe('prod-1');
+    });
+
+    test('throws NotFoundError if product not found', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([]); // findFirst product returns null
+
+      await expect(ProductsService.getSellerProductById('seller-1', 'prod-1')).rejects.toThrow(
+        'Product not found or does not belong to your store',
+      );
+    });
+  });
+
   describe('updateSellerProduct', () => {
     test('updates product successfully', async () => {
       dbState.addSelect([makeStore()]); // StoreService.getBySellerId

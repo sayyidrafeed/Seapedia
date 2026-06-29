@@ -673,6 +673,64 @@ export type DeleteSellerProductResponses = {
 export type DeleteSellerProductResponse =
   DeleteSellerProductResponses[keyof DeleteSellerProductResponses];
 
+export type GetSellerProductByIdData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/seller/products/{id}';
+};
+
+export type GetSellerProductByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetSellerProductByIdError =
+  GetSellerProductByIdErrors[keyof GetSellerProductByIdErrors];
+
+export type GetSellerProductByIdResponses = {
+  /**
+   * Product details
+   */
+  200: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | unknown;
+    price: number;
+    stock: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetSellerProductByIdResponse =
+  GetSellerProductByIdResponses[keyof GetSellerProductByIdResponses];
+
 export type UpdateSellerProductData = {
   body: {
     name?: string;
