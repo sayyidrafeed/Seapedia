@@ -16,8 +16,8 @@ This repository is a Hono REST API deployed on a Bun HTTP server, using TypeScri
 
 ## Commands
 
-| Task                  | Command               |
-| --------------------- | --------------------- |
+| Task                  | Command                   |
+| --------------------- | ------------------------- |
 | Install dependencies  | `rtk bun install`         |
 | Dev server            | `rtk bun run dev`         |
 | Type check            | `rtk bun run check`       |

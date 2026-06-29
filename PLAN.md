@@ -179,17 +179,21 @@ Your task is to allow Sellers to create and manage their store profile. A store 
 
 #### Requirements:
 
-- Create a data model or resource for Seller stores.
-- Provide a form for Sellers to create or update their store profile.
-- Include a store name field.
-- Validate and show an error if the store name is already used.
-- Create a public store summary endpoint or display block.
+- [x] Create a data model or resource for Seller stores.
+- [x] Provide a form for Sellers to create or update their store profile.
+- [x] Include a store name field.
+- [x] Validate and show an error if the store name is already used.
+- [x] Create a public store summary endpoint or display block.
 
 #### Business Rules:
 
-- Store names must be unique.
-- A Seller may only manage their own store.
-- The uniqueness rule must be enforced either through database constraints, backend validation, or both.
+- [x] Store names must be unique.
+- [x] A Seller may only manage their own store.
+- [x] The uniqueness rule must be enforced either through database constraints, backend validation, or both.
+
+#### Create Seller Store Management — Complete
+
+---
 
 ### Implement Product Management for Sellers (6 pts)
 

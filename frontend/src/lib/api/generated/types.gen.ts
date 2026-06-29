@@ -754,3 +754,188 @@ export type PrivateDriverEndpointResponses = {
 
 export type PrivateDriverEndpointResponse =
   PrivateDriverEndpointResponses[keyof PrivateDriverEndpointResponses];
+
+export type CreateStoreData = {
+  body: {
+    name: string;
+    description?: string;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/stores';
+};
+
+export type CreateStoreErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
+};
+
+export type CreateStoreError = CreateStoreErrors[keyof CreateStoreErrors];
+
+export type CreateStoreResponses = {
+  /**
+   * Store created successfully
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type CreateStoreResponse = CreateStoreResponses[keyof CreateStoreResponses];
+
+export type GetCurrentSellerStoreData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/stores/me';
+};
+
+export type GetCurrentSellerStoreErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+};
+
+export type GetCurrentSellerStoreError =
+  GetCurrentSellerStoreErrors[keyof GetCurrentSellerStoreErrors];
+
+export type GetCurrentSellerStoreResponses = {
+  /**
+   * Store found
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetCurrentSellerStoreResponse =
+  GetCurrentSellerStoreResponses[keyof GetCurrentSellerStoreResponses];
+
+export type UpdateCurrentSellerStoreData = {
+  body: {
+    name?: string;
+    description?: string;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/stores/me';
+};
+
+export type UpdateCurrentSellerStoreErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
+};
+
+export type UpdateCurrentSellerStoreError =
+  UpdateCurrentSellerStoreErrors[keyof UpdateCurrentSellerStoreErrors];
+
+export type UpdateCurrentSellerStoreResponses = {
+  /**
+   * Store updated successfully
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type UpdateCurrentSellerStoreResponse =
+  UpdateCurrentSellerStoreResponses[keyof UpdateCurrentSellerStoreResponses];
+
+export type GetPublicStoreInfoData = {
+  body?: never;
+  path: {
+    slugOrId: string;
+  };
+  query?: never;
+  url: '/api/stores/public/{slugOrId}';
+};
+
+export type GetPublicStoreInfoErrors = {
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+};
+
+export type GetPublicStoreInfoError = GetPublicStoreInfoErrors[keyof GetPublicStoreInfoErrors];
+
+export type GetPublicStoreInfoResponses = {
+  /**
+   * Store found
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetPublicStoreInfoResponse =
+  GetPublicStoreInfoResponses[keyof GetPublicStoreInfoResponses];

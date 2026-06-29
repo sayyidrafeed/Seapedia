@@ -3,6 +3,12 @@
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
 import type {
+  CreateStoreData,
+  CreateStoreErrors,
+  CreateStoreResponses,
+  GetCurrentSellerStoreData,
+  GetCurrentSellerStoreErrors,
+  GetCurrentSellerStoreResponses,
   GetCurrentSessionData,
   GetCurrentSessionErrors,
   GetCurrentSessionResponses,
@@ -18,6 +24,9 @@ import type {
   GetProductBySlugData,
   GetProductBySlugErrors,
   GetProductBySlugResponses,
+  GetPublicStoreInfoData,
+  GetPublicStoreInfoErrors,
+  GetPublicStoreInfoResponses,
   HealthCheckData,
   HealthCheckResponses,
   ListProductsData,
@@ -56,6 +65,9 @@ import type {
   SubmitReviewData,
   SubmitReviewErrors,
   SubmitReviewResponses,
+  UpdateCurrentSellerStoreData,
+  UpdateCurrentSellerStoreErrors,
+  UpdateCurrentSellerStoreResponses,
 } from './types.gen';
 
 export type Options<
@@ -391,3 +403,93 @@ export const privateDriverEndpoint = <ThrowOnError extends boolean = false>(
     url: '/api/private/driver',
     ...options,
   });
+
+/**
+ * Create a new store
+ *
+ * Create a new store for the currently authenticated seller.
+ */
+export const createStore = <ThrowOnError extends boolean = false>(
+  options: Options<CreateStoreData, ThrowOnError>,
+): RequestResult<CreateStoreResponses, CreateStoreErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateStoreResponses, CreateStoreErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/stores',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get current seller store
+ *
+ * Get the store of the currently authenticated seller.
+ */
+export const getCurrentSellerStore = <ThrowOnError extends boolean = false>(
+  options?: Options<GetCurrentSellerStoreData, ThrowOnError>,
+): RequestResult<GetCurrentSellerStoreResponses, GetCurrentSellerStoreErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetCurrentSellerStoreResponses,
+    GetCurrentSellerStoreErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/stores/me',
+    ...options,
+  });
+
+/**
+ * Update current seller store
+ *
+ * Update the store of the currently authenticated seller.
+ */
+export const updateCurrentSellerStore = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateCurrentSellerStoreData, ThrowOnError>,
+): RequestResult<UpdateCurrentSellerStoreResponses, UpdateCurrentSellerStoreErrors, ThrowOnError> =>
+  (options.client ?? client).put<
+    UpdateCurrentSellerStoreResponses,
+    UpdateCurrentSellerStoreErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/stores/me',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get public store info
+ *
+ * Get public information about a store by ID or slug (name).
+ */
+export const getPublicStoreInfo = <ThrowOnError extends boolean = false>(
+  options: Options<GetPublicStoreInfoData, ThrowOnError>,
+): RequestResult<GetPublicStoreInfoResponses, GetPublicStoreInfoErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetPublicStoreInfoResponses,
+    GetPublicStoreInfoErrors,
+    ThrowOnError
+  >({ url: '/api/stores/public/{slugOrId}', ...options });

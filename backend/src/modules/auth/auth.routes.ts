@@ -154,7 +154,6 @@ authRouter.get(
   },
 );
 
-
 authRouter.post(
   '/onboard',
   describeRoute({

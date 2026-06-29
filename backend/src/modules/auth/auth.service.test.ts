@@ -211,9 +211,9 @@ describe('AuthService', () => {
       dbState.addSelect([makeUser()]);
       mockVerify.mockResolvedValue(false);
 
-      await expect(
-        AuthService.login({ username: 'testuser', password: 'wrong' }),
-      ).rejects.toThrow('Invalid credentials');
+      await expect(AuthService.login({ username: 'testuser', password: 'wrong' })).rejects.toThrow(
+        'Invalid credentials',
+      );
     });
 
     test('creates new session when none exists', async () => {
@@ -284,18 +284,18 @@ describe('AuthService', () => {
     test('throws ForbiddenError when user does not have that role', async () => {
       dbState.addSelect([]);
 
-      await expect(
-        AuthService.selectRole('user-1', 'session-1', 'admin'),
-      ).rejects.toThrow("You do not have access to the 'admin' role");
+      await expect(AuthService.selectRole('user-1', 'session-1', 'admin')).rejects.toThrow(
+        "You do not have access to the 'admin' role",
+      );
     });
 
     test('throws NotFoundError when session does not exist', async () => {
       dbState.addSelect([{ id: 'r1', userId: 'user-1', role: 'seller', createdAt: new Date() }]);
       dbState.addUpdate([]); // empty update result
 
-      await expect(
-        AuthService.selectRole('user-1', 'session-1', 'seller'),
-      ).rejects.toThrow('Session not found');
+      await expect(AuthService.selectRole('user-1', 'session-1', 'seller')).rejects.toThrow(
+        'Session not found',
+      );
     });
   });
 
@@ -337,9 +337,9 @@ describe('AuthService', () => {
     test('throws NotFoundError when session is not found', async () => {
       dbState.addSelect([]);
 
-      await expect(
-        AuthService.getSessionInfo('user-1', 'session-1'),
-      ).rejects.toThrow('Session not found');
+      await expect(AuthService.getSessionInfo('user-1', 'session-1')).rejects.toThrow(
+        'Session not found',
+      );
     });
   });
 
@@ -351,12 +351,16 @@ describe('AuthService', () => {
 
     test('throws NotFoundError if user not found', async () => {
       dbState.addSelect([]);
-      await expect(AuthService.onboard('user-1', ['seller', 'driver'])).rejects.toThrow('User not found');
+      await expect(AuthService.onboard('user-1', ['seller', 'driver'])).rejects.toThrow(
+        'User not found',
+      );
     });
 
     test('throws ForbiddenError if user is already onboarded', async () => {
       dbState.addSelect([makeUser({ isOnboarded: true })]);
-      await expect(AuthService.onboard('user-1', ['seller', 'driver'])).rejects.toThrow('User is already onboarded');
+      await expect(AuthService.onboard('user-1', ['seller', 'driver'])).rejects.toThrow(
+        'User is already onboarded',
+      );
     });
   });
 });

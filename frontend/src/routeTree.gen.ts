@@ -15,12 +15,16 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OnboardRouteImport } from './routes/onboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoreSlugIndexRouteImport } from './routes/$storeSlug/index'
 import { Route as ProductsProductIdRouteImport } from './routes/products/$productId'
 import { Route as DashboardSellerRouteImport } from './routes/dashboard/seller'
 import { Route as DashboardDriverRouteImport } from './routes/dashboard/driver'
 import { Route as DashboardBuyerRouteImport } from './routes/dashboard/buyer'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
 import { Route as StoreSlugProductSlugRouteImport } from './routes/$storeSlug/$productSlug'
+import { Route as DashboardSellerIndexRouteImport } from './routes/dashboard/seller/index'
+import { Route as DashboardSellerStoreRouteImport } from './routes/dashboard/seller/store'
+import { Route as DashboardSellerOnboardingRouteImport } from './routes/dashboard/seller/onboarding'
 
 const SelectRoleRoute = SelectRoleRouteImport.update({
   id: '/select-role',
@@ -50,6 +54,11 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreSlugIndexRoute = StoreSlugIndexRouteImport.update({
+  id: '/$storeSlug/',
+  path: '/$storeSlug/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
@@ -82,6 +91,22 @@ const StoreSlugProductSlugRoute = StoreSlugProductSlugRouteImport.update({
   path: '/$storeSlug/$productSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSellerIndexRoute = DashboardSellerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardSellerRoute,
+} as any)
+const DashboardSellerStoreRoute = DashboardSellerStoreRouteImport.update({
+  id: '/store',
+  path: '/store',
+  getParentRoute: () => DashboardSellerRoute,
+} as any)
+const DashboardSellerOnboardingRoute =
+  DashboardSellerOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => DashboardSellerRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,8 +119,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/buyer': typeof DashboardBuyerRoute
   '/dashboard/driver': typeof DashboardDriverRoute
-  '/dashboard/seller': typeof DashboardSellerRoute
+  '/dashboard/seller': typeof DashboardSellerRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
+  '/$storeSlug/': typeof StoreSlugIndexRoute
+  '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
+  '/dashboard/seller/store': typeof DashboardSellerStoreRoute
+  '/dashboard/seller/': typeof DashboardSellerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,8 +137,11 @@ export interface FileRoutesByTo {
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/buyer': typeof DashboardBuyerRoute
   '/dashboard/driver': typeof DashboardDriverRoute
-  '/dashboard/seller': typeof DashboardSellerRoute
   '/products/$productId': typeof ProductsProductIdRoute
+  '/$storeSlug': typeof StoreSlugIndexRoute
+  '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
+  '/dashboard/seller/store': typeof DashboardSellerStoreRoute
+  '/dashboard/seller': typeof DashboardSellerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,8 +155,12 @@ export interface FileRoutesById {
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/buyer': typeof DashboardBuyerRoute
   '/dashboard/driver': typeof DashboardDriverRoute
-  '/dashboard/seller': typeof DashboardSellerRoute
+  '/dashboard/seller': typeof DashboardSellerRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
+  '/$storeSlug/': typeof StoreSlugIndexRoute
+  '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
+  '/dashboard/seller/store': typeof DashboardSellerStoreRoute
+  '/dashboard/seller/': typeof DashboardSellerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +177,10 @@ export interface FileRouteTypes {
     | '/dashboard/driver'
     | '/dashboard/seller'
     | '/products/$productId'
+    | '/$storeSlug/'
+    | '/dashboard/seller/onboarding'
+    | '/dashboard/seller/store'
+    | '/dashboard/seller/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,8 +193,11 @@ export interface FileRouteTypes {
     | '/dashboard/admin'
     | '/dashboard/buyer'
     | '/dashboard/driver'
-    | '/dashboard/seller'
     | '/products/$productId'
+    | '/$storeSlug'
+    | '/dashboard/seller/onboarding'
+    | '/dashboard/seller/store'
+    | '/dashboard/seller'
   id:
     | '__root__'
     | '/'
@@ -169,6 +212,10 @@ export interface FileRouteTypes {
     | '/dashboard/driver'
     | '/dashboard/seller'
     | '/products/$productId'
+    | '/$storeSlug/'
+    | '/dashboard/seller/onboarding'
+    | '/dashboard/seller/store'
+    | '/dashboard/seller/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -182,8 +229,9 @@ export interface RootRouteChildren {
   DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardBuyerRoute: typeof DashboardBuyerRoute
   DashboardDriverRoute: typeof DashboardDriverRoute
-  DashboardSellerRoute: typeof DashboardSellerRoute
+  DashboardSellerRoute: typeof DashboardSellerRouteWithChildren
   ProductsProductIdRoute: typeof ProductsProductIdRoute
+  StoreSlugIndexRoute: typeof StoreSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -230,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$storeSlug/': {
+      id: '/$storeSlug/'
+      path: '/$storeSlug'
+      fullPath: '/$storeSlug/'
+      preLoaderRoute: typeof StoreSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products/$productId': {
       id: '/products/$productId'
       path: '/products/$productId'
@@ -272,8 +327,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreSlugProductSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/seller/': {
+      id: '/dashboard/seller/'
+      path: '/'
+      fullPath: '/dashboard/seller/'
+      preLoaderRoute: typeof DashboardSellerIndexRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/seller/store': {
+      id: '/dashboard/seller/store'
+      path: '/store'
+      fullPath: '/dashboard/seller/store'
+      preLoaderRoute: typeof DashboardSellerStoreRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/seller/onboarding': {
+      id: '/dashboard/seller/onboarding'
+      path: '/onboarding'
+      fullPath: '/dashboard/seller/onboarding'
+      preLoaderRoute: typeof DashboardSellerOnboardingRouteImport
+      parentRoute: typeof DashboardSellerRoute
+    }
   }
 }
+
+interface DashboardSellerRouteChildren {
+  DashboardSellerOnboardingRoute: typeof DashboardSellerOnboardingRoute
+  DashboardSellerStoreRoute: typeof DashboardSellerStoreRoute
+  DashboardSellerIndexRoute: typeof DashboardSellerIndexRoute
+}
+
+const DashboardSellerRouteChildren: DashboardSellerRouteChildren = {
+  DashboardSellerOnboardingRoute: DashboardSellerOnboardingRoute,
+  DashboardSellerStoreRoute: DashboardSellerStoreRoute,
+  DashboardSellerIndexRoute: DashboardSellerIndexRoute,
+}
+
+const DashboardSellerRouteWithChildren = DashboardSellerRoute._addFileChildren(
+  DashboardSellerRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -286,8 +378,9 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardAdminRoute: DashboardAdminRoute,
   DashboardBuyerRoute: DashboardBuyerRoute,
   DashboardDriverRoute: DashboardDriverRoute,
-  DashboardSellerRoute: DashboardSellerRoute,
+  DashboardSellerRoute: DashboardSellerRouteWithChildren,
   ProductsProductIdRoute: ProductsProductIdRoute,
+  StoreSlugIndexRoute: StoreSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -113,7 +113,9 @@ productsRouter.get(
   async (c) => {
     const { storeSlug, productSlug } = c.req.valid('param');
     const product = MOCK_PRODUCTS.find(
-      (p) => p.storeSlug.toLowerCase() === storeSlug.toLowerCase() && p.slug.toLowerCase() === productSlug.toLowerCase(),
+      (p) =>
+        p.storeSlug.toLowerCase() === storeSlug.toLowerCase() &&
+        p.slug.toLowerCase() === productSlug.toLowerCase(),
     );
 
     if (!product) {

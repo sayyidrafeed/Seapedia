@@ -112,7 +112,7 @@ describe('Private endpoints per role', () => {
       const res = await app.request(`/api/private/${role}`);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as { message: string; activeRole: string };
+      const body = (await res.json()) as { message: string; activeRole: string };
       expect(body.message).toBe(
         `This endpoint can only be used by users with the ${display} role.`,
       );

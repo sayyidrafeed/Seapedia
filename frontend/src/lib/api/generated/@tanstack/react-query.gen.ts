@@ -10,11 +10,14 @@ import {
 
 import { client } from '../client.gen';
 import {
+  createStore,
+  getCurrentSellerStore,
   getCurrentSession,
   getCurrentUser,
   getCurrentUserFinancialSummary,
   getProductById,
   getProductBySlug,
+  getPublicStoreInfo,
   healthCheck,
   listProducts,
   listReviews,
@@ -29,8 +32,15 @@ import {
   registerUser,
   selectActiveRole,
   submitReview,
+  updateCurrentSellerStore,
 } from '../sdk.gen';
 import type {
+  CreateStoreData,
+  CreateStoreError,
+  CreateStoreResponse,
+  GetCurrentSellerStoreData,
+  GetCurrentSellerStoreError,
+  GetCurrentSellerStoreResponse,
   GetCurrentSessionData,
   GetCurrentSessionError,
   GetCurrentSessionResponse,
@@ -46,6 +56,9 @@ import type {
   GetProductBySlugData,
   GetProductBySlugError,
   GetProductBySlugResponse,
+  GetPublicStoreInfoData,
+  GetPublicStoreInfoError,
+  GetPublicStoreInfoResponse,
   HealthCheckData,
   HealthCheckResponse,
   ListProductsData,
@@ -84,6 +97,9 @@ import type {
   SubmitReviewData,
   SubmitReviewError,
   SubmitReviewResponse,
+  UpdateCurrentSellerStoreData,
+  UpdateCurrentSellerStoreError,
+  UpdateCurrentSellerStoreResponse,
 } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
@@ -645,4 +661,112 @@ export const privateDriverEndpointOptions = (options?: Options<PrivateDriverEndp
       return data;
     },
     queryKey: privateDriverEndpointQueryKey(options),
+  });
+
+/**
+ * Create a new store
+ *
+ * Create a new store for the currently authenticated seller.
+ */
+export const createStoreMutation = (
+  options?: Partial<Options<CreateStoreData>>,
+): UseMutationOptions<CreateStoreResponse, CreateStoreError, Options<CreateStoreData>> => {
+  const mutationOptions: UseMutationOptions<
+    CreateStoreResponse,
+    CreateStoreError,
+    Options<CreateStoreData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createStore({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getCurrentSellerStoreQueryKey = (options?: Options<GetCurrentSellerStoreData>) =>
+  createQueryKey('getCurrentSellerStore', options);
+
+/**
+ * Get current seller store
+ *
+ * Get the store of the currently authenticated seller.
+ */
+export const getCurrentSellerStoreOptions = (options?: Options<GetCurrentSellerStoreData>) =>
+  queryOptions<
+    GetCurrentSellerStoreResponse,
+    GetCurrentSellerStoreError,
+    GetCurrentSellerStoreResponse,
+    ReturnType<typeof getCurrentSellerStoreQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getCurrentSellerStore({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getCurrentSellerStoreQueryKey(options),
+  });
+
+/**
+ * Update current seller store
+ *
+ * Update the store of the currently authenticated seller.
+ */
+export const updateCurrentSellerStoreMutation = (
+  options?: Partial<Options<UpdateCurrentSellerStoreData>>,
+): UseMutationOptions<
+  UpdateCurrentSellerStoreResponse,
+  UpdateCurrentSellerStoreError,
+  Options<UpdateCurrentSellerStoreData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateCurrentSellerStoreResponse,
+    UpdateCurrentSellerStoreError,
+    Options<UpdateCurrentSellerStoreData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateCurrentSellerStore({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getPublicStoreInfoQueryKey = (options: Options<GetPublicStoreInfoData>) =>
+  createQueryKey('getPublicStoreInfo', options);
+
+/**
+ * Get public store info
+ *
+ * Get public information about a store by ID or slug (name).
+ */
+export const getPublicStoreInfoOptions = (options: Options<GetPublicStoreInfoData>) =>
+  queryOptions<
+    GetPublicStoreInfoResponse,
+    GetPublicStoreInfoError,
+    GetPublicStoreInfoResponse,
+    ReturnType<typeof getPublicStoreInfoQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getPublicStoreInfo({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getPublicStoreInfoQueryKey(options),
   });

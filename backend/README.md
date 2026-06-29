@@ -4,18 +4,18 @@ Hono REST API running on Bun with TypeScript, Zod validation, Drizzle ORM with P
 
 ## Tech Stack
 
-| Library                    | Purpose                                         |
-| -------------------------- | ----------------------------------------------- |
-| Hono                       | Web framework (ultrafast, Bun-native)           |
-| TypeScript                 | Strict mode, ES2022 target                      |
-| Zod                        | Runtime schema validation with OpenAPI metadata |
-| `@hono/zod-openapi`        | OpenAPI spec generation from Hono routes        |
-| `hono-openapi`             | OpenAPI route metadata helpers                  |
-| `@scalar/hono-api-reference` | Interactive API reference UI at `/docs`       |
-| Drizzle ORM                | Type-safe ORM for PostgreSQL                    |
-| PostgreSQL                 | Relational database                             |
-| `jose`                     | JWT signing and verification (HS256)            |
-| Bun                        | Package manager and runtime                     |
+| Library                      | Purpose                                         |
+| ---------------------------- | ----------------------------------------------- |
+| Hono                         | Web framework (ultrafast, Bun-native)           |
+| TypeScript                   | Strict mode, ES2022 target                      |
+| Zod                          | Runtime schema validation with OpenAPI metadata |
+| `@hono/zod-openapi`          | OpenAPI spec generation from Hono routes        |
+| `hono-openapi`               | OpenAPI route metadata helpers                  |
+| `@scalar/hono-api-reference` | Interactive API reference UI at `/docs`         |
+| Drizzle ORM                  | Type-safe ORM for PostgreSQL                    |
+| PostgreSQL                   | Relational database                             |
+| `jose`                       | JWT signing and verification (HS256)            |
+| Bun                          | Package manager and runtime                     |
 
 ## Prerequisites
 
@@ -48,29 +48,29 @@ bun run db:studio      # (Optional) Open Drizzle Studio
 
 ## Environment Variables
 
-| Variable          | Required | Description                                     |
-| ----------------- | -------- | ----------------------------------------------- |
-| `DATABASE_URL`    | Yes      | PostgreSQL connection string                    |
-| `JWT_SECRET`      | Yes      | Secret key for signing JWTs (min 8 chars)       |
-| `NODE_ENV`        | No       | `development`, `production`, or `test`          |
-| `PORT`            | No       | Server port (default: 3001)                     |
-| `FRONTEND_URL`    | No       | Allowed CORS origin (default: `http://localhost:5173`) |
+| Variable       | Required | Description                                            |
+| -------------- | -------- | ------------------------------------------------------ |
+| `DATABASE_URL` | Yes      | PostgreSQL connection string                           |
+| `JWT_SECRET`   | Yes      | Secret key for signing JWTs (min 8 chars)              |
+| `NODE_ENV`     | No       | `development`, `production`, or `test`                 |
+| `PORT`         | No       | Server port (default: 3001)                            |
+| `FRONTEND_URL` | No       | Allowed CORS origin (default: `http://localhost:5173`) |
 
 ## Available Scripts
 
-| Command               | Description                             |
-| --------------------- | --------------------------------------- |
+| Command               | Description                                 |
+| --------------------- | ------------------------------------------- |
 | `bun run dev`         | Start dev server with hot reload on `:3001` |
-| `bun run deploy`      | Deploy via Docker                       |
-| `bun run check`       | TypeScript type check (`tsc --noEmit`)  |
-| `bun run lint`        | Run oxlint                              |
-| `bun run format`      | Run oxfmt                               |
-| `bun run fl`          | Format then lint                        |
-| `bun test`            | Run Bun tests                           |
-| `bun run db:generate` | Create Drizzle migration                |
-| `bun run db:migrate`  | Apply Drizzle migration                 |
-| `bun run db:seed`     | Seed demo accounts and data             |
-| `bun run db:studio`   | Open Drizzle Studio                     |
+| `bun run deploy`      | Deploy via Docker                           |
+| `bun run check`       | TypeScript type check (`tsc --noEmit`)      |
+| `bun run lint`        | Run oxlint                                  |
+| `bun run format`      | Run oxfmt                                   |
+| `bun run fl`          | Format then lint                            |
+| `bun test`            | Run Bun tests                               |
+| `bun run db:generate` | Create Drizzle migration                    |
+| `bun run db:migrate`  | Apply Drizzle migration                     |
+| `bun run db:seed`     | Seed demo accounts and data                 |
+| `bun run db:studio`   | Open Drizzle Studio                         |
 
 ## Project Structure
 
@@ -183,9 +183,9 @@ Every route defines OpenAPI metadata:
 
 Run `bun run db:seed` to create the following demo accounts:
 
-| Username  | Password       | Roles                    |
-| --------- | -------------- | ------------------------ |
-| admin     | adminpassword  | admin                    |
+| Username | Password      | Roles |
+| -------- | ------------- | ----- |
+| admin    | adminpassword | admin |
 
 The admin user logs in and is auto-redirected to the admin dashboard (single role). Multi-role users can be created through registration + onboarding.
 

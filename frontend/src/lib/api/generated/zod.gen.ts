@@ -238,3 +238,65 @@ export const zPrivateDriverEndpointResponse = z.object({
   message: z.string(),
   activeRole: z.string(),
 });
+
+export const zCreateStoreBody = z.object({
+  name: z.string().min(3).max(255),
+  description: z.string().optional(),
+});
+
+/**
+ * Store created successfully
+ */
+export const zCreateStoreResponse = z.object({
+  id: z.string(),
+  sellerId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+/**
+ * Store found
+ */
+export const zGetCurrentSellerStoreResponse = z.object({
+  id: z.string(),
+  sellerId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zUpdateCurrentSellerStoreBody = z.object({
+  name: z.string().min(3).max(255).optional(),
+  description: z.string().optional(),
+});
+
+/**
+ * Store updated successfully
+ */
+export const zUpdateCurrentSellerStoreResponse = z.object({
+  id: z.string(),
+  sellerId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zGetPublicStoreInfoPath = z.object({
+  slugOrId: z.string().min(3),
+});
+
+/**
+ * Store found
+ */
+export const zGetPublicStoreInfoResponse = z.object({
+  id: z.string(),
+  sellerId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});

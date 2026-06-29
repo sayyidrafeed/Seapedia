@@ -1,18 +1,27 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { createFileRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { privateSellerEndpoint } from '@/lib/api/generated';
+import { useQuery } from '@tanstack/react-query';
+import { getCurrentSellerStoreOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 
 export const Route = createFileRoute('/dashboard/seller')({
-  component: SellerDashboard,
+  component: SellerLayout,
 });
 
-function SellerDashboard() {
+function SellerLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+
+  const {
+    data: store,
+    isLoading: isStoreLoading,
+    error: storeError,
+  } = useQuery({
+    ...getCurrentSellerStoreOptions(),
+    retry: false,
+    enabled: auth.activeRole === 'seller',
+  });
 
   useEffect(() => {
     if (!auth.isLoading && auth.activeRole !== 'seller') {
@@ -20,30 +29,39 @@ function SellerDashboard() {
     }
   }, [auth.isLoading, auth.activeRole, navigate]);
 
-  const testPrivateEndpoint = async () => {
-    setLoading(true);
-    setResult(null);
-    setError(null);
-    try {
-      const { data, error: apiError } = await privateSellerEndpoint();
-      if (apiError) {
-        throw new Error(apiError.error || 'Request failed');
-      }
-      if (data) {
-        setResult(data.message);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Request failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (auth.activeRole === 'seller' && !isStoreLoading) {
+      const err = storeError as {
+        message?: string;
+        status?: number;
+        error?: string;
+        body?: { error?: string };
+      } | null;
+      const isNotFoundError =
+        err &&
+        (err.message?.includes('404') ||
+          err.status === 404 ||
+          err.error === 'Store not found' ||
+          err.error?.includes('not found') ||
+          err.body?.error === 'Store not found');
 
-  if (auth.isLoading || auth.activeRole !== 'seller') {
+      if (isNotFoundError) {
+        // No store found, redirect to onboarding if not already there
+        if (location.pathname !== '/dashboard/seller/onboarding') {
+          navigate({ to: '/dashboard/seller/onboarding' });
+        }
+      } else if (store && location.pathname === '/dashboard/seller/onboarding') {
+        // Store exists, redirect away from onboarding
+        navigate({ to: '/dashboard/seller' });
+      }
+    }
+  }, [auth.activeRole, isStoreLoading, storeError, store, navigate, location.pathname]);
+
+  if (auth.isLoading || auth.activeRole !== 'seller' || isStoreLoading) {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Checking authorization...
+          Loading seller workspace...
         </span>
       </div>
     );
@@ -51,46 +69,40 @@ function SellerDashboard() {
 
   return (
     <div className="container mx-auto px-6 py-12 space-y-6">
-      <div className="border-b border-border pb-4">
-        <h1 className="text-3xl font-extrabold tracking-tight capitalize">
-          {auth.activeRole} Dashboard
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Placeholder for store and product management operations (Level 2).
-        </p>
-      </div>
-
-      <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-bold text-foreground mb-4">Level 1 Seller Area</h2>
-        <p className="text-sm text-muted-foreground">
-          You are logged in with the active role: <strong>seller</strong>. Store registration and
-          product listing controls will be added in Level 2.
-        </p>
-      </div>
-
-      <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-bold text-foreground mb-4">Private Endpoint Test</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Test the private endpoint that only allows users with the Seller role.
-        </p>
-        <button
-          onClick={testPrivateEndpoint}
-          disabled={loading}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : 'Test Private Seller Endpoint'}
-        </button>
-        {result && (
-          <p className="mt-4 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md px-4 py-2">
-            {result}
+      <div className="border-b border-border pb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight capitalize">
+            {store ? store.name : 'Seller Onboarding'}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {store ? 'Seller Dashboard' : 'Complete your store profile to start selling.'}
           </p>
-        )}
-        {error && (
-          <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-4 py-2">
-            {error}
-          </p>
+        </div>
+        {store && (
+          <div className="space-x-4">
+            <button
+              onClick={() => navigate({ to: '/dashboard/seller' })}
+              className="text-sm font-medium hover:underline text-primary"
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => navigate({ to: '/dashboard/seller/store' })}
+              className="text-sm font-medium hover:underline text-primary"
+            >
+              Store Profile
+            </button>
+            <button
+              onClick={() => navigate({ to: `/${store.name}` })}
+              className="text-sm font-medium hover:underline text-muted-foreground"
+            >
+              View Public Store
+            </button>
+          </div>
         )}
       </div>
+
+      <Outlet />
     </div>
   );
 }
