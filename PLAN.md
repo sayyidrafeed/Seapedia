@@ -130,18 +130,18 @@ Before users start buying products, SEAPEDIA also wants to collect early feedbac
 
 #### Requirements:
 
-- Create a public review or testimonial section on the landing page or another public page.
-- Create a form that allows users to submit a review about the SEAPEDIA application or website experience.
-- The review form must include reviewer name, rating from 1 to 5, and comment text.
-- Display submitted reviews in a review list, testimonial section, carousel, or similar component.
-- Allow the review feature to be used without requiring checkout or transaction history.
-- At this level, the review may be stored in frontend state, local storage, or a backend resource, as long as the behavior is clear and can be demonstrated.
+- [x] Create a public review or testimonial section on the landing page or another public page.
+- [x] Create a form that allows users to submit a review about the SEAPEDIA application or website experience.
+- [x] The review form must include reviewer name, rating from 1 to 5, and comment text.
+- [x] Display submitted reviews in a review list, testimonial section, carousel, or similar component.
+- [x] Allow the review feature to be used without requiring checkout or transaction history.
+- [x] At this level, the review may be stored in frontend state, local storage, or a backend resource, as long as the behavior is clear and can be demonstrated.
 
 #### Business Rules:
 
-- Application reviews are about the website or application experience, not specific products or orders.
-- Guests may submit application reviews unless your implementation explicitly requires login and explains the reason.
-- Displayed comments should be rendered as normal text and should not break the page layout. Formal XSS prevention is assessed in Level 7.
+- [x] Application reviews are about the website or application experience, not specific products or orders.
+- [x] Guests may submit application reviews unless your implementation explicitly requires login and explains the reason.
+- [ ] Displayed comments should be rendered as normal text and should not break the page layout. Formal XSS prevention is assessed in Level 7.
 
 ### Build Reusable UI Foundations (4 pts)
 
@@ -149,19 +149,19 @@ Since future levels will add many screens, your application should already have 
 
 #### Requirements:
 
-- Create reusable components such as Button, Input, Card, Navbar or Top Bar, and Footer or Bottom Navigation.
-- Prepare a routing structure that can support public pages and private dashboard pages.
-- Create dashboard shells or placeholders for Admin, Seller, Buyer, and Driver.
-- Make the navigation responsive for desktop and mobile layouts.
-- Show a clear difference between guest navigation and logged-in navigation.
+- [x] Create reusable components such as Button, Input, Card, Navbar or Top Bar, and Footer or Bottom Navigation.
+- [x] Prepare a routing structure that can support public pages and private dashboard pages.
+- [x] Create dashboard shells or placeholders for Admin, Seller, Buyer, and Driver.
+- [x] Make the navigation responsive for desktop and mobile layouts.
+- [x] Show a clear difference between guest navigation and logged-in navigation.
 
 #### Deliverables:
 
-- A navigable public UI for SEAPEDIA.
-- Working login, registration, logout, and role selection flow.
-- Role-aware dashboard entry points.
-- Public application review form and review display.
-- Reusable UI components and a clean routing structure ready for future levels.
+- [x] A navigable public UI for SEAPEDIA.
+- [x] Working login, registration, logout, and role selection flow.
+- [x] Role-aware dashboard entry points.
+- [x] Public application review form and review display.
+- [x] Reusable UI components and a clean routing structure ready for future levels.
 
 After finishing this level, SEAPEDIA should already feel like a marketplace that can be used by different types of users. Guests can explore the public experience, early visitors can leave application reviews, and registered users can enter the system with a clear role context.
 

@@ -26,6 +26,7 @@ function SelectRolePage() {
       await auth.selectRole(role);
       navigate({ to: `/dashboard/${role}` });
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to select role:', err);
     }
   };

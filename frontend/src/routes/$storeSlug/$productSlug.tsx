@@ -60,9 +60,7 @@ function StoreProductPage() {
             </span>
             <span className="text-xs text-muted-foreground">Stock: {product.stock} left</span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-            {product.name}
-          </h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{product.name}</h1>
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed border-t border-b border-border/50 py-6">
