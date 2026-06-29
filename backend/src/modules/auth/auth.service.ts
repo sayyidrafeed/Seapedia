@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { users, userRole, activeSession } from '@/db/schema';
-import { eq, or, and } from 'drizzle-orm';
+import { eq, or, and, ne } from 'drizzle-orm';
 import { ConflictError, ValidationError, ForbiddenError, NotFoundError } from '@/lib/errors';
 
 export class AuthService {
@@ -183,11 +183,29 @@ export class AuthService {
     const uniqueRoles = Array.from(new Set(['buyer', ...selectedRoles]));
 
     return await db.transaction(async (tx) => {
-      // Clear roles first
-      await tx.delete(userRole).where(eq(userRole.userId, userId));
+      // Check if user is already onboarded
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      if (user.isOnboarded) {
+        throw new ForbiddenError('User is already onboarded');
+      }
+
+      // Clear roles first, but protect the 'admin' role if present
+      await tx
+        .delete(userRole)
+        .where(and(eq(userRole.userId, userId), ne(userRole.role, 'admin')));
 
       // Re-insert
       for (const role of uniqueRoles) {
+        if (role === 'admin') continue;
         await tx.insert(userRole).values({
           userId,
           role,

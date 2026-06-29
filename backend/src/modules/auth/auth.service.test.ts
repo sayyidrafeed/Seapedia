@@ -345,7 +345,18 @@ describe('AuthService', () => {
 
   describe('onboard', () => {
     test('completes without error for valid roles', async () => {
+      dbState.addSelect([makeUser({ isOnboarded: false })]);
       await expect(AuthService.onboard('user-1', ['seller', 'driver'])).resolves.toBeUndefined();
+    });
+
+    test('throws NotFoundError if user not found', async () => {
+      dbState.addSelect([]);
+      await expect(AuthService.onboard('user-1', ['seller', 'driver'])).rejects.toThrow('User not found');
+    });
+
+    test('throws ForbiddenError if user is already onboarded', async () => {
+      dbState.addSelect([makeUser({ isOnboarded: true })]);
+      await expect(AuthService.onboard('user-1', ['seller', 'driver'])).rejects.toThrow('User is already onboarded');
     });
   });
 });
