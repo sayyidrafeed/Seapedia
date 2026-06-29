@@ -8,6 +8,9 @@ import type {
   GetCurrentSessionResponses,
   GetCurrentUserData,
   GetCurrentUserErrors,
+  GetCurrentUserFinancialSummaryData,
+  GetCurrentUserFinancialSummaryErrors,
+  GetCurrentUserFinancialSummaryResponses,
   GetCurrentUserResponses,
   GetProductByIdData,
   GetProductByIdErrors,
@@ -29,6 +32,21 @@ import type {
   LogoutUserData,
   LogoutUserErrors,
   LogoutUserResponses,
+  OnboardUserData,
+  OnboardUserErrors,
+  OnboardUserResponses,
+  PrivateAdminEndpointData,
+  PrivateAdminEndpointErrors,
+  PrivateAdminEndpointResponses,
+  PrivateBuyerEndpointData,
+  PrivateBuyerEndpointErrors,
+  PrivateBuyerEndpointResponses,
+  PrivateDriverEndpointData,
+  PrivateDriverEndpointErrors,
+  PrivateDriverEndpointResponses,
+  PrivateSellerEndpointData,
+  PrivateSellerEndpointErrors,
+  PrivateSellerEndpointResponses,
   RegisterUserData,
   RegisterUserErrors,
   RegisterUserResponses,
@@ -136,6 +154,54 @@ export const getCurrentUser = <ThrowOnError extends boolean = false>(
   });
 
 /**
+ * Get financial summary placeholder of currently authenticated user
+ */
+export const getCurrentUserFinancialSummary = <ThrowOnError extends boolean = false>(
+  options?: Options<GetCurrentUserFinancialSummaryData, ThrowOnError>,
+): RequestResult<
+  GetCurrentUserFinancialSummaryResponses,
+  GetCurrentUserFinancialSummaryErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    GetCurrentUserFinancialSummaryResponses,
+    GetCurrentUserFinancialSummaryErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/auth/me/financial-summary',
+    ...options,
+  });
+
+/**
+ * Onboard a new user with selected roles
+ */
+export const onboardUser = <ThrowOnError extends boolean = false>(
+  options: Options<OnboardUserData, ThrowOnError>,
+): RequestResult<OnboardUserResponses, OnboardUserErrors, ThrowOnError> =>
+  (options.client ?? client).post<OnboardUserResponses, OnboardUserErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/auth/onboard',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
  * Get status and roles of current session
  */
 export const getCurrentSession = <ThrowOnError extends boolean = false>(
@@ -236,4 +302,92 @@ export const submitReview = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+/**
+ * Private endpoint accessible only by Admin role
+ */
+export const privateAdminEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateAdminEndpointData, ThrowOnError>,
+): RequestResult<PrivateAdminEndpointResponses, PrivateAdminEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateAdminEndpointResponses,
+    PrivateAdminEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/admin',
+    ...options,
+  });
+
+/**
+ * Private endpoint accessible only by Seller role
+ */
+export const privateSellerEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateSellerEndpointData, ThrowOnError>,
+): RequestResult<PrivateSellerEndpointResponses, PrivateSellerEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateSellerEndpointResponses,
+    PrivateSellerEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/seller',
+    ...options,
+  });
+
+/**
+ * Private endpoint accessible only by Buyer role
+ */
+export const privateBuyerEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateBuyerEndpointData, ThrowOnError>,
+): RequestResult<PrivateBuyerEndpointResponses, PrivateBuyerEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateBuyerEndpointResponses,
+    PrivateBuyerEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/buyer',
+    ...options,
+  });
+
+/**
+ * Private endpoint accessible only by Driver role
+ */
+export const privateDriverEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateDriverEndpointData, ThrowOnError>,
+): RequestResult<PrivateDriverEndpointResponses, PrivateDriverEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateDriverEndpointResponses,
+    PrivateDriverEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/driver',
+    ...options,
   });

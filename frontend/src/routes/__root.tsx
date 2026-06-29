@@ -15,7 +15,6 @@ function RootComponent() {
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   useEffect(() => {
     if (
       !auth.isLoading &&

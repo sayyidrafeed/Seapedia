@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 import { formatCurrency } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { getCurrentUserFinancialSummaryOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -10,6 +12,11 @@ export const Route = createFileRoute('/profile')({
 function ProfilePage() {
   const auth = useAuth();
   const navigate = useNavigate();
+
+  const { data: financialSummary, isLoading: isFinancialLoading } = useQuery({
+    ...getCurrentUserFinancialSummaryOptions(),
+    enabled: !!auth.user,
+  });
 
   useEffect(() => {
     if (!auth.isLoading && !auth.user) {
@@ -102,27 +109,94 @@ function ProfilePage() {
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Financial Overview</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-            <span className="text-xs font-semibold text-muted-foreground uppercase">
-              Buyer Wallet Balance
-            </span>
-            <p className="text-2xl font-bold text-foreground mt-2">{formatCurrency(0)}</p>
+          {/* Buyer Card */}
+          <div
+            className={`bg-card border p-6 rounded-lg shadow-sm transition-opacity duration-200 ${
+              financialSummary?.buyer === undefined ? 'border-border/40 opacity-60' : 'border-border'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Buyer Wallet Balance
+              </span>
+              {financialSummary?.buyer === undefined && (
+                <span className="text-[10px] font-semibold text-muted-foreground/80 bg-secondary px-1.5 py-0.5 rounded">
+                  Not Owned
+                </span>
+              )}
+            </div>
+            {isFinancialLoading ? (
+              <p className="text-2xl font-bold text-foreground mt-2 animate-pulse">...</p>
+            ) : financialSummary?.buyer !== undefined ? (
+              <p className="text-2xl font-bold text-foreground mt-2">
+                {formatCurrency(financialSummary.buyer.balance)}
+              </p>
+            ) : (
+              <p className="text-sm font-medium text-muted-foreground mt-2.5 italic">
+                Role not active
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">Simulated transaction wallet</p>
           </div>
 
-          <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-            <span className="text-xs font-semibold text-muted-foreground uppercase">
-              Seller Earnings
-            </span>
-            <p className="text-2xl font-bold text-foreground mt-2">{formatCurrency(0)}</p>
+          {/* Seller Card */}
+          <div
+            className={`bg-card border p-6 rounded-lg shadow-sm transition-opacity duration-200 ${
+              financialSummary?.seller === undefined ? 'border-border/40 opacity-60' : 'border-border'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Seller Earnings
+              </span>
+              {financialSummary?.seller === undefined && (
+                <span className="text-[10px] font-semibold text-muted-foreground/80 bg-secondary px-1.5 py-0.5 rounded">
+                  Not Owned
+                </span>
+              )}
+            </div>
+            {isFinancialLoading ? (
+              <p className="text-2xl font-bold text-foreground mt-2 animate-pulse">...</p>
+            ) : financialSummary?.seller !== undefined ? (
+              <p className="text-2xl font-bold text-foreground mt-2">
+                {formatCurrency(financialSummary.seller.income)}
+              </p>
+            ) : (
+              <p className="text-sm font-medium text-muted-foreground mt-2.5 italic">
+                Role not active
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">Accumulated store sales revenue</p>
           </div>
 
-          <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-            <span className="text-xs font-semibold text-muted-foreground uppercase">
-              Driver Payouts
-            </span>
-            <p className="text-2xl font-bold text-foreground mt-2">{formatCurrency(0)}</p>
+          {/* Driver Card */}
+          <div
+            className={`bg-card border p-6 rounded-lg shadow-sm transition-opacity duration-200 ${
+              financialSummary?.driver === undefined ? 'border-border/40 opacity-60' : 'border-border'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Driver Payouts
+              </span>
+              {financialSummary?.driver === undefined && (
+                <span className="text-[10px] font-semibold text-muted-foreground/80 bg-secondary px-1.5 py-0.5 rounded">
+                  Not Owned
+                </span>
+              )}
+            </div>
+            {isFinancialLoading ? (
+              <p className="text-2xl font-bold text-foreground mt-2 animate-pulse">...</p>
+            ) : financialSummary?.driver !== undefined ? (
+              <p className="text-2xl font-bold text-foreground mt-2">
+                {formatCurrency(financialSummary.driver.earnings)}
+              </p>
+            ) : (
+              <p className="text-sm font-medium text-muted-foreground mt-2.5 italic">
+                Role not active
+              </p>
+            )}
+
             <p className="text-xs text-muted-foreground mt-1">Completed shipping job payouts</p>
           </div>
         </div>
@@ -130,3 +204,4 @@ function ProfilePage() {
     </div>
   );
 }
+

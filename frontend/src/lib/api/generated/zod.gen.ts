@@ -74,7 +74,40 @@ export const zGetCurrentUserResponse = z.object({
   username: z.string(),
   email: z.string(),
   name: z.union([z.string(), z.unknown()]),
+  isOnboarded: z.boolean(),
   createdAt: z.string(),
+});
+
+/**
+ * Current user financial summary
+ */
+export const zGetCurrentUserFinancialSummaryResponse = z.object({
+  buyer: z
+    .object({
+      balance: z.number(),
+    })
+    .optional(),
+  seller: z
+    .object({
+      income: z.number(),
+    })
+    .optional(),
+  driver: z
+    .object({
+      earnings: z.number(),
+    })
+    .optional(),
+});
+
+export const zOnboardUserBody = z.object({
+  roles: z.array(z.enum(['buyer', 'seller', 'driver'])),
+});
+
+/**
+ * Onboarding successful
+ */
+export const zOnboardUserResponse = z.object({
+  success: z.boolean(),
 });
 
 /**
@@ -172,4 +205,36 @@ export const zSubmitReviewResponse = z.object({
   rating: z.number(),
   comment: z.string(),
   createdAt: z.string(),
+});
+
+/**
+ * Private admin endpoint message
+ */
+export const zPrivateAdminEndpointResponse = z.object({
+  message: z.string(),
+  activeRole: z.string(),
+});
+
+/**
+ * Private seller endpoint message
+ */
+export const zPrivateSellerEndpointResponse = z.object({
+  message: z.string(),
+  activeRole: z.string(),
+});
+
+/**
+ * Private buyer endpoint message
+ */
+export const zPrivateBuyerEndpointResponse = z.object({
+  message: z.string(),
+  activeRole: z.string(),
+});
+
+/**
+ * Private driver endpoint message
+ */
+export const zPrivateDriverEndpointResponse = z.object({
+  message: z.string(),
+  activeRole: z.string(),
 });

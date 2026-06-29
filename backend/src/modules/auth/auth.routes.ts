@@ -10,7 +10,9 @@ import {
   loginSchema,
   selectRoleSchema,
   userResponseSchema,
+  onboardSchema,
   sessionResponseSchema,
+  financialSummarySchema,
 } from './auth.schemas';
 import { AuthService } from './auth.service';
 import { signJwt } from '@/lib/jwt';
@@ -126,8 +128,54 @@ authRouter.get(
       username: user.username,
       email: user.email,
       name: user.name,
+      isOnboarded: user.isOnboarded,
       createdAt: user.createdAt.toISOString(),
     });
+  },
+);
+
+authRouter.get(
+  '/me/financial-summary',
+  describeRoute({
+    operationId: 'getCurrentUserFinancialSummary',
+    tags: ['Auth'],
+    summary: 'Get financial summary placeholder of currently authenticated user',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(financialSummarySchema, 'Current user financial summary'),
+      ...errorResponses(401, 500),
+    },
+  }),
+  requireSession,
+  async (c) => {
+    const userId = c.get('userId')!;
+    const summary = await AuthService.getFinancialSummary(userId);
+    return c.json(summary);
+  },
+);
+
+
+authRouter.post(
+  '/onboard',
+  describeRoute({
+    operationId: 'onboardUser',
+    tags: ['Auth'],
+    summary: 'Onboard a new user with selected roles',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(successSchema, 'Onboarding successful'),
+      ...errorResponses(400, 401, 500),
+    },
+  }),
+  requireSession,
+  validator('json', onboardSchema),
+  async (c) => {
+    const userId = c.get('userId')!;
+    const { roles } = c.req.valid('json');
+
+    await AuthService.onboard(userId, roles);
+
+    return c.json({ success: true as const });
   },
 );
 

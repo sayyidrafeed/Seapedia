@@ -9,6 +9,7 @@ import { healthRouter } from '@/modules/health/health.index';
 import { authRouter } from '@/modules/auth/auth.index';
 import { productsRouter } from '@/modules/products/products.index';
 import { reviewsRouter } from '@/modules/reviews/reviews.index';
+import { privateRouter } from '@/modules/private/private.index';
 import { frontendUrls } from '@/env';
 
 export const app = factory.createApp();
@@ -41,6 +42,7 @@ app.route('/api/health', healthRouter);
 app.route('/api/auth', authRouter);
 app.route('/api/products', productsRouter);
 app.route('/api/reviews', reviewsRouter);
+app.route('/api/private', privateRouter);
 
 let openApiCache: Record<string, unknown> | null = null;
 

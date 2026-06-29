@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { users, userRole, activeSession } from '@/db/schema';
-import { eq, or, and } from 'drizzle-orm';
+import { eq, or, and, ne } from 'drizzle-orm';
 import { ConflictError, ValidationError, ForbiddenError, NotFoundError } from '@/lib/errors';
 
 export class AuthService {
@@ -178,4 +178,58 @@ export class AuthService {
       roles: roles.map((r) => r.role),
     };
   }
+
+  static async onboard(userId: string, selectedRoles: ('buyer' | 'seller' | 'driver')[]) {
+    const uniqueRoles = Array.from(new Set(['buyer', ...selectedRoles]));
+
+    return await db.transaction(async (tx) => {
+      // Check if user is already onboarded
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      if (user.isOnboarded) {
+        throw new ForbiddenError('User is already onboarded');
+      }
+
+      // Clear roles first, but protect the 'admin' role if present
+      await tx
+        .delete(userRole)
+        .where(and(eq(userRole.userId, userId), ne(userRole.role, 'admin')));
+
+      // Re-insert
+      for (const role of uniqueRoles) {
+        if (role === 'admin') continue;
+        await tx.insert(userRole).values({
+          userId,
+          role,
+        });
+      }
+
+      // Update users
+      await tx
+        .update(users)
+        .set({ isOnboarded: true, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    });
+  }
+
+  static async getFinancialSummary(userId: string) {
+    const roles = await db.select().from(userRole).where(eq(userRole.userId, userId));
+    const roleStrings = roles.map((r) => r.role);
+
+    return {
+      buyer: roleStrings.includes('buyer') ? { balance: 0 } : undefined,
+      seller: roleStrings.includes('seller') ? { income: 0 } : undefined,
+      driver: roleStrings.includes('driver') ? { earnings: 0 } : undefined,
+    };
+  }
 }
+
+
