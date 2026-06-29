@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { products, stores } from '@/db/schema';
-import { eq, and, ilike, or } from 'drizzle-orm';
+import { eq, and, ilike, or, sql } from 'drizzle-orm';
 import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/errors';
 import { StoreService } from '@/modules/stores/stores.service';
 
@@ -169,21 +169,14 @@ export class ProductsService {
     return { success: true };
   }
 
-  static async getPublicProducts(search?: string, storeSlug?: string) {
-    let query = db
-      .select({
-        id: products.id,
-        name: products.name,
-        description: products.description,
-        price: products.price,
-        stock: products.stock,
-        storeId: products.storeId,
-        storeName: stores.name,
-        storeSlug: stores.slug,
-        slug: products.slug,
-      })
-      .from(products)
-      .innerJoin(stores, eq(products.storeId, stores.id));
+  static async getPublicProducts(options: {
+    search?: string;
+    storeSlug?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const { search, storeSlug, page = 1, limit = 20 } = options;
+    const offset = (page - 1) * limit;
 
     const conditions = [];
 
@@ -206,12 +199,34 @@ export class ProductsService {
       }
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as typeof query;
-    }
+    const whereCond = conditions.length > 0 ? and(...conditions) : undefined;
 
-    const results = await query;
-    return results;
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(products)
+      .innerJoin(stores, eq(products.storeId, stores.id))
+      .where(whereCond);
+    const total = Number(countResult[0]?.count ?? 0);
+
+    const results = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        stock: products.stock,
+        storeId: products.storeId,
+        storeName: stores.name,
+        storeSlug: stores.slug,
+        slug: products.slug,
+      })
+      .from(products)
+      .innerJoin(stores, eq(products.storeId, stores.id))
+      .where(whereCond)
+      .limit(limit)
+      .offset(offset);
+
+    return { products: results, total };
   }
 
   static async getPublicProductBySlug(storeSlug: string, productSlug: string) {

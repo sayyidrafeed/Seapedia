@@ -25,12 +25,17 @@ productsRouter.get(
   }),
   validator('query', productQuerySchema),
   async (c) => {
-    const { search, storeSlug } = c.req.valid('query');
-    const results = await ProductsService.getPublicProducts(search, storeSlug);
+    const { search, storeSlug, page, limit } = c.req.valid('query');
+    const { products: results, total } = await ProductsService.getPublicProducts({
+      search,
+      storeSlug,
+      page,
+      limit,
+    });
 
     return c.json({
       products: results,
-      total: results.length,
+      total,
     });
   },
 );
