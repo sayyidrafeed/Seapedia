@@ -754,3 +754,138 @@ export type PrivateDriverEndpointResponses = {
 
 export type PrivateDriverEndpointResponse =
   PrivateDriverEndpointResponses[keyof PrivateDriverEndpointResponses];
+
+export type CreateStoreData = {
+  body: {
+    name: string;
+    description?: string;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/stores';
+};
+
+export type CreateStoreErrors = {
+  /**
+   * Bad Request
+   */
+  400: unknown;
+};
+
+export type CreateStoreResponses = {
+  /**
+   * Store created successfully
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type CreateStoreResponse = CreateStoreResponses[keyof CreateStoreResponses];
+
+export type GetCurrentSellerStoreData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/stores/me';
+};
+
+export type GetCurrentSellerStoreErrors = {
+  /**
+   * Store not found
+   */
+  404: unknown;
+};
+
+export type GetCurrentSellerStoreResponses = {
+  /**
+   * Store found
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetCurrentSellerStoreResponse =
+  GetCurrentSellerStoreResponses[keyof GetCurrentSellerStoreResponses];
+
+export type UpdateCurrentSellerStoreData = {
+  body: {
+    name?: string;
+    description?: string;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/stores/me';
+};
+
+export type UpdateCurrentSellerStoreErrors = {
+  /**
+   * Bad Request
+   */
+  400: unknown;
+  /**
+   * Store not found
+   */
+  404: unknown;
+};
+
+export type UpdateCurrentSellerStoreResponses = {
+  /**
+   * Store updated successfully
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type UpdateCurrentSellerStoreResponse =
+  UpdateCurrentSellerStoreResponses[keyof UpdateCurrentSellerStoreResponses];
+
+export type GetPublicStoreInfoData = {
+  body?: never;
+  path: {
+    slugOrId: string;
+  };
+  query?: never;
+  url: '/api/stores/public/{slugOrId}';
+};
+
+export type GetPublicStoreInfoErrors = {
+  /**
+   * Store not found
+   */
+  404: unknown;
+};
+
+export type GetPublicStoreInfoResponses = {
+  /**
+   * Store found
+   */
+  200: {
+    id: string;
+    sellerId: string;
+    name: string;
+    description: string | unknown;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetPublicStoreInfoResponse =
+  GetPublicStoreInfoResponses[keyof GetPublicStoreInfoResponses];
