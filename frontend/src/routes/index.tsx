@@ -15,10 +15,13 @@ export const Route = createFileRoute('/')({
 function HomePage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = 12;
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
+      setPage(1);
     }, 300);
     return () => {
       clearTimeout(handler);
@@ -31,15 +34,18 @@ function HomePage() {
     isLoading: loadingProducts,
     error: productsError,
   } = useQuery({
-    queryKey: ['products', debouncedSearch],
+    queryKey: ['products', debouncedSearch, page],
     queryFn: async () => {
       const res = await listProducts({
-        query: { search: debouncedSearch || undefined },
+        query: { search: debouncedSearch || undefined, page, limit },
         throwOnError: true,
       });
       return res.data;
     },
   });
+
+  const total = productsData?.total ?? 0;
+  const totalPages = Math.ceil(total / limit) || 1;
 
   return (
     <div className="space-y-16 py-12 flex-1 flex flex-col justify-between">
@@ -88,46 +94,73 @@ function HomePage() {
             No products found matching your search.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {productsData?.products.map((product) => (
-              <div
-                key={product.id}
-                className="group bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <Link
-                    to="/$storeSlug"
-                    params={{ storeSlug: product.storeSlug }}
-                    className="text-xs text-primary font-semibold uppercase tracking-wider hover:underline"
-                  >
-                    Store: {product.storeName}
-                  </Link>
-                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {(product.description as string) || ''}
-                  </p>
-                </div>
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {productsData?.products.map((product) => (
+                <div
+                  key={product.id}
+                  className="group bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <Link
+                      to="/$storeSlug"
+                      params={{ storeSlug: product.storeSlug }}
+                      className="text-xs text-primary font-semibold uppercase tracking-wider hover:underline"
+                    >
+                      Store: {product.storeName}
+                    </Link>
+                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {(product.description as string) || ''}
+                    </p>
+                  </div>
 
-                <div className="flex items-center justify-between pt-6 mt-4 border-t border-border/50">
-                  <span className="text-base font-extrabold text-foreground">
-                    {formatCurrency(product.price)}
-                  </span>
-                  <Link
-                    to="/$storeSlug/$productSlug"
-                    params={{
-                      storeSlug: product.storeSlug,
-                      productSlug: product.slug,
-                    }}
-                  >
-                    <Button variant="secondary" size="sm" className="text-xs cursor-pointer">
-                      View Details
-                    </Button>
-                  </Link>
+                  <div className="flex items-center justify-between pt-6 mt-4 border-t border-border/50">
+                    <span className="text-base font-extrabold text-foreground">
+                      {formatCurrency(product.price)}
+                    </span>
+                    <Link
+                      to="/$storeSlug/$productSlug"
+                      params={{
+                        storeSlug: product.storeSlug,
+                        productSlug: product.slug,
+                      }}
+                    >
+                      <Button variant="secondary" size="sm" className="text-xs cursor-pointer">
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm font-medium">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Next
+                </Button>
               </div>
-            ))}
+            )}
           </div>
         )}
       </section>
