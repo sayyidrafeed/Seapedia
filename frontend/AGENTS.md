@@ -11,11 +11,12 @@ This repository is a React + Vite static SPA hosted via Docker, using Bun, TanSt
 - Never edit `src/lib/api/generated/` manually.
 - Do not expose secrets through `VITE_` variables.
 - Quality gates use `bun run check`, not `typecheck`.
+- Must use kebab-case convention for all component filenames (e.g., `admin-dashboard.tsx` instead of `AdminDashboard.tsx`).
 
 ## Commands
 
-| Task                 | Command                    |
-| -------------------- | -------------------------- |
+| Task                 | Command                        |
+| -------------------- | ------------------------------ |
 | Install dependencies | `rtk bun install`              |
 | Dev server           | `rtk bun run dev`              |
 | Build                | `rtk bun run build`            |
