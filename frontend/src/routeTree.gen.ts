@@ -24,12 +24,14 @@ import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
 import { Route as StoreSlugProductSlugRouteImport } from './routes/$storeSlug/$productSlug'
 import { Route as DashboardSellerIndexRouteImport } from './routes/dashboard/seller/index'
 import { Route as DashboardBuyerIndexRouteImport } from './routes/dashboard/buyer/index'
+import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as DashboardSellerStoreRouteImport } from './routes/dashboard/seller/store'
 import { Route as DashboardSellerOnboardingRouteImport } from './routes/dashboard/seller/onboarding'
 import { Route as DashboardBuyerWalletRouteImport } from './routes/dashboard/buyer/wallet'
 import { Route as DashboardBuyerCheckoutRouteImport } from './routes/dashboard/buyer/checkout'
 import { Route as DashboardBuyerCartRouteImport } from './routes/dashboard/buyer/cart'
 import { Route as DashboardBuyerAddressesRouteImport } from './routes/dashboard/buyer/addresses'
+import { Route as DashboardAdminDiscountsRouteImport } from './routes/dashboard/admin/discounts'
 import { Route as DashboardSellerProductsIndexRouteImport } from './routes/dashboard/seller/products/index'
 import { Route as DashboardSellerOrdersIndexRouteImport } from './routes/dashboard/seller/orders/index'
 import { Route as DashboardBuyerOrdersIndexRouteImport } from './routes/dashboard/buyer/orders/index'
@@ -113,6 +115,11 @@ const DashboardBuyerIndexRoute = DashboardBuyerIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardBuyerRoute,
 } as any)
+const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
 const DashboardSellerStoreRoute = DashboardSellerStoreRouteImport.update({
   id: '/store',
   path: '/store',
@@ -143,6 +150,11 @@ const DashboardBuyerAddressesRoute = DashboardBuyerAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
   getParentRoute: () => DashboardBuyerRoute,
+} as any)
+const DashboardAdminDiscountsRoute = DashboardAdminDiscountsRouteImport.update({
+  id: '/discounts',
+  path: '/discounts',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardSellerProductsIndexRoute =
   DashboardSellerProductsIndexRouteImport.update({
@@ -195,18 +207,20 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
   '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
-  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/dashboard/buyer': typeof DashboardBuyerRouteWithChildren
   '/dashboard/driver': typeof DashboardDriverRoute
   '/dashboard/seller': typeof DashboardSellerRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
+  '/dashboard/admin/discounts': typeof DashboardAdminDiscountsRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/buyer/': typeof DashboardBuyerIndexRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
   '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
@@ -225,16 +239,17 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
   '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
-  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/driver': typeof DashboardDriverRoute
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug': typeof StoreSlugIndexRoute
+  '/dashboard/admin/discounts': typeof DashboardAdminDiscountsRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
+  '/dashboard/admin': typeof DashboardAdminIndexRoute
   '/dashboard/buyer': typeof DashboardBuyerIndexRoute
   '/dashboard/seller': typeof DashboardSellerIndexRoute
   '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
@@ -254,18 +269,20 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
   '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
-  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/dashboard/buyer': typeof DashboardBuyerRouteWithChildren
   '/dashboard/driver': typeof DashboardDriverRoute
   '/dashboard/seller': typeof DashboardSellerRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
+  '/dashboard/admin/discounts': typeof DashboardAdminDiscountsRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/buyer/': typeof DashboardBuyerIndexRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
   '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
@@ -292,12 +309,14 @@ export interface FileRouteTypes {
     | '/dashboard/seller'
     | '/products/$productId'
     | '/$storeSlug/'
+    | '/dashboard/admin/discounts'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
     | '/dashboard/buyer/checkout'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
+    | '/dashboard/admin/'
     | '/dashboard/buyer/'
     | '/dashboard/seller/'
     | '/dashboard/buyer/orders/$orderId'
@@ -316,16 +335,17 @@ export interface FileRouteTypes {
     | '/register'
     | '/select-role'
     | '/$storeSlug/$productSlug'
-    | '/dashboard/admin'
     | '/dashboard/driver'
     | '/products/$productId'
     | '/$storeSlug'
+    | '/dashboard/admin/discounts'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
     | '/dashboard/buyer/checkout'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
+    | '/dashboard/admin'
     | '/dashboard/buyer'
     | '/dashboard/seller'
     | '/dashboard/buyer/orders/$orderId'
@@ -350,12 +370,14 @@ export interface FileRouteTypes {
     | '/dashboard/seller'
     | '/products/$productId'
     | '/$storeSlug/'
+    | '/dashboard/admin/discounts'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
     | '/dashboard/buyer/checkout'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
+    | '/dashboard/admin/'
     | '/dashboard/buyer/'
     | '/dashboard/seller/'
     | '/dashboard/buyer/orders/$orderId'
@@ -375,7 +397,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SelectRoleRoute: typeof SelectRoleRoute
   StoreSlugProductSlugRoute: typeof StoreSlugProductSlugRoute
-  DashboardAdminRoute: typeof DashboardAdminRoute
+  DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
   DashboardBuyerRoute: typeof DashboardBuyerRouteWithChildren
   DashboardDriverRoute: typeof DashboardDriverRoute
   DashboardSellerRoute: typeof DashboardSellerRouteWithChildren
@@ -490,6 +512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBuyerIndexRouteImport
       parentRoute: typeof DashboardBuyerRoute
     }
+    '/dashboard/admin/': {
+      id: '/dashboard/admin/'
+      path: '/'
+      fullPath: '/dashboard/admin/'
+      preLoaderRoute: typeof DashboardAdminIndexRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
     '/dashboard/seller/store': {
       id: '/dashboard/seller/store'
       path: '/store'
@@ -531,6 +560,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/buyer/addresses'
       preLoaderRoute: typeof DashboardBuyerAddressesRouteImport
       parentRoute: typeof DashboardBuyerRoute
+    }
+    '/dashboard/admin/discounts': {
+      id: '/dashboard/admin/discounts'
+      path: '/discounts'
+      fullPath: '/dashboard/admin/discounts'
+      preLoaderRoute: typeof DashboardAdminDiscountsRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/seller/products/': {
       id: '/dashboard/seller/products/'
@@ -583,6 +619,20 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface DashboardAdminRouteChildren {
+  DashboardAdminDiscountsRoute: typeof DashboardAdminDiscountsRoute
+  DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
+}
+
+const DashboardAdminRouteChildren: DashboardAdminRouteChildren = {
+  DashboardAdminDiscountsRoute: DashboardAdminDiscountsRoute,
+  DashboardAdminIndexRoute: DashboardAdminIndexRoute,
+}
+
+const DashboardAdminRouteWithChildren = DashboardAdminRoute._addFileChildren(
+  DashboardAdminRouteChildren,
+)
 
 interface DashboardBuyerRouteChildren {
   DashboardBuyerAddressesRoute: typeof DashboardBuyerAddressesRoute
@@ -643,7 +693,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SelectRoleRoute: SelectRoleRoute,
   StoreSlugProductSlugRoute: StoreSlugProductSlugRoute,
-  DashboardAdminRoute: DashboardAdminRoute,
+  DashboardAdminRoute: DashboardAdminRouteWithChildren,
   DashboardBuyerRoute: DashboardBuyerRouteWithChildren,
   DashboardDriverRoute: DashboardDriverRoute,
   DashboardSellerRoute: DashboardSellerRouteWithChildren,
