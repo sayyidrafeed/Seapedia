@@ -30,13 +30,19 @@ function SellerLayout() {
 
   useEffect(() => {
     if (auth.activeRole === 'seller' && !isStoreLoading) {
+      const err = storeError as {
+        message?: string;
+        status?: number;
+        error?: string;
+        body?: { error?: string };
+      } | null;
       const isNotFoundError =
-        storeError &&
-        (storeError.message?.includes('404') ||
-          (storeError as any).status === 404 ||
-          (storeError as any).error === 'Store not found' ||
-          (storeError as any).error?.includes('not found') ||
-          (storeError as any).body?.error === 'Store not found');
+        err &&
+        (err.message?.includes('404') ||
+          err.status === 404 ||
+          err.error === 'Store not found' ||
+          err.error?.includes('not found') ||
+          err.body?.error === 'Store not found');
 
       if (isNotFoundError) {
         // No store found, redirect to onboarding if not already there

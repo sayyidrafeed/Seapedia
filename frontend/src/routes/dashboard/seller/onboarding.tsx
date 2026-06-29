@@ -32,10 +32,11 @@ function SellerOnboarding() {
       });
 
       if (error) {
-        if ((error as any).error === 'Store name is already used') {
+        const err = error as { error?: string };
+        if (err.error === 'Store name is already used') {
           setErrorMap('This store name is already taken. Please choose another.');
         } else {
-          toast.error((error as any).error || 'Failed to create store');
+          toast.error(err.error || 'Failed to create store');
         }
         return;
       }
@@ -97,9 +98,7 @@ function SellerOnboarding() {
         </button>
 
         {errorMap && (
-          <p className="text-[0.8rem] font-medium text-destructive text-center mt-2">
-            {errorMap}
-          </p>
+          <p className="text-[0.8rem] font-medium text-destructive text-center mt-2">{errorMap}</p>
         )}
       </form>
     </div>

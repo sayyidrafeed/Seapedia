@@ -43,10 +43,11 @@ function SellerStoreManagement() {
       });
 
       if (error) {
-        if ((error as any).error === 'Store name is already used') {
+        const err = error as { error?: string };
+        if (err.error === 'Store name is already used') {
           setErrorMap('This store name is already taken. Please choose another.');
         } else {
-          toast.error((error as any).error || 'Failed to update store');
+          toast.error(err.error || 'Failed to update store');
         }
         return;
       }
@@ -105,11 +106,7 @@ function SellerStoreManagement() {
           {isSubmitting ? 'Saving...' : 'Save Changes'}
         </button>
 
-        {errorMap && (
-          <p className="text-[0.8rem] font-medium text-destructive mt-2">
-            {errorMap}
-          </p>
-        )}
+        {errorMap && <p className="text-[0.8rem] font-medium text-destructive mt-2">{errorMap}</p>}
       </form>
     </div>
   );
