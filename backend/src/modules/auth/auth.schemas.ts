@@ -66,5 +66,3 @@ export const financialSummarySchema = z
       .optional(),
   })
   .meta({ id: 'FinancialSummary' });
-
-
