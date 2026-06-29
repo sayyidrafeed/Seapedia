@@ -34,6 +34,33 @@ export const zReview = z.object({
   createdAt: z.string(),
 });
 
+export const zWalletTransactionResponse = z.object({
+  id: z.string(),
+  walletId: z.string(),
+  amount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  type: z.string(),
+  paymentMethod: z.union([z.string(), z.unknown()]),
+  status: z.string(),
+  reference: z.string(),
+  createdAt: z.string(),
+});
+
+export const zAddressResponse = z.object({
+  id: z.string(),
+  userId: z.string(),
+  label: z.string(),
+  recipientName: z.string(),
+  phoneNumber: z.string(),
+  province: z.string(),
+  city: z.string(),
+  district: z.string(),
+  postalCode: z.string(),
+  fullAddress: z.string(),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 /**
  * Service is healthy
  */
@@ -417,4 +444,148 @@ export const zGetPublicStoreInfoResponse = z.object({
   description: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+/**
+ * Wallet details
+ */
+export const zGetBuyerWalletResponse = z.object({
+  id: z.string(),
+  userId: z.string(),
+  balance: z.int().gte(-9007199254740991).lte(9007199254740991),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zRequestTopUpBody = z.object({
+  amount: z.int().gte(10000).lte(9007199254740991),
+  paymentMethod: z.string().min(1),
+});
+
+/**
+ * Top-up transaction initialized
+ */
+export const zRequestTopUpResponse = z.object({
+  transaction: zWalletTransactionResponse,
+  paymentInstructions: z.object({
+    virtualAccount: z.string().optional(),
+    qrCode: z.string().optional(),
+    expiryTime: z.string(),
+  }),
+});
+
+export const zSimulateTopUpPath = z.object({
+  transactionId: z.string(),
+});
+
+/**
+ * Payment successful, wallet updated
+ */
+export const zSimulateTopUpResponse = z.object({
+  id: z.string(),
+  walletId: z.string(),
+  amount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  type: z.string(),
+  paymentMethod: z.union([z.string(), z.unknown()]),
+  status: z.string(),
+  reference: z.string(),
+  createdAt: z.string(),
+});
+
+/**
+ * List of transactions
+ */
+export const zGetWalletTransactionsResponse = z.array(zWalletTransactionResponse);
+
+/**
+ * List of addresses
+ */
+export const zGetAddressesResponse = z.array(zAddressResponse);
+
+export const zCreateAddressBody = z.object({
+  label: z.string().min(1).max(100),
+  recipientName: z.string().min(1).max(255),
+  phoneNumber: z.string().min(9).max(15),
+  province: z.string().min(1).max(100),
+  city: z.string().min(1).max(100),
+  district: z.string().min(1).max(100),
+  postalCode: z.string().regex(/^\d{5}$/),
+  fullAddress: z.string().min(5),
+  isDefault: z.boolean().optional().default(false),
+});
+
+/**
+ * Address created
+ */
+export const zCreateAddressResponse = z.object({
+  id: z.string(),
+  userId: z.string(),
+  label: z.string(),
+  recipientName: z.string(),
+  phoneNumber: z.string(),
+  province: z.string(),
+  city: z.string(),
+  district: z.string(),
+  postalCode: z.string(),
+  fullAddress: z.string(),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zDeleteAddressPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Address deleted
+ */
+export const zDeleteAddressResponse = z.object({
+  success: z.boolean(),
+});
+
+export const zUpdateAddressBody = z.object({
+  label: z.string().min(1).max(100),
+  recipientName: z.string().min(1).max(255),
+  phoneNumber: z.string().min(9).max(15),
+  province: z.string().min(1).max(100),
+  city: z.string().min(1).max(100),
+  district: z.string().min(1).max(100),
+  postalCode: z.string().regex(/^\d{5}$/),
+  fullAddress: z.string().min(5),
+  isDefault: z.boolean().optional().default(false),
+});
+
+export const zUpdateAddressPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Address updated
+ */
+export const zUpdateAddressResponse = z.object({
+  id: z.string(),
+  userId: z.string(),
+  label: z.string(),
+  recipientName: z.string(),
+  phoneNumber: z.string(),
+  province: z.string(),
+  city: z.string(),
+  district: z.string(),
+  postalCode: z.string(),
+  fullAddress: z.string(),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zSetDefaultAddressPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Default address set
+ */
+export const zSetDefaultAddressResponse = z.object({
+  success: z.boolean(),
 });

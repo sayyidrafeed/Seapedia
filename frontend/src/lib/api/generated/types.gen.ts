@@ -36,6 +36,33 @@ export type Review = {
   createdAt: string;
 };
 
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  paymentMethod: string | unknown;
+  status: string;
+  reference: string;
+  createdAt: string;
+};
+
+export type AddressResponse = {
+  id: string;
+  userId: string;
+  label: string;
+  recipientName: string;
+  phoneNumber: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  fullAddress: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type HealthCheckData = {
   body?: never;
   path?: never;
@@ -1239,3 +1266,484 @@ export type GetPublicStoreInfoResponses = {
 
 export type GetPublicStoreInfoResponse =
   GetPublicStoreInfoResponses[keyof GetPublicStoreInfoResponses];
+
+export type GetBuyerWalletData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/buyers/wallet';
+};
+
+export type GetBuyerWalletErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetBuyerWalletError = GetBuyerWalletErrors[keyof GetBuyerWalletErrors];
+
+export type GetBuyerWalletResponses = {
+  /**
+   * Wallet details
+   */
+  200: {
+    id: string;
+    userId: string;
+    balance: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetBuyerWalletResponse = GetBuyerWalletResponses[keyof GetBuyerWalletResponses];
+
+export type RequestTopUpData = {
+  body: {
+    amount: number;
+    paymentMethod: string;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/buyers/wallet/topup/request';
+};
+
+export type RequestTopUpErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type RequestTopUpError = RequestTopUpErrors[keyof RequestTopUpErrors];
+
+export type RequestTopUpResponses = {
+  /**
+   * Top-up transaction initialized
+   */
+  200: {
+    transaction: WalletTransactionResponse;
+    paymentInstructions: {
+      virtualAccount?: string;
+      qrCode?: string;
+      expiryTime: string;
+    };
+  };
+};
+
+export type RequestTopUpResponse = RequestTopUpResponses[keyof RequestTopUpResponses];
+
+export type SimulateTopUpData = {
+  body?: never;
+  path: {
+    transactionId: string;
+  };
+  query?: never;
+  url: '/api/buyers/wallet/topup/{transactionId}/simulate';
+};
+
+export type SimulateTopUpErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type SimulateTopUpError = SimulateTopUpErrors[keyof SimulateTopUpErrors];
+
+export type SimulateTopUpResponses = {
+  /**
+   * Payment successful, wallet updated
+   */
+  200: {
+    id: string;
+    walletId: string;
+    amount: number;
+    type: string;
+    paymentMethod: string | unknown;
+    status: string;
+    reference: string;
+    createdAt: string;
+  };
+};
+
+export type SimulateTopUpResponse = SimulateTopUpResponses[keyof SimulateTopUpResponses];
+
+export type GetWalletTransactionsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/buyers/wallet/transactions';
+};
+
+export type GetWalletTransactionsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetWalletTransactionsError =
+  GetWalletTransactionsErrors[keyof GetWalletTransactionsErrors];
+
+export type GetWalletTransactionsResponses = {
+  /**
+   * List of transactions
+   */
+  200: Array<WalletTransactionResponse>;
+};
+
+export type GetWalletTransactionsResponse =
+  GetWalletTransactionsResponses[keyof GetWalletTransactionsResponses];
+
+export type GetAddressesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/buyers/addresses';
+};
+
+export type GetAddressesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetAddressesError = GetAddressesErrors[keyof GetAddressesErrors];
+
+export type GetAddressesResponses = {
+  /**
+   * List of addresses
+   */
+  200: Array<AddressResponse>;
+};
+
+export type GetAddressesResponse = GetAddressesResponses[keyof GetAddressesResponses];
+
+export type CreateAddressData = {
+  body: {
+    label: string;
+    recipientName: string;
+    phoneNumber: string;
+    province: string;
+    city: string;
+    district: string;
+    postalCode: string;
+    fullAddress: string;
+    isDefault?: boolean;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/buyers/addresses';
+};
+
+export type CreateAddressErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type CreateAddressError = CreateAddressErrors[keyof CreateAddressErrors];
+
+export type CreateAddressResponses = {
+  /**
+   * Address created
+   */
+  201: {
+    id: string;
+    userId: string;
+    label: string;
+    recipientName: string;
+    phoneNumber: string;
+    province: string;
+    city: string;
+    district: string;
+    postalCode: string;
+    fullAddress: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type CreateAddressResponse = CreateAddressResponses[keyof CreateAddressResponses];
+
+export type DeleteAddressData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/buyers/addresses/{id}';
+};
+
+export type DeleteAddressErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type DeleteAddressError = DeleteAddressErrors[keyof DeleteAddressErrors];
+
+export type DeleteAddressResponses = {
+  /**
+   * Address deleted
+   */
+  200: {
+    success: boolean;
+  };
+};
+
+export type DeleteAddressResponse = DeleteAddressResponses[keyof DeleteAddressResponses];
+
+export type UpdateAddressData = {
+  body: {
+    label: string;
+    recipientName: string;
+    phoneNumber: string;
+    province: string;
+    city: string;
+    district: string;
+    postalCode: string;
+    fullAddress: string;
+    isDefault?: boolean;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/buyers/addresses/{id}';
+};
+
+export type UpdateAddressErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type UpdateAddressError = UpdateAddressErrors[keyof UpdateAddressErrors];
+
+export type UpdateAddressResponses = {
+  /**
+   * Address updated
+   */
+  200: {
+    id: string;
+    userId: string;
+    label: string;
+    recipientName: string;
+    phoneNumber: string;
+    province: string;
+    city: string;
+    district: string;
+    postalCode: string;
+    fullAddress: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type UpdateAddressResponse = UpdateAddressResponses[keyof UpdateAddressResponses];
+
+export type SetDefaultAddressData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/buyers/addresses/{id}/default';
+};
+
+export type SetDefaultAddressErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type SetDefaultAddressError = SetDefaultAddressErrors[keyof SetDefaultAddressErrors];
+
+export type SetDefaultAddressResponses = {
+  /**
+   * Default address set
+   */
+  200: {
+    success: boolean;
+  };
+};
+
+export type SetDefaultAddressResponse =
+  SetDefaultAddressResponses[keyof SetDefaultAddressResponses];

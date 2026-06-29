@@ -3,15 +3,27 @@
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
 import type {
+  CreateAddressData,
+  CreateAddressErrors,
+  CreateAddressResponses,
   CreateSellerProductData,
   CreateSellerProductErrors,
   CreateSellerProductResponses,
   CreateStoreData,
   CreateStoreErrors,
   CreateStoreResponses,
+  DeleteAddressData,
+  DeleteAddressErrors,
+  DeleteAddressResponses,
   DeleteSellerProductData,
   DeleteSellerProductErrors,
   DeleteSellerProductResponses,
+  GetAddressesData,
+  GetAddressesErrors,
+  GetAddressesResponses,
+  GetBuyerWalletData,
+  GetBuyerWalletErrors,
+  GetBuyerWalletResponses,
   GetCurrentSellerStoreData,
   GetCurrentSellerStoreErrors,
   GetCurrentSellerStoreResponses,
@@ -36,6 +48,9 @@ import type {
   GetSellerProductByIdData,
   GetSellerProductByIdErrors,
   GetSellerProductByIdResponses,
+  GetWalletTransactionsData,
+  GetWalletTransactionsErrors,
+  GetWalletTransactionsResponses,
   HealthCheckData,
   HealthCheckResponses,
   ListProductsData,
@@ -71,12 +86,24 @@ import type {
   RegisterUserData,
   RegisterUserErrors,
   RegisterUserResponses,
+  RequestTopUpData,
+  RequestTopUpErrors,
+  RequestTopUpResponses,
   SelectActiveRoleData,
   SelectActiveRoleErrors,
   SelectActiveRoleResponses,
+  SetDefaultAddressData,
+  SetDefaultAddressErrors,
+  SetDefaultAddressResponses,
+  SimulateTopUpData,
+  SimulateTopUpErrors,
+  SimulateTopUpResponses,
   SubmitReviewData,
   SubmitReviewErrors,
   SubmitReviewResponses,
+  UpdateAddressData,
+  UpdateAddressErrors,
+  UpdateAddressResponses,
   UpdateCurrentSellerStoreData,
   UpdateCurrentSellerStoreErrors,
   UpdateCurrentSellerStoreResponses,
@@ -626,3 +653,114 @@ export const getPublicStoreInfo = <ThrowOnError extends boolean = false>(
     GetPublicStoreInfoErrors,
     ThrowOnError
   >({ url: '/api/stores/public/{slugOrId}', ...options });
+
+/**
+ * Get buyer wallet balance
+ */
+export const getBuyerWallet = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBuyerWalletData, ThrowOnError>,
+): RequestResult<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError>({
+    url: '/api/buyers/wallet',
+    ...options,
+  });
+
+/**
+ * Initiate a simulated top-up request
+ */
+export const requestTopUp = <ThrowOnError extends boolean = false>(
+  options: Options<RequestTopUpData, ThrowOnError>,
+): RequestResult<RequestTopUpResponses, RequestTopUpErrors, ThrowOnError> =>
+  (options.client ?? client).post<RequestTopUpResponses, RequestTopUpErrors, ThrowOnError>({
+    url: '/api/buyers/wallet/topup/request',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Simulate successful payment for a top-up transaction
+ */
+export const simulateTopUp = <ThrowOnError extends boolean = false>(
+  options: Options<SimulateTopUpData, ThrowOnError>,
+): RequestResult<SimulateTopUpResponses, SimulateTopUpErrors, ThrowOnError> =>
+  (options.client ?? client).post<SimulateTopUpResponses, SimulateTopUpErrors, ThrowOnError>({
+    url: '/api/buyers/wallet/topup/{transactionId}/simulate',
+    ...options,
+  });
+
+/**
+ * Get wallet transaction history
+ */
+export const getWalletTransactions = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWalletTransactionsData, ThrowOnError>,
+): RequestResult<GetWalletTransactionsResponses, GetWalletTransactionsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetWalletTransactionsResponses,
+    GetWalletTransactionsErrors,
+    ThrowOnError
+  >({ url: '/api/buyers/wallet/transactions', ...options });
+
+/**
+ * List buyer delivery addresses
+ */
+export const getAddresses = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAddressesData, ThrowOnError>,
+): RequestResult<GetAddressesResponses, GetAddressesErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetAddressesResponses, GetAddressesErrors, ThrowOnError>({
+    url: '/api/buyers/addresses',
+    ...options,
+  });
+
+/**
+ * Add a new delivery address
+ */
+export const createAddress = <ThrowOnError extends boolean = false>(
+  options: Options<CreateAddressData, ThrowOnError>,
+): RequestResult<CreateAddressResponses, CreateAddressErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateAddressResponses, CreateAddressErrors, ThrowOnError>({
+    url: '/api/buyers/addresses',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Delete a delivery address
+ */
+export const deleteAddress = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAddressData, ThrowOnError>,
+): RequestResult<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError> =>
+  (options.client ?? client).delete<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError>({
+    url: '/api/buyers/addresses/{id}',
+    ...options,
+  });
+
+/**
+ * Update delivery address details
+ */
+export const updateAddress = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateAddressData, ThrowOnError>,
+): RequestResult<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError> =>
+  (options.client ?? client).put<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError>({
+    url: '/api/buyers/addresses/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Set address as the default delivery address
+ */
+export const setDefaultAddress = <ThrowOnError extends boolean = false>(
+  options: Options<SetDefaultAddressData, ThrowOnError>,
+): RequestResult<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError> =>
+  (options.client ?? client).put<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError>(
+    { url: '/api/buyers/addresses/{id}/default', ...options },
+  );
