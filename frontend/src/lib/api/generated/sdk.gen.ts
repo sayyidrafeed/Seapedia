@@ -3,9 +3,15 @@
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
 import type {
+  CreateSellerProductData,
+  CreateSellerProductErrors,
+  CreateSellerProductResponses,
   CreateStoreData,
   CreateStoreErrors,
   CreateStoreResponses,
+  DeleteSellerProductData,
+  DeleteSellerProductErrors,
+  DeleteSellerProductResponses,
   GetCurrentSellerStoreData,
   GetCurrentSellerStoreErrors,
   GetCurrentSellerStoreResponses,
@@ -27,6 +33,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
+  GetSellerProductByIdData,
+  GetSellerProductByIdErrors,
+  GetSellerProductByIdResponses,
   HealthCheckData,
   HealthCheckResponses,
   ListProductsData,
@@ -35,6 +44,9 @@ import type {
   ListReviewsData,
   ListReviewsErrors,
   ListReviewsResponses,
+  ListSellerProductsData,
+  ListSellerProductsErrors,
+  ListSellerProductsResponses,
   LoginUserData,
   LoginUserErrors,
   LoginUserResponses,
@@ -68,6 +80,9 @@ import type {
   UpdateCurrentSellerStoreData,
   UpdateCurrentSellerStoreErrors,
   UpdateCurrentSellerStoreResponses,
+  UpdateSellerProductData,
+  UpdateSellerProductErrors,
+  UpdateSellerProductResponses,
 } from './types.gen';
 
 export type Options<
@@ -288,6 +303,124 @@ export const getProductBySlug = <ThrowOnError extends boolean = false>(
   (options.client ?? client).get<GetProductBySlugResponses, GetProductBySlugErrors, ThrowOnError>({
     url: '/api/products/by-slug/{storeSlug}/{productSlug}',
     ...options,
+  });
+
+/**
+ * List products owned by logged-in Seller
+ */
+export const listSellerProducts = <ThrowOnError extends boolean = false>(
+  options?: Options<ListSellerProductsData, ThrowOnError>,
+): RequestResult<ListSellerProductsResponses, ListSellerProductsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListSellerProductsResponses,
+    ListSellerProductsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/products',
+    ...options,
+  });
+
+/**
+ * Create a new product under Seller store
+ */
+export const createSellerProduct = <ThrowOnError extends boolean = false>(
+  options: Options<CreateSellerProductData, ThrowOnError>,
+): RequestResult<CreateSellerProductResponses, CreateSellerProductErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    CreateSellerProductResponses,
+    CreateSellerProductErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/products',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Delete a product owned by Seller
+ */
+export const deleteSellerProduct = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteSellerProductData, ThrowOnError>,
+): RequestResult<DeleteSellerProductResponses, DeleteSellerProductErrors, ThrowOnError> =>
+  (options.client ?? client).delete<
+    DeleteSellerProductResponses,
+    DeleteSellerProductErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/products/{id}',
+    ...options,
+  });
+
+/**
+ * Get details of a product owned by logged-in Seller
+ */
+export const getSellerProductById = <ThrowOnError extends boolean = false>(
+  options: Options<GetSellerProductByIdData, ThrowOnError>,
+): RequestResult<GetSellerProductByIdResponses, GetSellerProductByIdErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetSellerProductByIdResponses,
+    GetSellerProductByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/products/{id}',
+    ...options,
+  });
+
+/**
+ * Update a product owned by Seller
+ */
+export const updateSellerProduct = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateSellerProductData, ThrowOnError>,
+): RequestResult<UpdateSellerProductResponses, UpdateSellerProductErrors, ThrowOnError> =>
+  (options.client ?? client).put<
+    UpdateSellerProductResponses,
+    UpdateSellerProductErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/products/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 /**

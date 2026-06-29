@@ -87,6 +87,12 @@ function SellerLayout() {
               Dashboard
             </button>
             <button
+              onClick={() => navigate({ to: '/dashboard/seller/products' })}
+              className="text-sm font-medium hover:underline text-primary"
+            >
+              Products
+            </button>
+            <button
               onClick={() => navigate({ to: '/dashboard/seller/store' })}
               className="text-sm font-medium hover:underline text-primary"
             >
