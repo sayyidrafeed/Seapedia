@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { wallets, walletTransactions, addresses } from '@/db/schema';
-import { eq, and, desc, not } from 'drizzle-orm';
+import { eq, and, desc, not, sql, asc } from 'drizzle-orm';
 import { NotFoundError } from '@/lib/errors';
 
 export interface CreateAddressInput {
@@ -98,7 +98,7 @@ export class BuyersService {
       await tx
         .update(wallets)
         .set({
-          balance: wallet.balance + transaction.amount,
+          balance: sql`${wallets.balance} + ${transaction.amount}`,
           updatedAt: new Date(),
         })
         .where(eq(wallets.id, wallet.id));
@@ -183,14 +183,14 @@ export class BuyersService {
       const [updatedAddress] = await tx
         .update(addresses)
         .set({
-          label: input.label,
-          recipientName: input.recipientName,
-          phoneNumber: input.phoneNumber,
-          province: input.province,
-          city: input.city,
-          district: input.district,
-          postalCode: input.postalCode,
-          fullAddress: input.fullAddress,
+          label: input.label ?? existing.label,
+          recipientName: input.recipientName ?? existing.recipientName,
+          phoneNumber: input.phoneNumber ?? existing.phoneNumber,
+          province: input.province ?? existing.province,
+          city: input.city ?? existing.city,
+          district: input.district ?? existing.district,
+          postalCode: input.postalCode ?? existing.postalCode,
+          fullAddress: input.fullAddress ?? existing.fullAddress,
           isDefault: input.isDefault ?? existing.isDefault,
           updatedAt: new Date(),
         })
@@ -221,6 +221,7 @@ export class BuyersService {
           .select()
           .from(addresses)
           .where(eq(addresses.userId, userId))
+          .orderBy(asc(addresses.createdAt))
           .limit(1);
 
         if (nextAddress) {
