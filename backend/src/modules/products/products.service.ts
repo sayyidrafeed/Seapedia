@@ -141,4 +141,107 @@ export class ProductsService {
     await db.delete(products).where(eq(products.id, productId));
     return { success: true };
   }
+
+  static async getPublicProducts(search?: string, storeSlug?: string) {
+    let query = db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        stock: products.stock,
+        storeId: products.storeId,
+        storeName: stores.name,
+        storeSlug: stores.slug,
+        slug: products.slug,
+      })
+      .from(products)
+      .innerJoin(stores, eq(products.storeId, stores.id));
+
+    const conditions = [];
+
+    if (search) {
+      conditions.push(
+        or(ilike(products.name, `%${search}%`), ilike(products.description, `%${search}%`)),
+      );
+    }
+
+    if (storeSlug) {
+      // Allow searching by either store slug or store UUID
+      if (
+        storeSlug.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        )
+      ) {
+        conditions.push(eq(stores.id, storeSlug));
+      } else {
+        conditions.push(eq(stores.slug, storeSlug.toLowerCase()));
+      }
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as typeof query;
+    }
+
+    const results = await query;
+    return results;
+  }
+
+  static async getPublicProductBySlug(storeSlug: string, productSlug: string) {
+    // Find the store first
+    let storeCond = eq(stores.slug, storeSlug.toLowerCase());
+    if (
+      storeSlug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+    ) {
+      storeCond = eq(stores.id, storeSlug);
+    }
+
+    const result = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        stock: products.stock,
+        storeId: products.storeId,
+        storeName: stores.name,
+        storeSlug: stores.slug,
+        slug: products.slug,
+      })
+      .from(products)
+      .innerJoin(stores, eq(products.storeId, stores.id))
+      .where(and(storeCond, eq(products.slug, productSlug.toLowerCase())))
+      .limit(1);
+
+    if (result.length === 0) {
+      throw new NotFoundError('Product not found');
+    }
+
+    return result[0];
+  }
+
+  static async getPublicProductById(id: string) {
+    const result = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        price: products.price,
+        stock: products.stock,
+        storeId: products.storeId,
+        storeName: stores.name,
+        storeSlug: stores.slug,
+        slug: products.slug,
+      })
+      .from(products)
+      .innerJoin(stores, eq(products.storeId, stores.id))
+      .where(eq(products.id, id))
+      .limit(1);
+
+    if (result.length === 0) {
+      throw new NotFoundError('Product not found');
+    }
+
+    return result[0];
+  }
 }
