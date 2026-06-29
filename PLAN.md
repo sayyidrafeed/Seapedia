@@ -248,7 +248,7 @@ After this level, SEAPEDIA should have a real seller-side foundation. Guests can
 
 ## Level 3: Buyer Wallet, Cart, and Checkout (Total 20 pts)
 
-> **Current focus — Level 3: Cart, Checkout, and Orders (in progress)**
+> **Current focus — Level 3: Checkout and Orders (in progress)**
 
 SEAPEDIA is now ready to support the Buyer experience. Buyers need more than a product catalog: they need a wallet, delivery address, cart, shipping method, and checkout process. This level introduces the first real transaction flow in the application, so the frontend and backend must work together carefully.
 
@@ -277,16 +277,18 @@ Your task is to build a cart system that allows Buyers to prepare products befor
 
 #### Requirements:
 
-- [ ] Allow Buyers to add products to cart.
-- [ ] Allow Buyers to update product quantities.
-- [ ] Allow Buyers to remove products from cart.
-- [ ] Create a cart summary endpoint and cart summary UI.
-- [ ] Implement single-store checkout: one cart can only contain products from one store.
+- [x] Allow Buyers to add products to cart.
+- [x] Allow Buyers to update product quantities.
+- [x] Allow Buyers to remove products from cart.
+- [x] Create a cart summary endpoint and cart summary UI.
+- [x] Implement single-store checkout: one cart can only contain products from one store.
 
 #### Business Rules:
 
-- [ ] The cart must reject products from a different store or clearly handle the conflict before adding them.
-- [ ] The single-store checkout behavior must be visible in the UI and documented in the README.
+- [x] The cart must reject products from a different store or clearly handle the conflict before adding them.
+- [x] The single-store checkout behavior must be visible in the UI and documented in the README.
+
+#### Implement Cart Management — Complete
 
 ### Create Checkout and Basic Orders (10 pts)
 
@@ -617,7 +619,7 @@ For the final assessment, the project should be demonstrable as one integrated s
 
 - [x] Buyer can top up balance using dummy top-up.
 - [x] Buyer can manage delivery address.
-- [ ] Buyer can manage cart.
+- [x] Buyer can manage cart.
 - [ ] Buyer can checkout using a delivery method and optional Voucher or Promo.
 - [ ] Checkout summary shows subtotal, discount, delivery fee, PPN 12%, and final total.
 - [ ] Buyer can view order history, order detail, and status timeline.
