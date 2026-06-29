@@ -27,6 +27,7 @@ import { Route as DashboardBuyerIndexRouteImport } from './routes/dashboard/buye
 import { Route as DashboardSellerStoreRouteImport } from './routes/dashboard/seller/store'
 import { Route as DashboardSellerOnboardingRouteImport } from './routes/dashboard/seller/onboarding'
 import { Route as DashboardBuyerWalletRouteImport } from './routes/dashboard/buyer/wallet'
+import { Route as DashboardBuyerCartRouteImport } from './routes/dashboard/buyer/cart'
 import { Route as DashboardBuyerAddressesRouteImport } from './routes/dashboard/buyer/addresses'
 import { Route as DashboardSellerProductsIndexRouteImport } from './routes/dashboard/seller/products/index'
 import { Route as DashboardSellerProductsCreateRouteImport } from './routes/dashboard/seller/products/create'
@@ -123,6 +124,11 @@ const DashboardBuyerWalletRoute = DashboardBuyerWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => DashboardBuyerRoute,
 } as any)
+const DashboardBuyerCartRoute = DashboardBuyerCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => DashboardBuyerRoute,
+} as any)
 const DashboardBuyerAddressesRoute = DashboardBuyerAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
+  '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug': typeof StoreSlugIndexRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
+  '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
+  '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/wallet': typeof DashboardBuyerWalletRoute
   '/dashboard/seller/onboarding': typeof DashboardSellerOnboardingRoute
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
@@ -235,6 +244,7 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/$storeSlug/'
     | '/dashboard/buyer/addresses'
+    | '/dashboard/buyer/cart'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/$storeSlug'
     | '/dashboard/buyer/addresses'
+    | '/dashboard/buyer/cart'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/$storeSlug/'
     | '/dashboard/buyer/addresses'
+    | '/dashboard/buyer/cart'
     | '/dashboard/buyer/wallet'
     | '/dashboard/seller/onboarding'
     | '/dashboard/seller/store'
@@ -435,6 +447,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBuyerWalletRouteImport
       parentRoute: typeof DashboardBuyerRoute
     }
+    '/dashboard/buyer/cart': {
+      id: '/dashboard/buyer/cart'
+      path: '/cart'
+      fullPath: '/dashboard/buyer/cart'
+      preLoaderRoute: typeof DashboardBuyerCartRouteImport
+      parentRoute: typeof DashboardBuyerRoute
+    }
     '/dashboard/buyer/addresses': {
       id: '/dashboard/buyer/addresses'
       path: '/addresses'
@@ -468,12 +487,14 @@ declare module '@tanstack/react-router' {
 
 interface DashboardBuyerRouteChildren {
   DashboardBuyerAddressesRoute: typeof DashboardBuyerAddressesRoute
+  DashboardBuyerCartRoute: typeof DashboardBuyerCartRoute
   DashboardBuyerWalletRoute: typeof DashboardBuyerWalletRoute
   DashboardBuyerIndexRoute: typeof DashboardBuyerIndexRoute
 }
 
 const DashboardBuyerRouteChildren: DashboardBuyerRouteChildren = {
   DashboardBuyerAddressesRoute: DashboardBuyerAddressesRoute,
+  DashboardBuyerCartRoute: DashboardBuyerCartRoute,
   DashboardBuyerWalletRoute: DashboardBuyerWalletRoute,
   DashboardBuyerIndexRoute: DashboardBuyerIndexRoute,
 }
