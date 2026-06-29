@@ -527,7 +527,13 @@ export type GetProductBySlugResponse = GetProductBySlugResponses[keyof GetProduc
 export type ListSellerProductsData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  };
   url: '/api/seller/products';
 };
 
