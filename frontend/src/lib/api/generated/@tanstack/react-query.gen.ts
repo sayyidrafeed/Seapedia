@@ -10,12 +10,16 @@ import {
 
 import { client } from '../client.gen';
 import {
+  addCartItem,
+  clearCart,
   createAddress,
   createSellerProduct,
   createStore,
   deleteAddress,
+  deleteCartItem,
   deleteSellerProduct,
   getAddresses,
+  getBuyerCart,
   getBuyerWallet,
   getCurrentSellerStore,
   getCurrentSession,
@@ -45,10 +49,17 @@ import {
   simulateTopUp,
   submitReview,
   updateAddress,
+  updateCartItem,
   updateCurrentSellerStore,
   updateSellerProduct,
 } from '../sdk.gen';
 import type {
+  AddCartItemData,
+  AddCartItemError,
+  AddCartItemResponse,
+  ClearCartData,
+  ClearCartError,
+  ClearCartResponse,
   CreateAddressData,
   CreateAddressError,
   CreateAddressResponse,
@@ -61,12 +72,18 @@ import type {
   DeleteAddressData,
   DeleteAddressError,
   DeleteAddressResponse,
+  DeleteCartItemData,
+  DeleteCartItemError,
+  DeleteCartItemResponse,
   DeleteSellerProductData,
   DeleteSellerProductError,
   DeleteSellerProductResponse,
   GetAddressesData,
   GetAddressesError,
   GetAddressesResponse,
+  GetBuyerCartData,
+  GetBuyerCartError,
+  GetBuyerCartResponse,
   GetBuyerWalletData,
   GetBuyerWalletError,
   GetBuyerWalletResponse,
@@ -150,6 +167,9 @@ import type {
   UpdateAddressData,
   UpdateAddressError,
   UpdateAddressResponse,
+  UpdateCartItemData,
+  UpdateCartItemError,
+  UpdateCartItemResponse,
   UpdateCurrentSellerStoreData,
   UpdateCurrentSellerStoreError,
   UpdateCurrentSellerStoreResponse,
@@ -1209,6 +1229,123 @@ export const setDefaultAddressMutation = (
   > = {
     mutationFn: async (fnOptions) => {
       const { data } = await setDefaultAddress({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Clear all items from the buyer cart
+ */
+export const clearCartMutation = (
+  options?: Partial<Options<ClearCartData>>,
+): UseMutationOptions<ClearCartResponse, ClearCartError, Options<ClearCartData>> => {
+  const mutationOptions: UseMutationOptions<
+    ClearCartResponse,
+    ClearCartError,
+    Options<ClearCartData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await clearCart({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getBuyerCartQueryKey = (options?: Options<GetBuyerCartData>) =>
+  createQueryKey('getBuyerCart', options);
+
+/**
+ * Get buyer cart summary
+ */
+export const getBuyerCartOptions = (options?: Options<GetBuyerCartData>) =>
+  queryOptions<
+    GetBuyerCartResponse,
+    GetBuyerCartError,
+    GetBuyerCartResponse,
+    ReturnType<typeof getBuyerCartQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBuyerCart({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBuyerCartQueryKey(options),
+  });
+
+/**
+ * Add an item to the buyer cart
+ */
+export const addCartItemMutation = (
+  options?: Partial<Options<AddCartItemData>>,
+): UseMutationOptions<AddCartItemResponse, AddCartItemError, Options<AddCartItemData>> => {
+  const mutationOptions: UseMutationOptions<
+    AddCartItemResponse,
+    AddCartItemError,
+    Options<AddCartItemData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await addCartItem({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Delete an item from the buyer cart
+ */
+export const deleteCartItemMutation = (
+  options?: Partial<Options<DeleteCartItemData>>,
+): UseMutationOptions<DeleteCartItemResponse, DeleteCartItemError, Options<DeleteCartItemData>> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteCartItemResponse,
+    DeleteCartItemError,
+    Options<DeleteCartItemData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await deleteCartItem({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Update quantity of an item in the buyer cart
+ */
+export const updateCartItemMutation = (
+  options?: Partial<Options<UpdateCartItemData>>,
+): UseMutationOptions<UpdateCartItemResponse, UpdateCartItemError, Options<UpdateCartItemData>> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateCartItemResponse,
+    UpdateCartItemError,
+    Options<UpdateCartItemData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateCartItem({
         ...options,
         ...fnOptions,
         throwOnError: true,

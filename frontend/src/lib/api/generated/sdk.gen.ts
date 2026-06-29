@@ -3,6 +3,12 @@
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
 import type {
+  AddCartItemData,
+  AddCartItemErrors,
+  AddCartItemResponses,
+  ClearCartData,
+  ClearCartErrors,
+  ClearCartResponses,
   CreateAddressData,
   CreateAddressErrors,
   CreateAddressResponses,
@@ -15,12 +21,18 @@ import type {
   DeleteAddressData,
   DeleteAddressErrors,
   DeleteAddressResponses,
+  DeleteCartItemData,
+  DeleteCartItemErrors,
+  DeleteCartItemResponses,
   DeleteSellerProductData,
   DeleteSellerProductErrors,
   DeleteSellerProductResponses,
   GetAddressesData,
   GetAddressesErrors,
   GetAddressesResponses,
+  GetBuyerCartData,
+  GetBuyerCartErrors,
+  GetBuyerCartResponses,
   GetBuyerWalletData,
   GetBuyerWalletErrors,
   GetBuyerWalletResponses,
@@ -104,6 +116,9 @@ import type {
   UpdateAddressData,
   UpdateAddressErrors,
   UpdateAddressResponses,
+  UpdateCartItemData,
+  UpdateCartItemErrors,
+  UpdateCartItemResponses,
   UpdateCurrentSellerStoreData,
   UpdateCurrentSellerStoreErrors,
   UpdateCurrentSellerStoreResponses,
@@ -661,6 +676,13 @@ export const getBuyerWallet = <ThrowOnError extends boolean = false>(
   options?: Options<GetBuyerWalletData, ThrowOnError>,
 ): RequestResult<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError> =>
   (options?.client ?? client).get<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
     url: '/api/buyers/wallet',
     ...options,
   });
@@ -672,6 +694,13 @@ export const requestTopUp = <ThrowOnError extends boolean = false>(
   options: Options<RequestTopUpData, ThrowOnError>,
 ): RequestResult<RequestTopUpResponses, RequestTopUpErrors, ThrowOnError> =>
   (options.client ?? client).post<RequestTopUpResponses, RequestTopUpErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
     url: '/api/buyers/wallet/topup/request',
     ...options,
     headers: {
@@ -687,6 +716,13 @@ export const simulateTopUp = <ThrowOnError extends boolean = false>(
   options: Options<SimulateTopUpData, ThrowOnError>,
 ): RequestResult<SimulateTopUpResponses, SimulateTopUpErrors, ThrowOnError> =>
   (options.client ?? client).post<SimulateTopUpResponses, SimulateTopUpErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
     url: '/api/buyers/wallet/topup/{transactionId}/simulate',
     ...options,
   });
@@ -701,7 +737,17 @@ export const getWalletTransactions = <ThrowOnError extends boolean = false>(
     GetWalletTransactionsResponses,
     GetWalletTransactionsErrors,
     ThrowOnError
-  >({ url: '/api/buyers/wallet/transactions', ...options });
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/wallet/transactions',
+    ...options,
+  });
 
 /**
  * List buyer delivery addresses
@@ -710,6 +756,13 @@ export const getAddresses = <ThrowOnError extends boolean = false>(
   options?: Options<GetAddressesData, ThrowOnError>,
 ): RequestResult<GetAddressesResponses, GetAddressesErrors, ThrowOnError> =>
   (options?.client ?? client).get<GetAddressesResponses, GetAddressesErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
     url: '/api/buyers/addresses',
     ...options,
   });
@@ -721,6 +774,13 @@ export const createAddress = <ThrowOnError extends boolean = false>(
   options: Options<CreateAddressData, ThrowOnError>,
 ): RequestResult<CreateAddressResponses, CreateAddressErrors, ThrowOnError> =>
   (options.client ?? client).post<CreateAddressResponses, CreateAddressErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
     url: '/api/buyers/addresses',
     ...options,
     headers: {
@@ -736,6 +796,13 @@ export const deleteAddress = <ThrowOnError extends boolean = false>(
   options: Options<DeleteAddressData, ThrowOnError>,
 ): RequestResult<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError> =>
   (options.client ?? client).delete<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
     url: '/api/buyers/addresses/{id}',
     ...options,
   });
@@ -747,6 +814,13 @@ export const updateAddress = <ThrowOnError extends boolean = false>(
   options: Options<UpdateAddressData, ThrowOnError>,
 ): RequestResult<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError> =>
   (options.client ?? client).put<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
     url: '/api/buyers/addresses/{id}',
     ...options,
     headers: {
@@ -762,5 +836,113 @@ export const setDefaultAddress = <ThrowOnError extends boolean = false>(
   options: Options<SetDefaultAddressData, ThrowOnError>,
 ): RequestResult<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError> =>
   (options.client ?? client).put<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError>(
-    { url: '/api/buyers/addresses/{id}/default', ...options },
+    {
+      security: [
+        {
+          in: 'cookie',
+          name: '__session',
+          type: 'apiKey',
+        },
+      ],
+      url: '/api/buyers/addresses/{id}/default',
+      ...options,
+    },
   );
+
+/**
+ * Clear all items from the buyer cart
+ */
+export const clearCart = <ThrowOnError extends boolean = false>(
+  options?: Options<ClearCartData, ThrowOnError>,
+): RequestResult<ClearCartResponses, ClearCartErrors, ThrowOnError> =>
+  (options?.client ?? client).delete<ClearCartResponses, ClearCartErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart',
+    ...options,
+  });
+
+/**
+ * Get buyer cart summary
+ */
+export const getBuyerCart = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBuyerCartData, ThrowOnError>,
+): RequestResult<GetBuyerCartResponses, GetBuyerCartErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetBuyerCartResponses, GetBuyerCartErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart',
+    ...options,
+  });
+
+/**
+ * Add an item to the buyer cart
+ */
+export const addCartItem = <ThrowOnError extends boolean = false>(
+  options: Options<AddCartItemData, ThrowOnError>,
+): RequestResult<AddCartItemResponses, AddCartItemErrors, ThrowOnError> =>
+  (options.client ?? client).post<AddCartItemResponses, AddCartItemErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart/items',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Delete an item from the buyer cart
+ */
+export const deleteCartItem = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteCartItemData, ThrowOnError>,
+): RequestResult<DeleteCartItemResponses, DeleteCartItemErrors, ThrowOnError> =>
+  (options.client ?? client).delete<DeleteCartItemResponses, DeleteCartItemErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart/items/{id}',
+    ...options,
+  });
+
+/**
+ * Update quantity of an item in the buyer cart
+ */
+export const updateCartItem = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateCartItemData, ThrowOnError>,
+): RequestResult<UpdateCartItemResponses, UpdateCartItemErrors, ThrowOnError> =>
+  (options.client ?? client).put<UpdateCartItemResponses, UpdateCartItemErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart/items/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
