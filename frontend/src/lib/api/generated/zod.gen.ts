@@ -2,6 +2,57 @@
 
 import * as z from 'zod';
 
+export const zAddressResponse = z.object({
+  id: z.string(),
+  userId: z.string(),
+  label: z.string(),
+  recipientName: z.string(),
+  phoneNumber: z.string(),
+  province: z.string(),
+  city: z.string(),
+  district: z.string(),
+  postalCode: z.string(),
+  fullAddress: z.string(),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zOrderResponse = z.object({
+  id: z.string(),
+  buyerId: z.string(),
+  storeId: z.string(),
+  storeName: z.string(),
+  deliveryMethod: z.string(),
+  subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
+  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
+  ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  status: z.string(),
+  addressSnapshot: zAddressResponse,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      productId: z.union([z.string(), z.unknown()]),
+      productName: z.string(),
+      productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
+      quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+    }),
+  ),
+  statusHistory: z
+    .array(
+      z.object({
+        id: z.string(),
+        status: z.string(),
+        note: z.union([z.string(), z.unknown()]),
+        createdAt: z.string(),
+      }),
+    )
+    .optional(),
+});
+
 export const zProduct = z.object({
   id: z.string(),
   name: z.string(),
@@ -43,22 +94,6 @@ export const zWalletTransactionResponse = z.object({
   status: z.string(),
   reference: z.string(),
   createdAt: z.string(),
-});
-
-export const zAddressResponse = z.object({
-  id: z.string(),
-  userId: z.string(),
-  label: z.string(),
-  recipientName: z.string(),
-  phoneNumber: z.string(),
-  province: z.string(),
-  city: z.string(),
-  district: z.string(),
-  postalCode: z.string(),
-  fullAddress: z.string(),
-  isDefault: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
 });
 
 /**
@@ -396,6 +431,7 @@ export const zCreateStoreResponse = z.object({
   id: z.string(),
   sellerId: z.string(),
   name: z.string(),
+  slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -408,6 +444,7 @@ export const zGetCurrentSellerStoreResponse = z.object({
   id: z.string(),
   sellerId: z.string(),
   name: z.string(),
+  slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -425,6 +462,7 @@ export const zUpdateCurrentSellerStoreResponse = z.object({
   id: z.string(),
   sellerId: z.string(),
   name: z.string(),
+  slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -441,6 +479,7 @@ export const zGetPublicStoreInfoResponse = z.object({
   id: z.string(),
   sellerId: z.string(),
   name: z.string(),
+  slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -673,3 +712,106 @@ export const zUpdateCartItemResponse = z.object({
   productId: z.string(),
   quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
 });
+
+export const zCheckoutPreviewBody = z.object({
+  deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
+});
+
+/**
+ * Calculated checkout totals
+ */
+export const zCheckoutPreviewResponse = z.object({
+  items: z.array(
+    z.object({
+      productId: z.string(),
+      name: z.string(),
+      price: z.int().gte(-9007199254740991).lte(9007199254740991),
+      quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+      total: z.int().gte(-9007199254740991).lte(9007199254740991),
+    }),
+  ),
+  subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
+  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
+  taxBase: z.int().gte(-9007199254740991).lte(9007199254740991),
+  ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  deliveryMethod: z.string(),
+  address: z.union([zAddressResponse, z.unknown()]),
+  storeId: z.union([z.string(), z.unknown()]),
+  storeName: z.union([z.string(), z.unknown()]),
+});
+
+/**
+ * List of buyer orders
+ */
+export const zListBuyerOrdersResponse = z.array(zOrderResponse);
+
+export const zCreateOrderBody = z.object({
+  deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
+  addressId: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Order successfully created
+ */
+export const zCreateOrderResponse = z.object({
+  id: z.string(),
+  buyerId: z.string(),
+  storeId: z.string(),
+  storeName: z.string(),
+  deliveryMethod: z.string(),
+  subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
+  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
+  ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  status: z.string(),
+  addressSnapshot: zAddressResponse,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      productId: z.union([z.string(), z.unknown()]),
+      productName: z.string(),
+      productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
+      quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+    }),
+  ),
+  statusHistory: z
+    .array(
+      z.object({
+        id: z.string(),
+        status: z.string(),
+        note: z.union([z.string(), z.unknown()]),
+        createdAt: z.string(),
+      }),
+    )
+    .optional(),
+});
+
+export const zGetBuyerOrderDetailPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Buyer order details
+ */
+export const zGetBuyerOrderDetailResponse = zOrderResponse;
+
+/**
+ * List of seller store orders
+ */
+export const zListSellerOrdersResponse = z.array(zOrderResponse);
+
+export const zGetSellerOrderDetailPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Seller incoming order details
+ */
+export const zGetSellerOrderDetailResponse = zOrderResponse;

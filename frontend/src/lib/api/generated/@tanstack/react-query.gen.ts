@@ -11,8 +11,10 @@ import {
 import { client } from '../client.gen';
 import {
   addCartItem,
+  checkoutPreview,
   clearCart,
   createAddress,
+  createOrder,
   createSellerProduct,
   createStore,
   deleteAddress,
@@ -20,6 +22,7 @@ import {
   deleteSellerProduct,
   getAddresses,
   getBuyerCart,
+  getBuyerOrderDetail,
   getBuyerWallet,
   getCurrentSellerStore,
   getCurrentSession,
@@ -28,11 +31,14 @@ import {
   getProductById,
   getProductBySlug,
   getPublicStoreInfo,
+  getSellerOrderDetail,
   getSellerProductById,
   getWalletTransactions,
   healthCheck,
+  listBuyerOrders,
   listProducts,
   listReviews,
+  listSellerOrders,
   listSellerProducts,
   loginUser,
   logoutUser,
@@ -57,12 +63,18 @@ import type {
   AddCartItemData,
   AddCartItemError,
   AddCartItemResponse,
+  CheckoutPreviewData,
+  CheckoutPreviewError,
+  CheckoutPreviewResponse,
   ClearCartData,
   ClearCartError,
   ClearCartResponse,
   CreateAddressData,
   CreateAddressError,
   CreateAddressResponse,
+  CreateOrderData,
+  CreateOrderError,
+  CreateOrderResponse,
   CreateSellerProductData,
   CreateSellerProductError,
   CreateSellerProductResponse,
@@ -84,6 +96,9 @@ import type {
   GetBuyerCartData,
   GetBuyerCartError,
   GetBuyerCartResponse,
+  GetBuyerOrderDetailData,
+  GetBuyerOrderDetailError,
+  GetBuyerOrderDetailResponse,
   GetBuyerWalletData,
   GetBuyerWalletError,
   GetBuyerWalletResponse,
@@ -108,6 +123,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
+  GetSellerOrderDetailData,
+  GetSellerOrderDetailError,
+  GetSellerOrderDetailResponse,
   GetSellerProductByIdData,
   GetSellerProductByIdError,
   GetSellerProductByIdResponse,
@@ -116,12 +134,18 @@ import type {
   GetWalletTransactionsResponse,
   HealthCheckData,
   HealthCheckResponse,
+  ListBuyerOrdersData,
+  ListBuyerOrdersError,
+  ListBuyerOrdersResponse,
   ListProductsData,
   ListProductsError,
   ListProductsResponse,
   ListReviewsData,
   ListReviewsError,
   ListReviewsResponse,
+  ListSellerOrdersData,
+  ListSellerOrdersError,
+  ListSellerOrdersResponse,
   ListSellerProductsData,
   ListSellerProductsError,
   ListSellerProductsResponse,
@@ -1355,3 +1379,153 @@ export const updateCartItemMutation = (
   };
   return mutationOptions;
 };
+
+/**
+ * Preview order calculations before checking out
+ */
+export const checkoutPreviewMutation = (
+  options?: Partial<Options<CheckoutPreviewData>>,
+): UseMutationOptions<
+  CheckoutPreviewResponse,
+  CheckoutPreviewError,
+  Options<CheckoutPreviewData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CheckoutPreviewResponse,
+    CheckoutPreviewError,
+    Options<CheckoutPreviewData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await checkoutPreview({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const listBuyerOrdersQueryKey = (options?: Options<ListBuyerOrdersData>) =>
+  createQueryKey('listBuyerOrders', options);
+
+/**
+ * List buyer orders
+ */
+export const listBuyerOrdersOptions = (options?: Options<ListBuyerOrdersData>) =>
+  queryOptions<
+    ListBuyerOrdersResponse,
+    ListBuyerOrdersError,
+    ListBuyerOrdersResponse,
+    ReturnType<typeof listBuyerOrdersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listBuyerOrders({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listBuyerOrdersQueryKey(options),
+  });
+
+/**
+ * Confirm checkout and create a new order
+ */
+export const createOrderMutation = (
+  options?: Partial<Options<CreateOrderData>>,
+): UseMutationOptions<CreateOrderResponse, CreateOrderError, Options<CreateOrderData>> => {
+  const mutationOptions: UseMutationOptions<
+    CreateOrderResponse,
+    CreateOrderError,
+    Options<CreateOrderData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createOrder({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getBuyerOrderDetailQueryKey = (options: Options<GetBuyerOrderDetailData>) =>
+  createQueryKey('getBuyerOrderDetail', options);
+
+/**
+ * Get details of a specific buyer order
+ */
+export const getBuyerOrderDetailOptions = (options: Options<GetBuyerOrderDetailData>) =>
+  queryOptions<
+    GetBuyerOrderDetailResponse,
+    GetBuyerOrderDetailError,
+    GetBuyerOrderDetailResponse,
+    ReturnType<typeof getBuyerOrderDetailQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBuyerOrderDetail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBuyerOrderDetailQueryKey(options),
+  });
+
+export const listSellerOrdersQueryKey = (options?: Options<ListSellerOrdersData>) =>
+  createQueryKey('listSellerOrders', options);
+
+/**
+ * List orders incoming to the seller store
+ */
+export const listSellerOrdersOptions = (options?: Options<ListSellerOrdersData>) =>
+  queryOptions<
+    ListSellerOrdersResponse,
+    ListSellerOrdersError,
+    ListSellerOrdersResponse,
+    ReturnType<typeof listSellerOrdersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listSellerOrders({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listSellerOrdersQueryKey(options),
+  });
+
+export const getSellerOrderDetailQueryKey = (options: Options<GetSellerOrderDetailData>) =>
+  createQueryKey('getSellerOrderDetail', options);
+
+/**
+ * Get details of a specific incoming order
+ */
+export const getSellerOrderDetailOptions = (options: Options<GetSellerOrderDetailData>) =>
+  queryOptions<
+    GetSellerOrderDetailResponse,
+    GetSellerOrderDetailError,
+    GetSellerOrderDetailResponse,
+    ReturnType<typeof getSellerOrderDetailQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getSellerOrderDetail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getSellerOrderDetailQueryKey(options),
+  });

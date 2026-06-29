@@ -4,6 +4,51 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
+export type AddressResponse = {
+  id: string;
+  userId: string;
+  label: string;
+  recipientName: string;
+  phoneNumber: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  fullAddress: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrderResponse = {
+  id: string;
+  buyerId: string;
+  storeId: string;
+  storeName: string;
+  deliveryMethod: string;
+  subtotal: number;
+  deliveryFee: number;
+  ppn: number;
+  totalAmount: number;
+  status: string;
+  addressSnapshot: AddressResponse;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    productId: string | unknown;
+    productName: string;
+    productPrice: number;
+    quantity: number;
+  }>;
+  statusHistory?: Array<{
+    id: string;
+    status: string;
+    note: string | unknown;
+    createdAt: string;
+  }>;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -45,22 +90,6 @@ export type WalletTransactionResponse = {
   status: string;
   reference: string;
   createdAt: string;
-};
-
-export type AddressResponse = {
-  id: string;
-  userId: string;
-  label: string;
-  recipientName: string;
-  phoneNumber: string;
-  province: string;
-  city: string;
-  district: string;
-  postalCode: string;
-  fullAddress: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
 };
 
 export type HealthCheckData = {
@@ -1123,6 +1152,7 @@ export type CreateStoreResponses = {
     id: string;
     sellerId: string;
     name: string;
+    slug: string;
     description: string | unknown;
     createdAt: string;
     updatedAt: string;
@@ -1164,6 +1194,7 @@ export type GetCurrentSellerStoreResponses = {
     id: string;
     sellerId: string;
     name: string;
+    slug: string;
     description: string | unknown;
     createdAt: string;
     updatedAt: string;
@@ -1221,6 +1252,7 @@ export type UpdateCurrentSellerStoreResponses = {
     id: string;
     sellerId: string;
     name: string;
+    slug: string;
     description: string | unknown;
     createdAt: string;
     updatedAt: string;
@@ -1258,6 +1290,7 @@ export type GetPublicStoreInfoResponses = {
     id: string;
     sellerId: string;
     name: string;
+    slug: string;
     description: string | unknown;
     createdAt: string;
     updatedAt: string;
@@ -2017,3 +2050,323 @@ export type UpdateCartItemResponses = {
 };
 
 export type UpdateCartItemResponse = UpdateCartItemResponses[keyof UpdateCartItemResponses];
+
+export type CheckoutPreviewData = {
+  body: {
+    deliveryMethod: 'instant' | 'next_day' | 'regular';
+  };
+  path?: never;
+  query?: never;
+  url: '/api/orders/preview';
+};
+
+export type CheckoutPreviewErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type CheckoutPreviewError = CheckoutPreviewErrors[keyof CheckoutPreviewErrors];
+
+export type CheckoutPreviewResponses = {
+  /**
+   * Calculated checkout totals
+   */
+  200: {
+    items: Array<{
+      productId: string;
+      name: string;
+      price: number;
+      quantity: number;
+      total: number;
+    }>;
+    subtotal: number;
+    deliveryFee: number;
+    taxBase: number;
+    ppn: number;
+    totalAmount: number;
+    deliveryMethod: string;
+    address: AddressResponse | unknown;
+    storeId: string | unknown;
+    storeName: string | unknown;
+  };
+};
+
+export type CheckoutPreviewResponse = CheckoutPreviewResponses[keyof CheckoutPreviewResponses];
+
+export type ListBuyerOrdersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/orders';
+};
+
+export type ListBuyerOrdersErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ListBuyerOrdersError = ListBuyerOrdersErrors[keyof ListBuyerOrdersErrors];
+
+export type ListBuyerOrdersResponses = {
+  /**
+   * List of buyer orders
+   */
+  200: Array<OrderResponse>;
+};
+
+export type ListBuyerOrdersResponse = ListBuyerOrdersResponses[keyof ListBuyerOrdersResponses];
+
+export type CreateOrderData = {
+  body: {
+    deliveryMethod: 'instant' | 'next_day' | 'regular';
+    addressId: string;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/orders';
+};
+
+export type CreateOrderErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type CreateOrderError = CreateOrderErrors[keyof CreateOrderErrors];
+
+export type CreateOrderResponses = {
+  /**
+   * Order successfully created
+   */
+  200: {
+    id: string;
+    buyerId: string;
+    storeId: string;
+    storeName: string;
+    deliveryMethod: string;
+    subtotal: number;
+    deliveryFee: number;
+    ppn: number;
+    totalAmount: number;
+    status: string;
+    addressSnapshot: AddressResponse;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      productId: string | unknown;
+      productName: string;
+      productPrice: number;
+      quantity: number;
+    }>;
+    statusHistory?: Array<{
+      id: string;
+      status: string;
+      note: string | unknown;
+      createdAt: string;
+    }>;
+  };
+};
+
+export type CreateOrderResponse = CreateOrderResponses[keyof CreateOrderResponses];
+
+export type GetBuyerOrderDetailData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/orders/{id}';
+};
+
+export type GetBuyerOrderDetailErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetBuyerOrderDetailError = GetBuyerOrderDetailErrors[keyof GetBuyerOrderDetailErrors];
+
+export type GetBuyerOrderDetailResponses = {
+  /**
+   * Buyer order details
+   */
+  200: OrderResponse;
+};
+
+export type GetBuyerOrderDetailResponse =
+  GetBuyerOrderDetailResponses[keyof GetBuyerOrderDetailResponses];
+
+export type ListSellerOrdersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/seller/orders';
+};
+
+export type ListSellerOrdersErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ListSellerOrdersError = ListSellerOrdersErrors[keyof ListSellerOrdersErrors];
+
+export type ListSellerOrdersResponses = {
+  /**
+   * List of seller store orders
+   */
+  200: Array<OrderResponse>;
+};
+
+export type ListSellerOrdersResponse = ListSellerOrdersResponses[keyof ListSellerOrdersResponses];
+
+export type GetSellerOrderDetailData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/seller/orders/{id}';
+};
+
+export type GetSellerOrderDetailErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetSellerOrderDetailError =
+  GetSellerOrderDetailErrors[keyof GetSellerOrderDetailErrors];
+
+export type GetSellerOrderDetailResponses = {
+  /**
+   * Seller incoming order details
+   */
+  200: OrderResponse;
+};
+
+export type GetSellerOrderDetailResponse =
+  GetSellerOrderDetailResponses[keyof GetSellerOrderDetailResponses];
