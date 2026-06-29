@@ -10,6 +10,10 @@ async function seed() {
   const adminHash = await Bun.password.hash(adminPassword, 'bcrypt');
 
   try {
+    // Clean up existing admin if present
+    const { eq } = await import('drizzle-orm');
+    await db.delete(users).where(eq(users.username, adminUsername));
+
     const [adminUser] = await db
       .insert(users)
       .values({
@@ -17,6 +21,7 @@ async function seed() {
         email: adminEmail,
         passwordHash: adminHash,
         name: 'System Administrator',
+        isOnboarded: true,
       })
       .returning();
 

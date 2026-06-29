@@ -21,11 +21,12 @@ function RootComponent() {
       !auth.isLoading &&
       auth.user &&
       !auth.user.isOnboarded &&
+      !auth.roles.includes('admin') &&
       location.pathname !== '/onboard'
     ) {
       navigate({ to: '/onboard' });
     }
-  }, [auth.user, auth.isLoading, location.pathname, navigate]);
+  }, [auth.user, auth.isLoading, auth.roles, location.pathname, navigate]);
 
   const handleLogout = async () => {
     await auth.logout();
