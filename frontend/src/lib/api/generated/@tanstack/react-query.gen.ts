@@ -10,7 +10,9 @@ import {
 
 import { client } from '../client.gen';
 import {
+  createSellerProduct,
   createStore,
+  deleteSellerProduct,
   getCurrentSellerStore,
   getCurrentSession,
   getCurrentUser,
@@ -21,6 +23,7 @@ import {
   healthCheck,
   listProducts,
   listReviews,
+  listSellerProducts,
   loginUser,
   logoutUser,
   onboardUser,
@@ -33,11 +36,18 @@ import {
   selectActiveRole,
   submitReview,
   updateCurrentSellerStore,
+  updateSellerProduct,
 } from '../sdk.gen';
 import type {
+  CreateSellerProductData,
+  CreateSellerProductError,
+  CreateSellerProductResponse,
   CreateStoreData,
   CreateStoreError,
   CreateStoreResponse,
+  DeleteSellerProductData,
+  DeleteSellerProductError,
+  DeleteSellerProductResponse,
   GetCurrentSellerStoreData,
   GetCurrentSellerStoreError,
   GetCurrentSellerStoreResponse,
@@ -67,6 +77,9 @@ import type {
   ListReviewsData,
   ListReviewsError,
   ListReviewsResponse,
+  ListSellerProductsData,
+  ListSellerProductsError,
+  ListSellerProductsResponse,
   LoginUserData,
   LoginUserError,
   LoginUserResponse,
@@ -100,6 +113,9 @@ import type {
   UpdateCurrentSellerStoreData,
   UpdateCurrentSellerStoreError,
   UpdateCurrentSellerStoreResponse,
+  UpdateSellerProductData,
+  UpdateSellerProductError,
+  UpdateSellerProductResponse,
 } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
@@ -514,6 +530,112 @@ export const getProductBySlugOptions = (options: Options<GetProductBySlugData>) 
     },
     queryKey: getProductBySlugQueryKey(options),
   });
+
+export const listSellerProductsQueryKey = (options?: Options<ListSellerProductsData>) =>
+  createQueryKey('listSellerProducts', options);
+
+/**
+ * List products owned by logged-in Seller
+ */
+export const listSellerProductsOptions = (options?: Options<ListSellerProductsData>) =>
+  queryOptions<
+    ListSellerProductsResponse,
+    ListSellerProductsError,
+    ListSellerProductsResponse,
+    ReturnType<typeof listSellerProductsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listSellerProducts({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listSellerProductsQueryKey(options),
+  });
+
+/**
+ * Create a new product under Seller store
+ */
+export const createSellerProductMutation = (
+  options?: Partial<Options<CreateSellerProductData>>,
+): UseMutationOptions<
+  CreateSellerProductResponse,
+  CreateSellerProductError,
+  Options<CreateSellerProductData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateSellerProductResponse,
+    CreateSellerProductError,
+    Options<CreateSellerProductData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createSellerProduct({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Delete a product owned by Seller
+ */
+export const deleteSellerProductMutation = (
+  options?: Partial<Options<DeleteSellerProductData>>,
+): UseMutationOptions<
+  DeleteSellerProductResponse,
+  DeleteSellerProductError,
+  Options<DeleteSellerProductData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteSellerProductResponse,
+    DeleteSellerProductError,
+    Options<DeleteSellerProductData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await deleteSellerProduct({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Update a product owned by Seller
+ */
+export const updateSellerProductMutation = (
+  options?: Partial<Options<UpdateSellerProductData>>,
+): UseMutationOptions<
+  UpdateSellerProductResponse,
+  UpdateSellerProductError,
+  Options<UpdateSellerProductData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateSellerProductResponse,
+    UpdateSellerProductError,
+    Options<UpdateSellerProductData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateSellerProduct({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
 
 export const listReviewsQueryKey = (options?: Options<ListReviewsData>) =>
   createQueryKey('listReviews', options);

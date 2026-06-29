@@ -16,6 +16,17 @@ export type Product = {
   slug: string;
 };
 
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Review = {
   id: string;
   reviewerName: string;
@@ -508,6 +519,227 @@ export type GetProductBySlugResponses = {
 };
 
 export type GetProductBySlugResponse = GetProductBySlugResponses[keyof GetProductBySlugResponses];
+
+export type ListSellerProductsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/seller/products';
+};
+
+export type ListSellerProductsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ListSellerProductsError = ListSellerProductsErrors[keyof ListSellerProductsErrors];
+
+export type ListSellerProductsResponses = {
+  /**
+   * Products list
+   */
+  200: {
+    products: Array<SellerProductResponse>;
+    total: number;
+  };
+};
+
+export type ListSellerProductsResponse =
+  ListSellerProductsResponses[keyof ListSellerProductsResponses];
+
+export type CreateSellerProductData = {
+  body: {
+    name: string;
+    description?: string | unknown;
+    price: number;
+    stock: number;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/seller/products';
+};
+
+export type CreateSellerProductErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type CreateSellerProductError = CreateSellerProductErrors[keyof CreateSellerProductErrors];
+
+export type CreateSellerProductResponses = {
+  /**
+   * Product created successfully
+   */
+  200: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | unknown;
+    price: number;
+    stock: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type CreateSellerProductResponse =
+  CreateSellerProductResponses[keyof CreateSellerProductResponses];
+
+export type DeleteSellerProductData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/seller/products/{id}';
+};
+
+export type DeleteSellerProductErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type DeleteSellerProductError = DeleteSellerProductErrors[keyof DeleteSellerProductErrors];
+
+export type DeleteSellerProductResponses = {
+  /**
+   * Product deleted successfully
+   */
+  200: {
+    success: boolean;
+  };
+};
+
+export type DeleteSellerProductResponse =
+  DeleteSellerProductResponses[keyof DeleteSellerProductResponses];
+
+export type UpdateSellerProductData = {
+  body: {
+    name?: string;
+    description?: string | unknown;
+    price?: number;
+    stock?: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/seller/products/{id}';
+};
+
+export type UpdateSellerProductErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type UpdateSellerProductError = UpdateSellerProductErrors[keyof UpdateSellerProductErrors];
+
+export type UpdateSellerProductResponses = {
+  /**
+   * Product updated successfully
+   */
+  200: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | unknown;
+    price: number;
+    stock: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type UpdateSellerProductResponse =
+  UpdateSellerProductResponses[keyof UpdateSellerProductResponses];
 
 export type ListReviewsData = {
   body?: never;

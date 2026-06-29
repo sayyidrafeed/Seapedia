@@ -14,6 +14,17 @@ export const zProduct = z.object({
   slug: z.string(),
 });
 
+export const zSellerProductResponse = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  stock: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const zReview = z.object({
   id: z.string(),
   reviewerName: z.string(),
@@ -183,6 +194,79 @@ export const zGetProductBySlugResponse = z.object({
   storeName: z.string(),
   storeSlug: z.string(),
   slug: z.string(),
+});
+
+/**
+ * Products list
+ */
+export const zListSellerProductsResponse = z.object({
+  products: z.array(zSellerProductResponse),
+  total: z.number(),
+});
+
+export const zCreateSellerProductBody = z.object({
+  name: z.string().min(1).max(255),
+  description: z.union([z.string(), z.unknown()]).optional(),
+  price: z.int().gte(0).lte(9007199254740991),
+  stock: z.int().gte(0).lte(9007199254740991),
+});
+
+/**
+ * Product created successfully
+ */
+export const zCreateSellerProductResponse = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  stock: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zDeleteSellerProductPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Product deleted successfully
+ */
+export const zDeleteSellerProductResponse = z.object({
+  success: z.boolean(),
+});
+
+export const zUpdateSellerProductBody = z.object({
+  name: z.string().min(1).max(255).optional(),
+  description: z.union([z.string(), z.unknown()]).optional(),
+  price: z.int().gte(0).lte(9007199254740991).optional(),
+  stock: z.int().gte(0).lte(9007199254740991).optional(),
+});
+
+export const zUpdateSellerProductPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Product updated successfully
+ */
+export const zUpdateSellerProductResponse = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  stock: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
 /**
