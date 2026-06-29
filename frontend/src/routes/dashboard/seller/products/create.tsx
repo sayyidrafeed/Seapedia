@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { listSellerProductsQueryKey } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { createSellerProduct } from '@/lib/api/generated';
 import { ProductForm } from '@/components/products/product-form';
 import type { ProductFormValues } from '@/components/products/product-form';
@@ -30,7 +31,7 @@ function CreateProductPage() {
     },
     onSuccess: () => {
       toast.success('Product created successfully!');
-      queryClient.invalidateQueries({ queryKey: ['listSellerProducts'] });
+      queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() });
       navigate({ to: '/dashboard/seller/products' });
     },
     onError: (error: Error) => {

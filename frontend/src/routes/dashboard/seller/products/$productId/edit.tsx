@@ -1,7 +1,11 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { updateSellerProduct } from '@/lib/api/generated';
-import { getProductByIdOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import {
+  getSellerProductByIdOptions,
+  listSellerProductsQueryKey,
+  getSellerProductByIdQueryKey,
+} from '@/lib/api/generated/@tanstack/react-query.gen';
 import { ProductForm } from '@/components/products/product-form';
 import type { ProductFormValues } from '@/components/products/product-form';
 import { toast } from 'sonner';
@@ -20,7 +24,7 @@ function EditProductPage() {
     isLoading,
     error,
   } = useQuery({
-    ...getProductByIdOptions({
+    ...getSellerProductByIdOptions({
       path: { id: productId },
     }),
   });
@@ -43,8 +47,10 @@ function EditProductPage() {
     },
     onSuccess: () => {
       toast.success('Product updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['listSellerProducts'] });
-      queryClient.invalidateQueries({ queryKey: ['getProductById', { path: { id: productId } }] });
+      queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() });
+      queryClient.invalidateQueries({
+        queryKey: getSellerProductByIdQueryKey({ path: { id: productId } }),
+      });
       navigate({ to: '/dashboard/seller/products' });
     },
     onError: (error: Error) => {

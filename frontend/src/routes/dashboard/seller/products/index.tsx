@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listSellerProductsOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import {
+  listSellerProductsOptions,
+  listSellerProductsQueryKey,
+} from '@/lib/api/generated/@tanstack/react-query.gen';
 import { deleteSellerProduct } from '@/lib/api/generated';
 import { ProductList } from '@/components/products/product-list';
 import { Button } from '@/components/ui/button';
@@ -28,7 +31,7 @@ function SellerProductsPage() {
     },
     onSuccess: () => {
       toast.success('Product deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['listSellerProducts'] });
+      queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() });
     },
     onError: (error: Error) => {
       toast.error(error.message);
