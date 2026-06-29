@@ -10,9 +10,13 @@ import {
 
 import { client } from '../client.gen';
 import {
+  createAddress,
   createSellerProduct,
   createStore,
+  deleteAddress,
   deleteSellerProduct,
+  getAddresses,
+  getBuyerWallet,
   getCurrentSellerStore,
   getCurrentSession,
   getCurrentUser,
@@ -21,6 +25,7 @@ import {
   getProductBySlug,
   getPublicStoreInfo,
   getSellerProductById,
+  getWalletTransactions,
   healthCheck,
   listProducts,
   listReviews,
@@ -34,21 +39,37 @@ import {
   privateDriverEndpoint,
   privateSellerEndpoint,
   registerUser,
+  requestTopUp,
   selectActiveRole,
+  setDefaultAddress,
+  simulateTopUp,
   submitReview,
+  updateAddress,
   updateCurrentSellerStore,
   updateSellerProduct,
 } from '../sdk.gen';
 import type {
+  CreateAddressData,
+  CreateAddressError,
+  CreateAddressResponse,
   CreateSellerProductData,
   CreateSellerProductError,
   CreateSellerProductResponse,
   CreateStoreData,
   CreateStoreError,
   CreateStoreResponse,
+  DeleteAddressData,
+  DeleteAddressError,
+  DeleteAddressResponse,
   DeleteSellerProductData,
   DeleteSellerProductError,
   DeleteSellerProductResponse,
+  GetAddressesData,
+  GetAddressesError,
+  GetAddressesResponse,
+  GetBuyerWalletData,
+  GetBuyerWalletError,
+  GetBuyerWalletResponse,
   GetCurrentSellerStoreData,
   GetCurrentSellerStoreError,
   GetCurrentSellerStoreResponse,
@@ -73,6 +94,9 @@ import type {
   GetSellerProductByIdData,
   GetSellerProductByIdError,
   GetSellerProductByIdResponse,
+  GetWalletTransactionsData,
+  GetWalletTransactionsError,
+  GetWalletTransactionsResponse,
   HealthCheckData,
   HealthCheckResponse,
   ListProductsData,
@@ -108,12 +132,24 @@ import type {
   RegisterUserData,
   RegisterUserError,
   RegisterUserResponse,
+  RequestTopUpData,
+  RequestTopUpError,
+  RequestTopUpResponse,
   SelectActiveRoleData,
   SelectActiveRoleError,
   SelectActiveRoleResponse,
+  SetDefaultAddressData,
+  SetDefaultAddressError,
+  SetDefaultAddressResponse,
+  SimulateTopUpData,
+  SimulateTopUpError,
+  SimulateTopUpResponse,
   SubmitReviewData,
   SubmitReviewError,
   SubmitReviewResponse,
+  UpdateAddressData,
+  UpdateAddressError,
+  UpdateAddressResponse,
   UpdateCurrentSellerStoreData,
   UpdateCurrentSellerStoreError,
   UpdateCurrentSellerStoreResponse,
@@ -965,3 +1001,220 @@ export const getPublicStoreInfoOptions = (options: Options<GetPublicStoreInfoDat
     },
     queryKey: getPublicStoreInfoQueryKey(options),
   });
+
+export const getBuyerWalletQueryKey = (options?: Options<GetBuyerWalletData>) =>
+  createQueryKey('getBuyerWallet', options);
+
+/**
+ * Get buyer wallet balance
+ */
+export const getBuyerWalletOptions = (options?: Options<GetBuyerWalletData>) =>
+  queryOptions<
+    GetBuyerWalletResponse,
+    GetBuyerWalletError,
+    GetBuyerWalletResponse,
+    ReturnType<typeof getBuyerWalletQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBuyerWallet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBuyerWalletQueryKey(options),
+  });
+
+/**
+ * Initiate a simulated top-up request
+ */
+export const requestTopUpMutation = (
+  options?: Partial<Options<RequestTopUpData>>,
+): UseMutationOptions<RequestTopUpResponse, RequestTopUpError, Options<RequestTopUpData>> => {
+  const mutationOptions: UseMutationOptions<
+    RequestTopUpResponse,
+    RequestTopUpError,
+    Options<RequestTopUpData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await requestTopUp({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Simulate successful payment for a top-up transaction
+ */
+export const simulateTopUpMutation = (
+  options?: Partial<Options<SimulateTopUpData>>,
+): UseMutationOptions<SimulateTopUpResponse, SimulateTopUpError, Options<SimulateTopUpData>> => {
+  const mutationOptions: UseMutationOptions<
+    SimulateTopUpResponse,
+    SimulateTopUpError,
+    Options<SimulateTopUpData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await simulateTopUp({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getWalletTransactionsQueryKey = (options?: Options<GetWalletTransactionsData>) =>
+  createQueryKey('getWalletTransactions', options);
+
+/**
+ * Get wallet transaction history
+ */
+export const getWalletTransactionsOptions = (options?: Options<GetWalletTransactionsData>) =>
+  queryOptions<
+    GetWalletTransactionsResponse,
+    GetWalletTransactionsError,
+    GetWalletTransactionsResponse,
+    ReturnType<typeof getWalletTransactionsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWalletTransactions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWalletTransactionsQueryKey(options),
+  });
+
+export const getAddressesQueryKey = (options?: Options<GetAddressesData>) =>
+  createQueryKey('getAddresses', options);
+
+/**
+ * List buyer delivery addresses
+ */
+export const getAddressesOptions = (options?: Options<GetAddressesData>) =>
+  queryOptions<
+    GetAddressesResponse,
+    GetAddressesError,
+    GetAddressesResponse,
+    ReturnType<typeof getAddressesQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAddresses({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAddressesQueryKey(options),
+  });
+
+/**
+ * Add a new delivery address
+ */
+export const createAddressMutation = (
+  options?: Partial<Options<CreateAddressData>>,
+): UseMutationOptions<CreateAddressResponse, CreateAddressError, Options<CreateAddressData>> => {
+  const mutationOptions: UseMutationOptions<
+    CreateAddressResponse,
+    CreateAddressError,
+    Options<CreateAddressData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createAddress({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Delete a delivery address
+ */
+export const deleteAddressMutation = (
+  options?: Partial<Options<DeleteAddressData>>,
+): UseMutationOptions<DeleteAddressResponse, DeleteAddressError, Options<DeleteAddressData>> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAddressResponse,
+    DeleteAddressError,
+    Options<DeleteAddressData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await deleteAddress({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Update delivery address details
+ */
+export const updateAddressMutation = (
+  options?: Partial<Options<UpdateAddressData>>,
+): UseMutationOptions<UpdateAddressResponse, UpdateAddressError, Options<UpdateAddressData>> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateAddressResponse,
+    UpdateAddressError,
+    Options<UpdateAddressData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateAddress({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Set address as the default delivery address
+ */
+export const setDefaultAddressMutation = (
+  options?: Partial<Options<SetDefaultAddressData>>,
+): UseMutationOptions<
+  SetDefaultAddressResponse,
+  SetDefaultAddressError,
+  Options<SetDefaultAddressData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SetDefaultAddressResponse,
+    SetDefaultAddressError,
+    Options<SetDefaultAddressData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await setDefaultAddress({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
