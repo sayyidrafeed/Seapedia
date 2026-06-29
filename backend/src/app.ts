@@ -11,6 +11,7 @@ import { productsRouter, sellerProductsRouter } from '@/modules/products/product
 import { reviewsRouter } from '@/modules/reviews/reviews.index';
 import { privateRouter } from '@/modules/private/private.index';
 import { storesRouter } from '@/modules/stores/stores.index';
+import { buyersRouter } from '@/modules/buyers/buyers.index';
 import { frontendUrls } from '@/env';
 
 export const app = factory.createApp();
@@ -46,6 +47,7 @@ app.route('/api/seller/products', sellerProductsRouter);
 app.route('/api/reviews', reviewsRouter);
 app.route('/api/private', privateRouter);
 app.route('/api/stores', storesRouter);
+app.route('/api/buyers', buyersRouter);
 
 let openApiCache: Record<string, unknown> | null = null;
 
