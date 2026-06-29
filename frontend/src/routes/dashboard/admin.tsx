@@ -27,7 +27,7 @@ function AdminDashboard() {
     try {
       const { data, error: apiError } = await privateAdminEndpoint();
       if (apiError) {
-        throw new Error((apiError as any).error || 'Request failed');
+        throw new Error(apiError.error || 'Request failed');
       }
       if (data) {
         setResult(data.message);
