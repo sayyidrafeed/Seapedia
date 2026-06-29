@@ -186,12 +186,12 @@ export function CartDetails({
               {formatCurrency(cart.subtotal)}
             </span>
           </div>
-          <Button className="w-full mt-4 cursor-pointer" disabled>
-            Proceed to Checkout (Coming Soon)
-          </Button>
+          <Link to="/dashboard/buyer/checkout">
+            <Button className="w-full mt-4 cursor-pointer">Proceed to Checkout</Button>
+          </Link>
           <p className="text-[10px] text-center text-muted-foreground leading-relaxed mt-2">
-            Calculations are performed securely on the server. Checkout is coming soon in the next
-            development phase.
+            Calculations are performed securely on the server. Make sure you have a default delivery
+            address set.
           </p>
         </div>
       </div>
