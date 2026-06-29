@@ -112,7 +112,9 @@ function ProfilePage() {
           {/* Buyer Card */}
           <div
             className={`bg-card border p-6 rounded-lg shadow-sm transition-opacity duration-200 ${
-              financialSummary?.buyer === undefined ? 'border-border/40 opacity-60' : 'border-border'
+              financialSummary?.buyer === undefined
+                ? 'border-border/40 opacity-60'
+                : 'border-border'
             }`}
           >
             <div className="flex justify-between items-start">
@@ -142,7 +144,9 @@ function ProfilePage() {
           {/* Seller Card */}
           <div
             className={`bg-card border p-6 rounded-lg shadow-sm transition-opacity duration-200 ${
-              financialSummary?.seller === undefined ? 'border-border/40 opacity-60' : 'border-border'
+              financialSummary?.seller === undefined
+                ? 'border-border/40 opacity-60'
+                : 'border-border'
             }`}
           >
             <div className="flex justify-between items-start">
@@ -172,7 +176,9 @@ function ProfilePage() {
           {/* Driver Card */}
           <div
             className={`bg-card border p-6 rounded-lg shadow-sm transition-opacity duration-200 ${
-              financialSummary?.driver === undefined ? 'border-border/40 opacity-60' : 'border-border'
+              financialSummary?.driver === undefined
+                ? 'border-border/40 opacity-60'
+                : 'border-border'
             }`}
           >
             <div className="flex justify-between items-start">
@@ -204,4 +210,3 @@ function ProfilePage() {
     </div>
   );
 }
-
