@@ -99,6 +99,12 @@ function SellerLayout() {
               Incoming Orders
             </button>
             <button
+              onClick={() => navigate({ to: '/dashboard/seller/report' })}
+              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
+            >
+              Income Report
+            </button>
+            <button
               onClick={() => navigate({ to: '/dashboard/seller/store' })}
               className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
             >
