@@ -4,11 +4,13 @@ import { getBuyerOrderDetailOptions } from '@/lib/api/generated/@tanstack/react-
 import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { OrderPriceSummary } from '@/components/orders/order-price-summary';
 import { OrderStatusTimeline } from '@/components/orders/order-status-timeline';
+import { OrderAddressCard } from '@/components/orders/order-address-card';
+import { OrderItemsList } from '@/components/orders/order-items-list';
+import type { UnifiedOrderItem } from '@/components/orders/order-items-list';
+import { OrderDetailSkeleton } from '@/components/orders/order-detail-skeleton';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
-import { ArrowLeft, MapPin, Store, Calendar, CreditCard } from 'lucide-react';
-
+import { Card } from '@/components/ui/card';
+import { ArrowLeft, Store, Calendar, CreditCard } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export const Route = createFileRoute('/dashboard/buyer/orders/$orderId')({
@@ -30,19 +32,7 @@ function BuyerOrderDetailPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-6 py-8 max-w-5xl animate-pulse space-y-6">
-        <div className="h-6 bg-muted rounded w-1/6" />
-        <div className="h-10 bg-muted rounded w-1/3" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="h-40 bg-muted rounded-xl" />
-            <div className="h-60 bg-muted rounded-xl" />
-          </div>
-          <div className="h-80 bg-muted rounded-xl" />
-        </div>
-      </div>
-    );
+    return <OrderDetailSkeleton />;
   }
 
   if (error || !order) {
@@ -62,6 +52,15 @@ function BuyerOrderDetailPage() {
   });
 
   const address = order.addressSnapshot;
+
+  const unifiedItems: UnifiedOrderItem[] = order.items.map((item) => ({
+    id: item.id,
+    name: item.productName,
+    price: item.productPrice,
+    quantity: item.quantity,
+  }));
+
+  const storeIconHeader = <Store className="h-5 w-5 text-primary" />;
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">
@@ -98,62 +97,15 @@ function BuyerOrderDetailPage() {
         {/* Left Columns */}
         <div className="lg:col-span-2 space-y-6">
           {/* Shipping Address Details */}
-          <Card className="border border-border/80 shadow-sm overflow-hidden">
-            <div className="bg-muted/50 p-4 border-b border-border/80 flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary" />
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
-                Shipping Destination
-              </h3>
-            </div>
-            <CardContent className="p-6 space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-foreground text-base">{address.recipientName}</span>
-                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-semibold">
-                  {address.label}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">{address.phoneNumber}</p>
-              <p className="text-sm text-foreground leading-relaxed">
-                {address.fullAddress}, {address.district}, {address.city}, {address.province} -{' '}
-                {address.postalCode}
-              </p>
-            </CardContent>
-          </Card>
+          <OrderAddressCard address={address} title="Shipping Destination" />
 
           {/* Items Purchased List */}
-          <Card className="border border-border/80 shadow-sm overflow-hidden">
-            <div className="bg-muted/50 p-4 border-b border-border/80 flex items-center gap-2">
-              <Store className="h-5 w-5 text-primary" />
-              <div>
-                <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">
-                  Store name
-                </span>
-                <span className="text-sm font-bold text-foreground capitalize leading-none">
-                  {order.storeName}
-                </span>
-              </div>
-            </div>
-            <CardContent className="p-6 divide-y divide-border/60">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="py-4 first:pt-0 last:pb-0 flex justify-between items-start gap-4"
-                >
-                  <div className="space-y-1">
-                    <h4 className="font-semibold text-sm text-foreground leading-snug">
-                      {item.productName}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {formatCurrency(item.productPrice)} × {item.quantity}
-                    </p>
-                  </div>
-                  <span className="font-bold text-sm text-foreground whitespace-nowrap">
-                    {formatCurrency(item.productPrice * item.quantity)}
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <OrderItemsList
+            items={unifiedItems}
+            headerTitle={order.storeName}
+            headerIcon={storeIconHeader}
+            headerSubtitle="Store name"
+          />
 
           {/* Chronological Status Timeline */}
           <Card className="border border-border/80 shadow-sm p-6">
@@ -174,9 +126,7 @@ function BuyerOrderDetailPage() {
             <div className="flex items-center justify-between pb-4 border-b border-border/60">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-primary" />
-                <span className="text-sm font-bold text-foreground font-semibold">
-                  Payment Method
-                </span>
+                <span className="text-sm font-semibold text-foreground">Payment Method</span>
               </div>
               <span className="text-sm text-muted-foreground font-semibold">Seapedia Wallet</span>
             </div>
