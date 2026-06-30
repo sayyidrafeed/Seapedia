@@ -22,7 +22,8 @@ export class DriverService {
       .from(deliveryJobs)
       .innerJoin(orders, eq(deliveryJobs.orderId, orders.id))
       .innerJoin(stores, eq(orders.storeId, stores.id))
-      .where(and(eq(deliveryJobs.status, 'pending'), eq(orders.status, 'menunggu_pengirim')));
+      .where(and(eq(deliveryJobs.status, 'pending'), eq(orders.status, 'menunggu_pengirim')))
+      .limit(50);
 
     return results.map((job) => ({
       ...job,

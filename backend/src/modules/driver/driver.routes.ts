@@ -1,5 +1,6 @@
 import { factory } from '@/lib/factory';
-import { describeRoute } from 'hono-openapi';
+import { describeRoute, validator } from 'hono-openapi';
+import { z } from 'zod';
 import { jsonContent, errorResponses } from '@/lib/openapi';
 import { requireSession, requireRole } from '@/middleware/auth';
 import { deliveryJobListResponseSchema, deliveryJobResponseSchema } from './driver.schemas';
@@ -43,9 +44,10 @@ driverRouter.get(
   }),
   requireSession,
   requireRole('driver'),
+  validator('param', z.object({ id: z.string().uuid() })),
   async (c) => {
-    const jobId = c.req.param('id');
-    const detail = await DriverService.getJobDetail(jobId);
+    const { id } = c.req.valid('param');
+    const detail = await DriverService.getJobDetail(id);
     return c.json(detail);
   },
 );
