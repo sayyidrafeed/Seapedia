@@ -13,12 +13,14 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from '@/components/ui/drawer';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 });
 
 function HomePage() {
+  const { t } = useTranslation();
   const { search, page, productsData, isLoading, error, totalPages, setSearch, setPage } =
     useProductCatalog();
 
@@ -43,12 +45,10 @@ function HomePage() {
             ))}
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-sm text-destructive">
-            Error loading products. Make sure the backend is running.
-          </div>
+          <div className="text-center py-12 text-sm text-destructive">{t('landing.error')}</div>
         ) : productsData?.products.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
-            No products found matching your search.
+            {t('landing.noProducts')}
           </div>
         ) : (
           <div className="space-y-8">
@@ -67,24 +67,21 @@ function HomePage() {
       {/* Reviews Section */}
       <section className="bg-card border-t border-border py-16 mt-auto">
         <div className="container mx-auto px-6 max-w-xl text-center space-y-6">
-          <h2 className="text-2xl font-bold text-foreground">Tell us what you think!</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t('landing.feedbackTitle')}</h2>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            Your feedback helps us make Seapedia better for everyone. Share your experience and
-            rating with us.
+            {t('landing.feedbackSubtitle')}
           </p>
           <Drawer>
             <DrawerTrigger asChild>
               <Button size="lg" className="font-semibold cursor-pointer">
-                Write a Review
+                {t('landing.writeReviewButton')}
               </Button>
             </DrawerTrigger>
             <DrawerContent className="w-full p-6 pb-8">
               <div className="max-w-xl mx-auto w-full">
                 <DrawerHeader className="px-0 pt-0 text-left">
-                  <DrawerTitle className="text-xl font-bold">Leave a Review</DrawerTitle>
-                  <DrawerDescription>
-                    Tell us about your experience using the Seapedia application.
-                  </DrawerDescription>
+                  <DrawerTitle className="text-xl font-bold">{t('review.title')}</DrawerTitle>
+                  <DrawerDescription>{t('review.description')}</DrawerDescription>
                 </DrawerHeader>
                 <div className="mt-4">
                   <ApplicationReviewForm flat />

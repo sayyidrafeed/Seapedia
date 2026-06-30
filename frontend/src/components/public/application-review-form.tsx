@@ -7,8 +7,10 @@ import { Input } from '../ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
+  const { t } = useTranslation();
   const auth = useAuth();
   const queryClient = useQueryClient();
   const [reviewerName, setReviewerName] = useState('');
@@ -36,14 +38,14 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
       setReviewerName('');
       setComment('');
       setRating(0);
-      setSuccessMsg('Thank you! Your review was submitted successfully.');
+      setSuccessMsg(t('review.successMsg'));
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     submitMutation.mutate({
-      reviewerName: reviewerName || auth.user?.username || 'Guest',
+      reviewerName: reviewerName || auth.user?.username || t('review.guest'),
       rating,
       comment,
     });
@@ -56,19 +58,21 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
           className="text-xs font-semibold text-muted-foreground uppercase"
           htmlFor="reviewer-name"
         >
-          Reviewer Name
+          {t('review.reviewerName')}
         </label>
         <Input
           id="reviewer-name"
           type="text"
-          value={reviewerName}
+          value="Your name"
           onChange={(e) => setReviewerName(e.target.value)}
-          placeholder={auth.user?.username || 'Guest / Your name'}
+          placeholder={auth.user?.username || t('review.reviewerPlaceholder')}
         />
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-muted-foreground uppercase">Rating</label>
+        <label className="text-xs font-semibold text-muted-foreground uppercase">
+          {t('review.rating')}
+        </label>
         <RadioGroup
           value={rating.toString()}
           onValueChange={(val) => setRating(parseInt(val))}
@@ -96,7 +100,7 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
 
       <div className="space-y-1">
         <label className="text-xs font-semibold text-muted-foreground uppercase" htmlFor="comment">
-          Comment
+          {t('review.comment')}
         </label>
         <textarea
           id="comment"
@@ -104,7 +108,7 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
           rows={4}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Share your experience..."
+          placeholder={t('review.commentPlaceholder')}
           className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
         />
       </div>
@@ -114,7 +118,7 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
         disabled={submitMutation.isPending}
         className="w-full text-xs font-semibold cursor-pointer"
       >
-        {submitMutation.isPending ? 'Submitting...' : 'Submit Review'}
+        {submitMutation.isPending ? t('review.submitting') : t('review.submitButton')}
       </Button>
     </form>
   );
@@ -132,7 +136,7 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
           <div className="rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/20">
             {submitMutation.error instanceof Error
               ? submitMutation.error.message
-              : 'Failed to submit review. Please try again.'}
+              : t('review.failedMsg')}
           </div>
         )}
 
@@ -144,10 +148,8 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Leave a Review</CardTitle>
-        <CardDescription>
-          Tell us about your experience using the Seapedia application.
-        </CardDescription>
+        <CardTitle className="text-xl font-bold">{t('review.title')}</CardTitle>
+        <CardDescription>{t('review.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {successMsg && (
@@ -160,7 +162,7 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
           <div className="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/20">
             {submitMutation.error instanceof Error
               ? submitMutation.error.message
-              : 'Failed to submit review. Please try again.'}
+              : t('review.failedMsg')}
           </div>
         )}
 

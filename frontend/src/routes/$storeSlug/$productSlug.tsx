@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { CartConflictDialog } from '@/components/cart/CartConflictDialog';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/$storeSlug/$productSlug')({
   component: StoreProductPage,
@@ -23,6 +24,7 @@ function StoreProductPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [conflictOpen, setConflictOpen] = useState(false);
   const [currentStoreName, setCurrentStoreName] = useState<string | null>(null);
@@ -61,7 +63,7 @@ function StoreProductPage() {
       return data;
     },
     onSuccess: () => {
-      toast.success('Added to cart successfully!');
+      toast.success(t('catalog.addedToCartSuccess'));
       queryClient.invalidateQueries({ queryKey: getBuyerCartOptions().queryKey });
     },
     onError: (err: unknown) => {
@@ -89,7 +91,7 @@ function StoreProductPage() {
       return data;
     },
     onSuccess: () => {
-      toast.success('Cleared previous store items & added new item!');
+      toast.success(t('catalog.clearedAndAddedSuccess'));
       queryClient.invalidateQueries({ queryKey: getBuyerCartOptions().queryKey });
       setConflictOpen(false);
     },
@@ -100,13 +102,13 @@ function StoreProductPage() {
 
   const handleAddToCart = () => {
     if (!auth.user) {
-      toast.error('Please sign in to add items to cart');
+      toast.error(t('catalog.signInToAddToCart'));
       navigate({ to: '/login' });
       return;
     }
 
     if (auth.activeRole !== 'buyer') {
-      toast.error('Please switch to Buyer role to purchase items');
+      toast.error(t('catalog.switchToBuyerRole'));
       return;
     }
 
@@ -128,7 +130,7 @@ function StoreProductPage() {
   if (error || !product) {
     return (
       <div className="container mx-auto px-6 py-12 text-center text-sm text-destructive">
-        Error loading product details. Product may not exist.
+        {t('catalog.storeNotFoundDesc')}
       </div>
     );
   }
@@ -141,7 +143,7 @@ function StoreProductPage() {
         to="/"
         className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
       >
-        &larr; Back to Catalog
+        &larr; {t('catalog.backToCatalog')}
       </Link>
 
       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
@@ -152,9 +154,11 @@ function StoreProductPage() {
               params={{ storeSlug: product.storeSlug }}
               className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 capitalize hover:bg-primary/20"
             >
-              Store: {product.storeName}
+              {t('catalog.storeLabel', { name: product.storeName })}
             </Link>
-            <span className="text-xs text-muted-foreground">Stock: {product.stock} left</span>
+            <span className="text-xs text-muted-foreground">
+              {t('catalog.stockLeft', { count: product.stock })}
+            </span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{product.name}</h1>
         </div>
@@ -166,23 +170,25 @@ function StoreProductPage() {
         {/* Store Information Card */}
         <div className="bg-muted/40 border border-border p-4 rounded-lg flex items-center justify-between gap-4">
           <div>
-            <h4 className="text-sm font-bold text-foreground">Sells by {product.storeName}</h4>
-            <p className="text-xs text-muted-foreground mt-1">
-              Click to visit store page for more items.
-            </p>
+            <h4 className="text-sm font-bold text-foreground">
+              {t('catalog.sellsBy', { name: product.storeName })}
+            </h4>
+            <p className="text-xs text-muted-foreground mt-1">{t('catalog.visitStoreDesc')}</p>
           </div>
           <Link
             to="/$storeSlug"
             params={{ storeSlug: product.storeSlug }}
             className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-muted"
           >
-            Visit Store
+            {t('catalog.visitStore')}
           </Link>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
           <div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase">Price</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase">
+              {t('catalog.price')}
+            </span>
             <p className="text-3xl font-black text-foreground mt-1">
               {formatCurrency(product.price)}
             </p>
@@ -194,7 +200,11 @@ function StoreProductPage() {
               disabled={product.stock <= 0 || isAdding}
               className="w-full sm:w-auto cursor-pointer"
             >
-              {product.stock <= 0 ? 'Out of Stock' : isAdding ? 'Adding...' : 'Add to Cart'}
+              {product.stock <= 0
+                ? t('catalog.outOfStock')
+                : isAdding
+                  ? t('catalog.adding')
+                  : t('catalog.addToCart')}
             </Button>
           </div>
         </div>

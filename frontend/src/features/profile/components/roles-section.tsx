@@ -1,20 +1,28 @@
+import { useTranslation } from 'react-i18next';
+
 interface RolesSectionProps {
   activeRole: string | null;
   roles: string[];
 }
 
 export function RolesSection({ activeRole, roles }: RolesSectionProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-card border border-border p-6 rounded-lg shadow-sm space-y-4">
-      <h2 className="text-xl font-bold border-b border-border pb-3">Roles & Session</h2>
+      <h2 className="text-xl font-bold border-b border-border pb-3">{t('profile.rolesSession')}</h2>
       <div>
-        <span className="text-xs font-semibold text-muted-foreground uppercase">Active Role</span>
+        <span className="text-xs font-semibold text-muted-foreground uppercase">
+          {t('profile.activeRole')}
+        </span>
         <p className="text-foreground font-semibold mt-1 capitalize text-primary">
-          {activeRole || 'None'}
+          {activeRole || t('profile.none')}
         </p>
       </div>
       <div>
-        <span className="text-xs font-semibold text-muted-foreground uppercase">Roles Owned</span>
+        <span className="text-xs font-semibold text-muted-foreground uppercase">
+          {t('profile.rolesOwned')}
+        </span>
         <div className="flex flex-wrap gap-2 mt-1">
           {roles.map((r) => (
             <span
