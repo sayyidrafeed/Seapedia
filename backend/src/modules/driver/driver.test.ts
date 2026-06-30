@@ -34,13 +34,18 @@ mock.module('@/db', () => {
       innerJoin: () => builder,
       where: () => {
         const data = dbState.selectQueue[dbState.selectIdx++] ?? [];
-        return Object.assign(Promise.resolve(data), {
-          orderBy: () =>
-            Object.assign(Promise.resolve(data), {
-              limit: (n: number) => Promise.resolve(data.slice(0, n)),
-            }),
-          limit: (n: number) => Promise.resolve(data.slice(0, n)),
+        const chain = Object.assign(Promise.resolve(data), {
+          orderBy: () => null as unknown,
+          limit: (n: number) => {
+            const sliced = data.slice(0, n);
+            return Object.assign(Promise.resolve(sliced), {
+              offset: (o: number) => Promise.resolve(sliced.slice(o)),
+            });
+          },
+          offset: (o: number) => Promise.resolve(data.slice(o)),
         });
+        (chain as unknown as Record<string, unknown>).orderBy = () => chain;
+        return chain;
       },
     };
     return builder;
@@ -118,9 +123,15 @@ describe('DriverService', () => {
 
   test('getJobDetail returns job details successfully', async () => {
     dbState.addSelect([mockJob]);
+    dbState.addSelect([
+      { id: 'item-1', productId: 'p-1', productName: 'Item A', productPrice: 1000, quantity: 2 },
+    ]);
     const res = await DriverService.getJobDetail('job-1');
     expect(res.id).toBe('job-1');
     expect(res.addressSnapshot).toEqual(mockAddr);
+    expect(res.items).toHaveLength(1);
+    expect(res.items[0].productName).toBe('Item A');
+    expect(res.items[0].productPrice).toBe(1000);
   });
 
   test('getJobDetail throws NotFoundError if job does not exist', async () => {
@@ -163,5 +174,20 @@ describe('DriverService', () => {
     expect(res.completedJobsCount).toBe(1);
     expect(res.activeJobs).toHaveLength(1);
     expect(res.completedJobs).toHaveLength(1);
+  });
+
+  test('getJobHistory returns paginated completed jobs', async () => {
+    // 1. Query for completed jobs list
+    dbState.addSelect([
+      { ...mockJob, id: 'job-completed-1', status: 'completed' },
+      { ...mockJob, id: 'job-completed-2', status: 'completed' },
+    ]);
+    // 2. Query for total count
+    dbState.addSelect([{ count: 2 }]);
+
+    const res = await DriverService.getJobHistory('driver-1', { page: 1, limit: 10 });
+    expect(res.jobs).toHaveLength(2);
+    expect(res.total).toBe(2);
+    expect(res.jobs[0].id).toBe('job-completed-1');
   });
 });
