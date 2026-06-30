@@ -33,6 +33,7 @@ import {
   getCurrentUser,
   getCurrentUserFinancialSummary,
   getDriverJobDetail,
+  getDriverJobHistory,
   getDriverStats,
   getProductById,
   getProductBySlug,
@@ -144,6 +145,9 @@ import type {
   GetDriverJobDetailData,
   GetDriverJobDetailError,
   GetDriverJobDetailResponse,
+  GetDriverJobHistoryData,
+  GetDriverJobHistoryError,
+  GetDriverJobHistoryResponse,
   GetDriverStatsData,
   GetDriverStatsError,
   GetDriverStatsResponse,
@@ -1864,6 +1868,76 @@ export const getDriverStatsOptions = (options?: Options<GetDriverStatsData>) =>
     },
     queryKey: getDriverStatsQueryKey(options),
   });
+
+export const getDriverJobHistoryQueryKey = (options?: Options<GetDriverJobHistoryData>) =>
+  createQueryKey('getDriverJobHistory', options);
+
+/**
+ * Get paginated history of completed delivery jobs for the logged-in driver
+ */
+export const getDriverJobHistoryOptions = (options?: Options<GetDriverJobHistoryData>) =>
+  queryOptions<
+    GetDriverJobHistoryResponse,
+    GetDriverJobHistoryError,
+    GetDriverJobHistoryResponse,
+    ReturnType<typeof getDriverJobHistoryQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDriverJobHistory({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDriverJobHistoryQueryKey(options),
+  });
+
+export const getDriverJobHistoryInfiniteQueryKey = (
+  options?: Options<GetDriverJobHistoryData>,
+): QueryKey<Options<GetDriverJobHistoryData>> =>
+  createQueryKey('getDriverJobHistory', options, true);
+
+/**
+ * Get paginated history of completed delivery jobs for the logged-in driver
+ */
+export const getDriverJobHistoryInfiniteOptions = (options?: Options<GetDriverJobHistoryData>) =>
+  infiniteQueryOptions<
+    GetDriverJobHistoryResponse,
+    GetDriverJobHistoryError,
+    InfiniteData<GetDriverJobHistoryResponse>,
+    QueryKey<Options<GetDriverJobHistoryData>>,
+    | number
+    | Pick<QueryKey<Options<GetDriverJobHistoryData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetDriverJobHistoryData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getDriverJobHistory({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getDriverJobHistoryInfiniteQueryKey(options),
+    },
+  );
 
 export const listAvailableJobsQueryKey = (options?: Options<ListAvailableJobsData>) =>
   createQueryKey('listAvailableJobs', options);

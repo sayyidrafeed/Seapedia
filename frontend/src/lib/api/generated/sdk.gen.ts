@@ -72,6 +72,9 @@ import type {
   GetDriverJobDetailData,
   GetDriverJobDetailErrors,
   GetDriverJobDetailResponses,
+  GetDriverJobHistoryData,
+  GetDriverJobHistoryErrors,
+  GetDriverJobHistoryResponses,
   GetDriverStatsData,
   GetDriverStatsErrors,
   GetDriverStatsResponses,
@@ -1361,6 +1364,28 @@ export const getDriverStats = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/driver/me/stats',
+    ...options,
+  });
+
+/**
+ * Get paginated history of completed delivery jobs for the logged-in driver
+ */
+export const getDriverJobHistory = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDriverJobHistoryData, ThrowOnError>,
+): RequestResult<GetDriverJobHistoryResponses, GetDriverJobHistoryErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetDriverJobHistoryResponses,
+    GetDriverJobHistoryErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/me/history',
     ...options,
   });
 

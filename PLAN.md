@@ -467,7 +467,7 @@ Drivers need to understand their completed work and earnings. You may define a s
 
 After this level, SEAPEDIA should support an end-to-end order flow from Buyer checkout to Seller processing and Driver delivery completion. The marketplace is now operational across its three main non-admin roles.
 
-> **Level 5 — Complete**
+> **Level 5 — Complete** ✅
 
 ---
 

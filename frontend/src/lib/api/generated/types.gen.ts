@@ -4,49 +4,6 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
-export type Product = {
-  id: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  currency?: string;
-  stock: number;
-  storeId: string;
-  storeName: string;
-  storeSlug: string;
-  slug: string;
-};
-
-export type SellerProductResponse = {
-  id: string;
-  storeId: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  stock: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Review = {
-  id: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-};
-
-export type WalletTransactionResponse = {
-  id: string;
-  walletId: string;
-  amount: number;
-  type: string;
-  paymentMethod: string | unknown;
-  status: string;
-  reference: string;
-  createdAt: string;
-};
-
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -95,6 +52,49 @@ export type OrderResponse = {
   }>;
 };
 
+export type Product = {
+  id: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  currency?: string;
+  stock: number;
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  slug: string;
+};
+
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Review = {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  paymentMethod: string | unknown;
+  status: string;
+  reference: string;
+  createdAt: string;
+};
+
 export type VoucherResponse = {
   id: string;
   code: string;
@@ -129,6 +129,13 @@ export type DeliveryJobResponse = {
   deliveryMethod: string;
   addressSnapshot: AddressResponse;
   totalAmount: number;
+  items?: Array<{
+    id: string;
+    productId: string | unknown;
+    productName: string;
+    productPrice: number;
+    quantity: number;
+  }>;
 };
 
 export type HealthCheckData = {
@@ -2987,6 +2994,55 @@ export type GetDriverStatsResponses = {
 
 export type GetDriverStatsResponse = GetDriverStatsResponses[keyof GetDriverStatsResponses];
 
+export type GetDriverJobHistoryData = {
+  body?: never;
+  path?: never;
+  query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  };
+  url: '/api/driver/me/history';
+};
+
+export type GetDriverJobHistoryErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetDriverJobHistoryError = GetDriverJobHistoryErrors[keyof GetDriverJobHistoryErrors];
+
+export type GetDriverJobHistoryResponses = {
+  /**
+   * Driver completed job history
+   */
+  200: {
+    jobs: Array<DeliveryJobResponse>;
+    total: number;
+  };
+};
+
+export type GetDriverJobHistoryResponse =
+  GetDriverJobHistoryResponses[keyof GetDriverJobHistoryResponses];
+
 export type ListAvailableJobsData = {
   body?: never;
   path?: never;
@@ -3081,6 +3137,13 @@ export type GetDriverJobDetailResponses = {
     deliveryMethod: string;
     addressSnapshot: AddressResponse;
     totalAmount: number;
+    items?: Array<{
+      id: string;
+      productId: string | unknown;
+      productName: string;
+      productPrice: number;
+      quantity: number;
+    }>;
   };
 };
 

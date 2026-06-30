@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { addressResponseSchema } from '@/modules/buyers/buyers.schemas';
+import { orderItemResponseSchema } from '@/modules/orders/orders-schemas';
 
 export const deliveryJobResponseSchema = z
   .object({
@@ -15,6 +16,7 @@ export const deliveryJobResponseSchema = z
     deliveryMethod: z.string(),
     addressSnapshot: addressResponseSchema,
     totalAmount: z.number().int(),
+    items: z.array(orderItemResponseSchema).optional(),
   })
   .meta({ id: 'DeliveryJobResponse' });
 
@@ -37,3 +39,10 @@ export const driverStatsResponseSchema = z
     completedJobs: z.array(deliveryJobResponseSchema),
   })
   .meta({ id: 'DriverStatsResponse' });
+
+export const driverJobHistoryResponseSchema = z
+  .object({
+    jobs: z.array(deliveryJobResponseSchema),
+    total: z.number().int(),
+  })
+  .meta({ id: 'DriverJobHistoryResponse' });

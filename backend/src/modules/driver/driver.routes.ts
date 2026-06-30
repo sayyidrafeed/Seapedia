@@ -8,8 +8,10 @@ import {
   deliveryJobResponseSchema,
   driverActionSuccessResponseSchema,
   driverStatsResponseSchema,
+  driverJobHistoryResponseSchema,
 } from './driver.schemas';
 import { DriverService } from './driver.service';
+import { paginationQuerySchema } from '@/lib/schemas';
 
 export const driverRouter = factory.createApp();
 
@@ -32,6 +34,30 @@ driverRouter.get(
     const userId = c.get('userId') as string;
     const stats = await DriverService.getDriverStats(userId);
     return c.json(stats);
+  },
+);
+
+// Get Driver Job History (Paginated)
+driverRouter.get(
+  '/me/history',
+  describeRoute({
+    operationId: 'getDriverJobHistory',
+    tags: ['Driver'],
+    summary: 'Get paginated history of completed delivery jobs for the logged-in driver',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(driverJobHistoryResponseSchema, 'Driver completed job history'),
+      ...errorResponses(401, 403, 500),
+    },
+  }),
+  requireSession,
+  requireRole('driver'),
+  validator('query', paginationQuerySchema),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const { page, limit } = c.req.valid('query');
+    const history = await DriverService.getJobHistory(userId, { page, limit });
+    return c.json(history);
   },
 );
 

@@ -8,12 +8,18 @@ import {
   getDriverJobDetailQueryKey,
 } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { formatCurrency } from '@/lib/utils';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Navigation, ArrowLeft, Calendar, DollarSign, Package } from 'lucide-react';
+import { ArrowLeft, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import type { TakeDeliveryJobError } from '@/lib/api/generated';
+import {
+  PickupCard,
+  DropoffCard,
+  PackageContentsCard,
+  OrderSummaryCard,
+} from '../components/JobCards';
 
 export const Route = createFileRoute('/dashboard/driver/jobs/$jobId')({
   component: JobDetail,
@@ -95,48 +101,9 @@ function JobDetail() {
       <div className="grid gap-6 md:grid-cols-3">
         {/* Main Job details */}
         <div className="md:col-span-2 space-y-6">
-          {/* Pickup Card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                1. Pickup Store Location
-              </CardTitle>
-              <CardDescription>Pick up the processed items from this seller store</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="font-semibold text-lg">{job.storeName}</div>
-              <p className="text-sm text-muted-foreground">
-                Items are packaged and ready to be loaded by the driver.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Dropoff Card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold flex items-center gap-2">
-                <Navigation className="h-5 w-5 text-primary" />
-                2. Drop-off Delivery Address
-              </CardTitle>
-              <CardDescription>Deliver the items to the buyer address listed below</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="font-semibold text-base">
-                  {job.addressSnapshot.recipientName} ({job.addressSnapshot.label})
-                </div>
-                <div className="text-sm text-muted-foreground mt-0.5">
-                  Phone: {job.addressSnapshot.phoneNumber}
-                </div>
-              </div>
-              <div className="p-3 bg-muted rounded-md text-sm leading-relaxed">
-                {job.addressSnapshot.fullAddress}, {job.addressSnapshot.district},{' '}
-                {job.addressSnapshot.city}, {job.addressSnapshot.province},{' '}
-                {job.addressSnapshot.postalCode}
-              </div>
-            </CardContent>
-          </Card>
+          <PickupCard storeName={job.storeName} />
+          <DropoffCard address={job.addressSnapshot} />
+          <PackageContentsCard items={job.items} />
         </div>
 
         {/* Earning / Summary Card */}
@@ -173,34 +140,12 @@ function JobDetail() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <Package className="h-5 w-5 text-muted-foreground" />
-                Order Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Order ID:</span>
-                <span className="font-mono text-xs">{job.orderId.slice(0, 8)}...</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Delivery Method:</span>
-                <span className="font-medium capitalize">{job.deliveryMethod}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Order Amount:</span>
-                <span className="font-semibold">{formatCurrency(job.totalAmount)}</span>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t border-border">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-4 w-4" /> Created:
-                </span>
-                <span className="text-xs">{new Date(job.createdAt).toLocaleString()}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <OrderSummaryCard
+            orderId={job.orderId}
+            deliveryMethod={job.deliveryMethod}
+            totalAmount={job.totalAmount}
+            createdAt={job.createdAt}
+          />
         </div>
       </div>
     </div>
