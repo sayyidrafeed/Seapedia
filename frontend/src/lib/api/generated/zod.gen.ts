@@ -1075,6 +1075,34 @@ export const zGetDashboardStatsResponse = z.object({
   }),
 });
 
+/**
+ * Overdue orders processed successfully
+ */
+export const zProcessOverdueOrdersResponse = z.object({
+  processedCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  results: z.array(
+    z.object({
+      orderId: z.string(),
+      buyerId: z.string(),
+      refundAmount: z.number(),
+      itemsRestored: z.number(),
+      note: z.string(),
+    }),
+  ),
+});
+
+export const zSimulateTimeBody = z.object({
+  hoursToAdvance: z.number().gte(0).lte(240),
+});
+
+/**
+ * System time offset updated successfully
+ */
+export const zSimulateTimeResponse = z.object({
+  newOffsetHours: z.number(),
+  effectiveTime: z.string(),
+});
+
 export const zValidateDiscountCodeBody = z.object({
   code: z.string().min(1),
   subtotal: z.int().lte(9007199254740991),

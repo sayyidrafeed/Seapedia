@@ -62,11 +62,13 @@ import {
   privateBuyerEndpoint,
   privateDriverEndpoint,
   privateSellerEndpoint,
+  processOverdueOrders,
   processSellerOrder,
   registerUser,
   requestTopUp,
   selectActiveRole,
   setDefaultAddress,
+  simulateTime,
   simulateTopUp,
   submitReview,
   takeDeliveryJob,
@@ -229,6 +231,9 @@ import type {
   PrivateSellerEndpointData,
   PrivateSellerEndpointError,
   PrivateSellerEndpointResponse,
+  ProcessOverdueOrdersData,
+  ProcessOverdueOrdersError,
+  ProcessOverdueOrdersResponse,
   ProcessSellerOrderData,
   ProcessSellerOrderError,
   ProcessSellerOrderResponse,
@@ -244,6 +249,9 @@ import type {
   SetDefaultAddressData,
   SetDefaultAddressError,
   SetDefaultAddressResponse,
+  SimulateTimeData,
+  SimulateTimeError,
+  SimulateTimeResponse,
   SimulateTopUpData,
   SimulateTopUpError,
   SimulateTopUpResponse,
@@ -1845,6 +1853,56 @@ export const getDashboardStatsOptions = (options?: Options<GetDashboardStatsData
     },
     queryKey: getDashboardStatsQueryKey(options),
   });
+
+/**
+ * Process overdue orders by auto-returning and refunding them
+ */
+export const processOverdueOrdersMutation = (
+  options?: Partial<Options<ProcessOverdueOrdersData>>,
+): UseMutationOptions<
+  ProcessOverdueOrdersResponse,
+  ProcessOverdueOrdersError,
+  Options<ProcessOverdueOrdersData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProcessOverdueOrdersResponse,
+    ProcessOverdueOrdersError,
+    Options<ProcessOverdueOrdersData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await processOverdueOrders({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Simulate system time forward for demo purposes
+ */
+export const simulateTimeMutation = (
+  options?: Partial<Options<SimulateTimeData>>,
+): UseMutationOptions<SimulateTimeResponse, SimulateTimeError, Options<SimulateTimeData>> => {
+  const mutationOptions: UseMutationOptions<
+    SimulateTimeResponse,
+    SimulateTimeError,
+    Options<SimulateTimeData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await simulateTime({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
 
 /**
  * Validate a voucher or promo code for buyer checkout
