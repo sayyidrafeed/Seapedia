@@ -69,6 +69,9 @@ import type {
   GetCurrentUserFinancialSummaryErrors,
   GetCurrentUserFinancialSummaryResponses,
   GetCurrentUserResponses,
+  GetDashboardStatsData,
+  GetDashboardStatsErrors,
+  GetDashboardStatsResponses,
   GetDriverJobDetailData,
   GetDriverJobDetailErrors,
   GetDriverJobDetailResponses,
@@ -1320,6 +1323,28 @@ export const getPromo = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/admin/promos/{id}',
+    ...options,
+  });
+
+/**
+ * Get dashboard statistics for admin monitoring
+ */
+export const getDashboardStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDashboardStatsData, ThrowOnError>,
+): RequestResult<GetDashboardStatsResponses, GetDashboardStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetDashboardStatsResponses,
+    GetDashboardStatsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/dashboard',
     ...options,
   });
 

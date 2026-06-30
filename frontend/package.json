@@ -29,6 +29,7 @@
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "recharts": "2.15.4",
     "sonner": "latest",
     "tailwind-merge": "latest",
     "zod": "latest"

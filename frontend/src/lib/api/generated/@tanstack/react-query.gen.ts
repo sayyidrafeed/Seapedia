@@ -32,6 +32,7 @@ import {
   getCurrentSession,
   getCurrentUser,
   getCurrentUserFinancialSummary,
+  getDashboardStats,
   getDriverJobDetail,
   getDriverJobHistory,
   getDriverStats,
@@ -142,6 +143,9 @@ import type {
   GetCurrentUserFinancialSummaryError,
   GetCurrentUserFinancialSummaryResponse,
   GetCurrentUserResponse,
+  GetDashboardStatsData,
+  GetDashboardStatsError,
+  GetDashboardStatsResponse,
   GetDriverJobDetailData,
   GetDriverJobDetailError,
   GetDriverJobDetailResponse,
@@ -1815,6 +1819,31 @@ export const getPromoOptions = (options: Options<GetPromoData>) =>
       return data;
     },
     queryKey: getPromoQueryKey(options),
+  });
+
+export const getDashboardStatsQueryKey = (options?: Options<GetDashboardStatsData>) =>
+  createQueryKey('getDashboardStats', options);
+
+/**
+ * Get dashboard statistics for admin monitoring
+ */
+export const getDashboardStatsOptions = (options?: Options<GetDashboardStatsData>) =>
+  queryOptions<
+    GetDashboardStatsResponse,
+    GetDashboardStatsError,
+    GetDashboardStatsResponse,
+    ReturnType<typeof getDashboardStatsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDashboardStats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDashboardStatsQueryKey(options),
   });
 
 /**

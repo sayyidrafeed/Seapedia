@@ -13,7 +13,8 @@ import { privateRouter } from '@/modules/private/private.index';
 import { storesRouter } from '@/modules/stores/stores.index';
 import { buyersRouter } from '@/modules/buyers/buyers.index';
 import { ordersRouter, sellerOrdersRouter } from '@/modules/orders/orders.index';
-import { discountsAdminRouter, discountsBuyerRouter } from '@/modules/discounts/discounts.index';
+import { adminRouter } from '@/modules/admin/admin.index';
+import { discountsBuyerRouter } from '@/modules/discounts/discounts.index';
 import { driverRouter } from '@/modules/driver/driver.index';
 import { frontendUrls } from '@/env';
 
@@ -53,7 +54,7 @@ app.route('/api/stores', storesRouter);
 app.route('/api/buyers', buyersRouter);
 app.route('/api/orders', ordersRouter);
 app.route('/api/seller/orders', sellerOrdersRouter);
-app.route('/api/admin', discountsAdminRouter);
+app.route('/api/admin', adminRouter);
 app.route('/api/discounts', discountsBuyerRouter);
 app.route('/api/driver', driverRouter);
 

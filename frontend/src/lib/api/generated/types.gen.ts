@@ -2889,6 +2889,87 @@ export type GetPromoResponses = {
 
 export type GetPromoResponse = GetPromoResponses[keyof GetPromoResponses];
 
+export type GetDashboardStatsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/dashboard';
+};
+
+export type GetDashboardStatsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetDashboardStatsError = GetDashboardStatsErrors[keyof GetDashboardStatsErrors];
+
+export type GetDashboardStatsResponses = {
+  /**
+   * Dashboard statistics fetched successfully
+   */
+  200: {
+    users: {
+      total: number;
+      roles: {
+        admin: number;
+        buyer: number;
+        seller: number;
+        driver: number;
+      };
+    };
+    stores: {
+      total: number;
+    };
+    products: {
+      total: number;
+    };
+    orders: {
+      total: number;
+      statuses: {
+        sedang_dikemas: number;
+        menunggu_pengirim: number;
+        sedang_dikirim: number;
+        pesanan_selesai: number;
+        dikembalikan: number;
+      };
+    };
+    discounts: {
+      vouchers: number;
+      promos: number;
+    };
+    deliveries: {
+      total: number;
+      statuses: {
+        pending: number;
+        taken: number;
+        completed: number;
+      };
+    };
+    overdueOrders: {
+      total: number;
+    };
+  };
+};
+
+export type GetDashboardStatsResponse =
+  GetDashboardStatsResponses[keyof GetDashboardStatsResponses];
+
 export type ValidateDiscountCodeData = {
   body: {
     code: string;

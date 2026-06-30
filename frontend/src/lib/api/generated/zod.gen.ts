@@ -1029,6 +1029,52 @@ export const zGetPromoResponse = z.object({
   updatedAt: z.string(),
 });
 
+/**
+ * Dashboard statistics fetched successfully
+ */
+export const zGetDashboardStatsResponse = z.object({
+  users: z.object({
+    total: z.int().gte(-9007199254740991).lte(9007199254740991),
+    roles: z.object({
+      admin: z.int().gte(-9007199254740991).lte(9007199254740991),
+      buyer: z.int().gte(-9007199254740991).lte(9007199254740991),
+      seller: z.int().gte(-9007199254740991).lte(9007199254740991),
+      driver: z.int().gte(-9007199254740991).lte(9007199254740991),
+    }),
+  }),
+  stores: z.object({
+    total: z.int().gte(-9007199254740991).lte(9007199254740991),
+  }),
+  products: z.object({
+    total: z.int().gte(-9007199254740991).lte(9007199254740991),
+  }),
+  orders: z.object({
+    total: z.int().gte(-9007199254740991).lte(9007199254740991),
+    statuses: z.object({
+      sedang_dikemas: z.int().gte(-9007199254740991).lte(9007199254740991),
+      menunggu_pengirim: z.int().gte(-9007199254740991).lte(9007199254740991),
+      sedang_dikirim: z.int().gte(-9007199254740991).lte(9007199254740991),
+      pesanan_selesai: z.int().gte(-9007199254740991).lte(9007199254740991),
+      dikembalikan: z.int().gte(-9007199254740991).lte(9007199254740991),
+    }),
+  }),
+  discounts: z.object({
+    vouchers: z.int().gte(-9007199254740991).lte(9007199254740991),
+    promos: z.int().gte(-9007199254740991).lte(9007199254740991),
+  }),
+  deliveries: z.object({
+    total: z.int().gte(-9007199254740991).lte(9007199254740991),
+    statuses: z.object({
+      pending: z.int().gte(-9007199254740991).lte(9007199254740991),
+      taken: z.int().gte(-9007199254740991).lte(9007199254740991),
+      completed: z.int().gte(-9007199254740991).lte(9007199254740991),
+    }),
+  }),
+  overdueOrders: z.object({
+    total: z.int().gte(-9007199254740991).lte(9007199254740991),
+  }),
+});
+
 export const zValidateDiscountCodeBody = z.object({
   code: z.string().min(1),
   subtotal: z.int().lte(9007199254740991),
