@@ -160,21 +160,23 @@ export class OrdersSellerService {
       throw new NotFoundError('Store not found for this seller');
     }
 
-    const [order] = await db
-      .select()
-      .from(orders)
-      .where(and(eq(orders.id, orderId), eq(orders.storeId, store.id)))
-      .limit(1);
-
-    if (!order) {
-      throw new NotFoundError('Order not found');
-    }
-
-    if (order.status !== 'sedang_dikemas') {
-      throw new ConflictError(`Order cannot be processed because it is in status ${order.status}`);
-    }
-
     await db.transaction(async (tx) => {
+      const [order] = await tx
+        .select()
+        .from(orders)
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, store.id)))
+        .limit(1);
+
+      if (!order) {
+        throw new NotFoundError('Order not found');
+      }
+
+      if (order.status !== 'sedang_dikemas') {
+        throw new ConflictError(
+          `Order cannot be processed because it is in status ${order.status}`,
+        );
+      }
+
       await tx
         .update(orders)
         .set({
@@ -190,6 +192,6 @@ export class OrdersSellerService {
       });
     });
 
-    return this.getDetail(sellerId, order.id);
+    return this.getDetail(sellerId, orderId);
   }
 }
