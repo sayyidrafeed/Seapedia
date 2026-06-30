@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   getDriverStatsOptions,
   completeDeliveryJobMutation,
@@ -27,11 +27,12 @@ function DriverOverview() {
 
   const { data: stats, isLoading, error } = useQuery(getDriverStatsOptions());
 
-  const { data: historyData, isLoading: isHistoryLoading } = useQuery(
-    getDriverJobHistoryOptions({
+  const { data: historyData, isLoading: isHistoryLoading } = useQuery({
+    ...getDriverJobHistoryOptions({
       query: { page, limit },
     }),
-  );
+    placeholderData: keepPreviousData,
+  });
 
   const completeMutation = useMutation({
     ...completeDeliveryJobMutation(),
@@ -83,7 +84,7 @@ function DriverOverview() {
         isLoading={isHistoryLoading}
         onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
         onNextPage={() =>
-          setPage((p) => Math.min(Math.ceil((historyData?.total || 0) / limit), p + 1))
+          setPage((p) => Math.max(1, Math.min(Math.ceil((historyData?.total || 0) / limit), p + 1)))
         }
       />
 
