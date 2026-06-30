@@ -266,8 +266,17 @@ function SellerOrderDetailPage() {
 
       {/* Premium Glassmorphism Modal Dialog */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-background border border-border/80 rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-100 transition-all duration-200 p-6 space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => {
+            setIsModalOpen(false);
+            setNote('');
+          }}
+        >
+          <div
+            className="bg-background border border-border/80 rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-100 transition-all duration-200 p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="space-y-1">
               <h3 className="text-lg font-bold text-foreground">Process Order</h3>
               <p className="text-xs text-muted-foreground">
