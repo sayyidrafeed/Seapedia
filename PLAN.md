@@ -339,24 +339,26 @@ At this level, Voucher and Promo codes may be prepared through seed data, API do
 
 #### Requirements:
 
-- Create a Voucher resource.
-- Create a Promo resource.
-- Provide Admin endpoints to generate vouchers and promos.
-- Provide endpoints to list and view details of vouchers and promos.
-- Vouchers must have an expiry date and remaining usage.
-- Promos must have an expiry date.
-- Allow checkout to receive a discount code.
-- Validate the discount code during checkout.
-- Show the discount effect in the checkout summary.
-- Keep subtotal, discount, delivery fee, PPN 12%, and final total visible in the checkout summary.
+- [x] Create a Voucher resource.
+- [x] Create a Promo resource.
+- [x] Provide Admin endpoints to generate vouchers and promos.
+- [x] Provide endpoints to list and view details of vouchers and promos.
+- [x] Vouchers must have an expiry date and remaining usage.
+- [x] Promos must have an expiry date.
+- [x] Allow checkout to receive a discount code.
+- [x] Validate the discount code during checkout.
+- [x] Show the discount effect in the checkout summary.
+- [x] Keep subtotal, discount, delivery fee, PPN 12%, and final total visible in the checkout summary.
 
 #### Business Rules:
 
-- Expired Vouchers or Promos cannot be used.
-- Vouchers with no remaining usage cannot be used.
-- You may decide whether Voucher and Promo can be combined, but the rule must be clear and consistent.
-- Voucher and Promo must be clearly distinguished in the validation result or checkout summary.
-- The position of discount calculation relative to PPN 12% must be consistent and documented.
+- [x] Expired Vouchers or Promos cannot be used.
+- [x] Vouchers with no remaining usage cannot be used.
+- [x] You may decide whether Voucher and Promo can be combined, but the rule must be clear and consistent.
+- [x] Voucher and Promo must be clearly distinguished in the validation result or checkout summary.
+- [x] The position of discount calculation relative to PPN 12% must be consistent and documented.
+
+#### Implement Voucher and Promo Discounts — Complete
 
 ### Allow Sellers to Process Orders (4 pts)
 
@@ -389,7 +391,7 @@ To make the system more useful, Buyers and Sellers should be able to understand 
 
 #### Deliverables:
 
-- Checkout flow with Voucher or Promo support.
+- [x] Checkout flow with Voucher or Promo support.
 - Seller order processing flow from Sedang Dikemas to Menunggu Pengirim.
 - Buyer and Seller transaction reports.
 - Visible order status timeline with timestamps.
@@ -397,6 +399,7 @@ To make the system more useful, Buyers and Sellers should be able to understand 
 After completing this level, SEAPEDIA should support a stronger commercial flow. Buyers can use discounts, Sellers can prepare orders for delivery, and both sides can monitor their transaction results.
 
 ---
+
 
 ## Level 5: Delivery and Driver Workflow (Total 10 pts)
 
@@ -623,7 +626,7 @@ For the final assessment, the project should be demonstrable as one integrated s
 - [x] Buyer can manage delivery address.
 - [x] Buyer can manage cart.
 - [x] Buyer can checkout using a delivery method.
-- [x] Checkout summary shows subtotal, delivery fee, PPN 12%, and final total.
+- [x] Checkout summary shows subtotal, discount, delivery fee, PPN 12%, and final total.
 - [x] Buyer can view order history, order detail, and status timeline.
 
 ### Driver Flow
@@ -636,7 +639,7 @@ For the final assessment, the project should be demonstrable as one integrated s
 ### Admin, Overdue, and Security Flow
 
 - [ ] Admin can monitor users, stores, products, orders, discounts, deliveries, and overdue orders.
-- [ ] Admin can generate and view Voucher and Promo data.
+- [x] Admin can generate and view Voucher and Promo data.
 - [ ] The system can simulate the next day or an equivalent time progression.
 - [ ] At least one auto return or auto refund scenario can be demonstrated successfully.
 - [ ] SQL Injection and XSS test cases can be demonstrated as safely handled.
