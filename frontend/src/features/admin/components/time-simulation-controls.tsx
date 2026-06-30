@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Clock, RefreshCw, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface TimeSimulationControlsProps {
   isPending: boolean;
@@ -7,6 +8,8 @@ interface TimeSimulationControlsProps {
 }
 
 export function TimeSimulationControls({ isPending, onSimulate }: TimeSimulationControlsProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-2">
       <Button
@@ -16,7 +19,7 @@ export function TimeSimulationControls({ isPending, onSimulate }: TimeSimulation
         className="flex items-center gap-2 rounded-xl font-bold cursor-pointer"
       >
         {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}
-        Simulate +1 Day
+        {t('admin.dashboard.simulateDay')}
       </Button>
       <Button
         onClick={() => onSimulate(0)}
@@ -25,7 +28,7 @@ export function TimeSimulationControls({ isPending, onSimulate }: TimeSimulation
         className="flex items-center gap-2 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
       >
         <RefreshCw className="h-4 w-4" />
-        Reset Time
+        {t('admin.dashboard.resetTime')}
       </Button>
     </div>
   );

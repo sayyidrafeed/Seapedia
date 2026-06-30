@@ -17,6 +17,7 @@ import {
   ActiveDeliveriesCard,
 } from '@/features/driver/components/dashboard-components';
 import { HistoryCard } from '@/features/driver/components/history-card';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/driver/')({
   component: DriverOverview,
@@ -26,6 +27,7 @@ function DriverOverview() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const limit = 5;
+  const { t } = useTranslation();
 
   const { data: stats, isLoading, error } = useQuery(getDriverStatsOptions());
 
@@ -39,14 +41,14 @@ function DriverOverview() {
   const completeMutation = useMutation({
     ...completeDeliveryJobMutation(),
     onSuccess: (data) => {
-      toast.success(data.message || 'Delivery completed successfully!');
+      toast.success(data.message || t('driver.stats.completeSuccess'));
       queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
       queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
       queryClient.invalidateQueries({ queryKey: getDriverJobHistoryQueryKey() });
     },
     onError: (err: CompleteDeliveryJobError) => {
       const apiErr = err as { body?: { error?: string } };
-      toast.error(apiErr.body?.error || 'Failed to complete delivery');
+      toast.error(apiErr.body?.error || t('driver.stats.completeFailed'));
     },
   });
 
@@ -64,7 +66,7 @@ function DriverOverview() {
   if (error || !stats)
     return (
       <Card className="p-6 text-center text-red-500">
-        Error: {error instanceof Error ? error.message : 'Failed to load'}
+        {t('driver.layout.failedToLoad')}: {error instanceof Error ? error.message : ''}
       </Card>
     );
 

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getCurrentSellerStoreOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { LayoutDashboard, ShoppingBag, Clock, BarChart3, User, ExternalLink } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/seller')({
   component: SellerLayout,
@@ -14,6 +15,7 @@ function SellerLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const {
     data: store,
@@ -61,7 +63,7 @@ function SellerLayout() {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Loading seller workspace...
+          {t('seller.layout.loading')}
         </span>
       </div>
     );
@@ -69,28 +71,28 @@ function SellerLayout() {
 
   const navItems = [
     {
-      label: 'Overview',
+      label: t('seller.layout.nav.overview'),
       to: '/dashboard/seller',
       icon: <LayoutDashboard className="h-4 w-4" />,
       exact: true,
     },
     {
-      label: 'Products',
+      label: t('seller.layout.nav.products'),
       to: '/dashboard/seller/products',
       icon: <ShoppingBag className="h-4 w-4" />,
     },
     {
-      label: 'Incoming Orders',
+      label: t('seller.layout.nav.orders'),
       to: '/dashboard/seller/orders',
       icon: <Clock className="h-4 w-4" />,
     },
     {
-      label: 'Income Report',
+      label: t('seller.layout.nav.report'),
       to: '/dashboard/seller/report',
       icon: <BarChart3 className="h-4 w-4" />,
     },
     {
-      label: 'Store Profile',
+      label: t('seller.layout.nav.store'),
       to: '/dashboard/seller/store',
       icon: <User className="h-4 w-4" />,
     },
@@ -101,15 +103,15 @@ function SellerLayout() {
       onClick={() => navigate({ to: `/${store.slug}` })}
       className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer border-none bg-transparent"
     >
-      <span>View Public Store</span>
+      <span>{t('seller.layout.viewPublicStore')}</span>
       <ExternalLink className="h-3 w-3" />
     </button>
   ) : null;
 
   return (
     <DashboardLayout
-      title={store ? store.name : 'Seller Onboarding'}
-      description={store ? 'Seller Dashboard' : 'Complete your store profile to start selling.'}
+      title={store ? store.name : t('seller.layout.onboardingTitle')}
+      description={store ? t('seller.layout.dashboardDesc') : t('seller.layout.onboardingDesc')}
       navItems={store ? navItems : []}
       extraHeaderContent={extraHeaderContent}
     >

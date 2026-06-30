@@ -6,6 +6,7 @@ import { AdminKpiGrid } from '@/features/admin/components/admin-kpi-grid';
 import { AdminChartSection } from '@/features/admin/components/admin-chart-section';
 import { TimeSimulationControls } from '@/features/admin/components/time-simulation-controls';
 import { Loader2, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/admin/')({
   component: AdminDashboardIndex,
@@ -15,6 +16,7 @@ function AdminDashboardIndex() {
   const auth = useAuth();
   const navigate = useNavigate();
   const isAdminActive = auth.activeRole === 'admin';
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!auth.isLoading && !isAdminActive) {
@@ -36,7 +38,7 @@ function AdminDashboardIndex() {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Checking authorization...
+          {t('admin.layout.checkingAuth')}
         </span>
       </div>
     );
@@ -47,7 +49,7 @@ function AdminDashboardIndex() {
       <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <span className="text-muted-foreground text-sm font-medium">
-          Loading dashboard metrics...
+          {t('admin.dashboard.loading')}
         </span>
       </div>
     );
@@ -57,9 +59,9 @@ function AdminDashboardIndex() {
     return (
       <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-4 text-center">
         <AlertTriangle className="h-12 w-12 text-red-500" />
-        <h3 className="text-lg font-bold text-foreground">Error Loading Dashboard</h3>
+        <h3 className="text-lg font-bold text-foreground">{t('admin.dashboard.errorLoading')}</h3>
         <p className="text-muted-foreground max-w-xs text-sm">
-          {error instanceof Error ? error.message : 'Failed to retrieve stats. Please try again.'}
+          {error instanceof Error ? error.message : t('admin.dashboard.errorLoading')}
         </p>
       </div>
     );
@@ -69,10 +71,10 @@ function AdminDashboardIndex() {
     <div className="space-y-6 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground text-sm">
-            Comprehensive real-time monitoring of SEAPEDIA marketplace system.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {t('admin.layout.nav.dashboard')}
+          </h1>
+          <p className="text-muted-foreground text-sm">{t('admin.dashboard.desc')}</p>
         </div>
         <TimeSimulationControls isPending={isSimulating} onSimulate={simulateTime} />
       </div>

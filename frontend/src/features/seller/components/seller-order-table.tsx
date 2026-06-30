@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { formatCurrency } from '@/lib/utils';
 import { ArrowRight, PackageCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SellerOrder {
   id: string;
@@ -25,6 +26,8 @@ export function SellerOrderTable({
   processingOrderId,
   onProcessOrder,
 }: SellerOrderTableProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       {orders.map((order) => {
@@ -47,23 +50,25 @@ export function SellerOrderTable({
                   <OrderStatusBadge status={order.status} />
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Placed on: {dateStr}</span>
+                  <span>{t('seller.orders.placedOn', { date: dateStr })}</span>
                   <span>•</span>
                   <span>
-                    Delivery:{' '}
+                    {t('seller.orders.delivery')}{' '}
                     <span className="uppercase text-foreground font-semibold">
                       {order.deliveryMethod}
                     </span>
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {order.items.length} product{order.items.length > 1 ? 's' : ''} purchased
+                  {t('seller.orders.productsPurchased', { count: order.items.length })}
                 </p>
               </div>
 
               <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-border/60">
                 <div className="text-left md:text-right">
-                  <span className="text-xs text-muted-foreground block">Order Value</span>
+                  <span className="text-xs text-muted-foreground block">
+                    {t('seller.orders.orderValue')}
+                  </span>
                   <span className="font-extrabold text-lg text-primary">
                     {formatCurrency(order.totalAmount)}
                   </span>
@@ -77,7 +82,9 @@ export function SellerOrderTable({
                     disabled={processingOrderId === order.id}
                   >
                     <PackageCheck className="h-4 w-4" />
-                    {processingOrderId === order.id ? 'Processing...' : 'Process'}
+                    {processingOrderId === order.id
+                      ? t('seller.orders.processing')
+                      : t('seller.orders.processButton')}
                   </Button>
                 ) : (
                   <Link to="/dashboard/seller/orders/$orderId" params={{ orderId: order.id }}>
@@ -86,7 +93,7 @@ export function SellerOrderTable({
                       size="sm"
                       className="cursor-pointer gap-1.5 hover:bg-primary hover:text-primary-foreground"
                     >
-                      View Details <ArrowRight className="h-4 w-4" />
+                      {t('buyer.orders.viewDetails')} <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 )}

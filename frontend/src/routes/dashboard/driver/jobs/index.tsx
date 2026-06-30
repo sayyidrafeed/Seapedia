@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Truck, MapPin, Navigation, Eye, Inbox } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/driver/jobs/')({
   component: AvailableJobs,
 });
 
 function AvailableJobs() {
+  const { t } = useTranslation();
   const { data: jobs, isLoading, error } = useQuery(listAvailableJobsOptions());
 
   if (isLoading) {
@@ -29,7 +31,9 @@ function AvailableJobs() {
   if (error) {
     return (
       <div className="p-6 text-center text-red-500">
-        Error loading available jobs: {error instanceof Error ? error.message : 'Unknown error'}
+        {t('driver.jobs.errorLoading', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+        })}
       </div>
     );
   }
@@ -38,10 +42,8 @@ function AvailableJobs() {
     return (
       <Card className="flex flex-col items-center justify-center p-12 text-center">
         <Inbox className="h-12 w-12 text-muted-foreground mb-4" />
-        <CardTitle className="mb-2">No Available Jobs</CardTitle>
-        <CardDescription>
-          There are no delivery jobs waiting to be picked up at the moment.
-        </CardDescription>
+        <CardTitle className="mb-2">{t('driver.jobs.noneAvailableTitle')}</CardTitle>
+        <CardDescription>{t('driver.jobs.noneAvailableDesc')}</CardDescription>
       </Card>
     );
   }
@@ -49,9 +51,9 @@ function AvailableJobs() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between pb-2">
-        <h2 className="text-xl font-semibold tracking-tight">Available Delivery Jobs</h2>
+        <h2 className="text-xl font-semibold tracking-tight">{t('driver.jobs.availableTitle')}</h2>
         <Badge variant="secondary" className="px-3 py-1 font-semibold">
-          {jobs.length} Job{jobs.length > 1 ? 's' : ''} Open
+          {t('driver.jobs.openCount', { count: jobs.length })}
         </Badge>
       </div>
 
@@ -65,14 +67,14 @@ function AvailableJobs() {
                   {job.storeName}
                 </CardTitle>
                 <CardDescription className="text-xs capitalize font-medium text-foreground">
-                  Method: {job.deliveryMethod}
+                  {t('driver.history.table.method')}: {job.deliveryMethod}
                 </CardDescription>
               </div>
               <div className="text-right">
                 <span className="text-lg font-extrabold text-primary">
                   {formatCurrency(job.deliveryFee)}
                 </span>
-                <p className="text-xs text-muted-foreground">Earning</p>
+                <p className="text-xs text-muted-foreground">{t('driver.history.table.earning')}</p>
               </div>
             </CardHeader>
             <CardContent className="pt-2 space-y-4">
@@ -80,7 +82,9 @@ function AvailableJobs() {
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="font-semibold text-xs text-muted-foreground">Pickup Store</p>
+                    <p className="font-semibold text-xs text-muted-foreground">
+                      {t('driver.jobs.pickupStore')}
+                    </p>
                     <p className="text-foreground">{job.storeName}</p>
                   </div>
                 </div>
@@ -88,7 +92,9 @@ function AvailableJobs() {
                 <div className="flex items-start gap-2">
                   <Navigation className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="font-semibold text-xs text-muted-foreground">Drop-off Address</p>
+                    <p className="font-semibold text-xs text-muted-foreground">
+                      {t('driver.jobs.dropoffAddress')}
+                    </p>
                     <p className="text-foreground font-medium">
                       {job.addressSnapshot.recipientName} ({job.addressSnapshot.label})
                     </p>
@@ -109,7 +115,7 @@ function AvailableJobs() {
                 >
                   <Link to="/dashboard/driver/jobs/$jobId" params={{ jobId: job.id }}>
                     <Eye className="h-4 w-4" />
-                    View Details
+                    {t('buyer.orders.viewDetails')}
                   </Link>
                 </Button>
               </div>

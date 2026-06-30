@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useSellerOverview } from '@/features/seller/hooks/use-seller-overview';
 import { SellerSummaryCards } from '@/features/seller/components/seller-summary-cards';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/seller/')({
   component: SellerDashboardIndex,
@@ -8,6 +9,7 @@ export const Route = createFileRoute('/dashboard/seller/')({
 
 function SellerDashboardIndex() {
   const { store, totalProducts, pendingOrders, isLoading } = useSellerOverview();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -25,11 +27,10 @@ function SellerDashboardIndex() {
   return (
     <div className="space-y-6">
       <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-bold text-foreground mb-4">Welcome back, {store?.name}!</h2>
-        <p className="text-sm text-muted-foreground">
-          This is your central hub for managing your products and incoming orders. Use the
-          navigation links to add or update your listings.
-        </p>
+        <h2 className="text-lg font-bold text-foreground mb-4">
+          {t('seller.overview.welcome', { name: store?.name })}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t('seller.overview.welcomeDesc')}</p>
       </div>
 
       <SellerSummaryCards totalProducts={totalProducts} pendingOrders={pendingOrders} />

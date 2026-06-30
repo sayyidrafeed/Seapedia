@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, Store, ShoppingBag, AlertTriangle, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface KPIStats {
   users: { total: number };
@@ -16,6 +17,7 @@ interface AdminKpiGridProps {
 }
 
 export function AdminKpiGrid({ stats, isProcessingOverdue, onProcessOverdue }: AdminKpiGridProps) {
+  const { t } = useTranslation();
   const hasOverdue = stats.overdueOrders.total > 0;
 
   return (
@@ -24,15 +26,13 @@ export function AdminKpiGrid({ stats, isProcessingOverdue, onProcessOverdue }: A
       <Card className="shadow-sm border-border">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Total Users
+            {t('admin.kpi.totalUsers')}
           </CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">{stats.users.total}</div>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Active unique accounts in database
-          </p>
+          <p className="text-[10px] text-muted-foreground mt-1">{t('admin.kpi.totalUsersDesc')}</p>
         </CardContent>
       </Card>
 
@@ -40,13 +40,13 @@ export function AdminKpiGrid({ stats, isProcessingOverdue, onProcessOverdue }: A
       <Card className="shadow-sm border-border">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Total Stores
+            {t('admin.kpi.totalStores')}
           </CardTitle>
           <Store className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">{stats.stores.total}</div>
-          <p className="text-[10px] text-muted-foreground mt-1">Registered merchant stores</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{t('admin.kpi.totalStoresDesc')}</p>
         </CardContent>
       </Card>
 
@@ -54,13 +54,15 @@ export function AdminKpiGrid({ stats, isProcessingOverdue, onProcessOverdue }: A
       <Card className="shadow-sm border-border">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Total Products
+            {t('admin.kpi.totalProducts')}
           </CardTitle>
           <ShoppingBag className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">{stats.products.total}</div>
-          <p className="text-[10px] text-muted-foreground mt-1">Cataloged item SKUs</p>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            {t('admin.kpi.totalProductsDesc')}
+          </p>
         </CardContent>
       </Card>
 
@@ -78,7 +80,7 @@ export function AdminKpiGrid({ stats, isProcessingOverdue, onProcessOverdue }: A
               hasOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'
             }`}
           >
-            Overdue Orders
+            {t('admin.kpi.overdueOrders')}
           </CardTitle>
           <AlertTriangle
             className={`h-4 w-4 ${
@@ -96,7 +98,7 @@ export function AdminKpiGrid({ stats, isProcessingOverdue, onProcessOverdue }: A
               {stats.overdueOrders.total}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              Active orders past delivery SLA
+              {t('admin.kpi.overdueOrdersDesc')}
             </p>
           </div>
           {hasOverdue && (
@@ -110,10 +112,10 @@ export function AdminKpiGrid({ stats, isProcessingOverdue, onProcessOverdue }: A
               {isProcessingOverdue ? (
                 <>
                   <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                  Processing...
+                  {t('seller.orders.processing')}
                 </>
               ) : (
-                'Process Overdue Orders'
+                t('admin.kpi.processOverdue')
               )}
             </Button>
           )}

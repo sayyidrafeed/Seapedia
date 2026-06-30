@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface Address {
   recipientName: string;
@@ -41,20 +42,23 @@ export function HistoryCard({
   onPrevPage: () => void;
   onNextPage: () => void;
 }) {
+  const { t } = useTranslation();
   const totalPages = Math.ceil(total / limit);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Delivery Job History</CardTitle>
-        <CardDescription>View and track all your completed delivery jobs</CardDescription>
+        <CardTitle>{t('driver.history.title')}</CardTitle>
+        <CardDescription>{t('driver.history.desc')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (
-          <div className="text-center py-6 text-muted-foreground text-sm">Loading history...</div>
+          <div className="text-center py-6 text-muted-foreground text-sm">
+            {t('driver.history.loading')}
+          </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground text-sm">
-            No completed jobs yet.
+            {t('driver.history.noJobs')}
           </div>
         ) : (
           <div className="space-y-4">
@@ -62,11 +66,21 @@ export function HistoryCard({
               <table className="w-full text-sm text-left border-collapse">
                 <thead>
                   <tr className="bg-muted/50 border-b">
-                    <th className="p-3 font-semibold text-muted-foreground">Date</th>
-                    <th className="p-3 font-semibold text-muted-foreground">Store</th>
-                    <th className="p-3 font-semibold text-muted-foreground">Recipient</th>
-                    <th className="p-3 font-semibold text-muted-foreground">Method</th>
-                    <th className="p-3 font-semibold text-muted-foreground text-right">Earning</th>
+                    <th className="p-3 font-semibold text-muted-foreground">
+                      {t('buyer.orders.historyTableDate')}
+                    </th>
+                    <th className="p-3 font-semibold text-muted-foreground">
+                      {t('driver.history.table.store')}
+                    </th>
+                    <th className="p-3 font-semibold text-muted-foreground">
+                      {t('driver.history.table.recipient')}
+                    </th>
+                    <th className="p-3 font-semibold text-muted-foreground">
+                      {t('driver.history.table.method')}
+                    </th>
+                    <th className="p-3 font-semibold text-muted-foreground text-right">
+                      {t('driver.history.table.earning')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -100,12 +114,12 @@ export function HistoryCard({
             {totalPages > 1 && (
               <div className="flex items-center justify-between pt-2">
                 <span className="text-xs text-muted-foreground">
-                  Showing page {page} of {totalPages} ({total} items)
+                  {t('driver.history.showing', { page, totalPages, total })}
                 </span>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={onPrevPage} disabled={page === 1}>
                     <ChevronLeft className="h-4 w-4 mr-1" />
-                    Prev
+                    {t('driver.history.prev')}
                   </Button>
                   <Button
                     variant="outline"
@@ -113,7 +127,7 @@ export function HistoryCard({
                     onClick={onNextPage}
                     disabled={page === totalPages}
                   >
-                    Next
+                    {t('driver.history.next')}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
