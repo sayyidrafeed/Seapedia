@@ -44,3 +44,31 @@ export const dashboardStatsResponseSchema = z
     }),
   })
   .meta({ id: 'DashboardStatsResponse' });
+
+export const simulateTimeRequestSchema = z
+  .object({
+    hoursToAdvance: z.number().min(0).max(240),
+  })
+  .meta({ id: 'SimulateTimeRequest' });
+
+export const simulateTimeResponseSchema = z
+  .object({
+    newOffsetHours: z.number(),
+    effectiveTime: z.string(),
+  })
+  .meta({ id: 'SimulateTimeResponse' });
+
+export const overdueProcessResultItemSchema = z.object({
+  orderId: z.string(),
+  buyerId: z.string(),
+  refundAmount: z.number(),
+  itemsRestored: z.number(),
+  note: z.string(),
+});
+
+export const processOverdueResponseSchema = z
+  .object({
+    processedCount: z.number().int(),
+    results: z.array(overdueProcessResultItemSchema),
+  })
+  .meta({ id: 'ProcessOverdueResponse' });

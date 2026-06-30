@@ -1,5 +1,5 @@
 import { db } from './index';
-import { users, userRole, activeSession } from './schema';
+import { users, userRole, activeSession, systemTimeOffset } from './schema';
 
 async function seed() {
   console.log('Seeding database with default accounts...');
@@ -34,6 +34,14 @@ async function seed() {
       userId: adminUser.id,
       activeRole: 'admin',
     });
+
+    await db
+      .insert(systemTimeOffset)
+      .values({
+        id: 1,
+        offsetSeconds: 0,
+      })
+      .onConflictDoNothing();
 
     console.log('Database seeded successfully!');
     console.log(`Admin credentials:`);
