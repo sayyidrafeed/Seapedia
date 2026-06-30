@@ -434,19 +434,19 @@ After finding a job, a Driver should be able to take it and update the delivery 
 
 #### Requirements:
 
-- Create a take job action for Drivers.
-- Move the order status to Sedang Dikirim when a Driver takes the job.
-- Create a confirm completed action for Drivers.
-- Move the order status to Pesanan Selesai when the job is completed.
-- Store every status change with a timestamp.
-- Allow Buyers and Sellers to track delivery status.
+- [x] Create a take job action for Drivers.
+- [x] Move the order status to Sedang Dikirim when a Driver takes the job.
+- [x] Create a confirm completed action for Drivers.
+- [x] Move the order status to Pesanan Selesai when the job is completed.
+- [x] Store every status change with a timestamp.
+- [x] Allow Buyers and Sellers to track delivery status.
 
 #### Business Rules:
 
-- One order may only have one active Driver.
-- A Driver cannot take a job that has already been taken by another Driver.
-- The order status must move through a valid lifecycle.
-- Buyer and Seller tracking must show delivery progress clearly.
+- [x] One order may only have one active Driver.
+- [x] A Driver cannot take a job that has already been taken by another Driver.
+- [x] The order status must move through a valid lifecycle.
+- [x] Buyer and Seller tracking must show delivery progress clearly.
 
 ### Show Driver Earnings and Job History (2 pts)
 
@@ -454,18 +454,20 @@ Drivers need to understand their completed work and earnings. You may define a s
 
 #### Requirements:
 
-- Create a Driver dashboard that displays active job, job history, and earnings.
-- Define how Driver earning is calculated from delivery fee or another documented rule.
-- Show the earning result for completed jobs.
+- [x] Create a Driver dashboard that displays active job, job history, and earnings.
+- [x] Define how Driver earning is calculated from delivery fee or another documented rule.
+- [x] Show the earning result for completed jobs.
 
 #### Deliverables:
 
-- A working Driver dashboard.
-- Find job, take job, and confirm completed job flow.
-- Delivery tracking for Buyers and Sellers.
-- Driver job history and earning summary.
+- [x] A working Driver dashboard.
+- [x] Find job, take job, and confirm completed job flow.
+- [x] Delivery tracking for Buyers and Sellers.
+- [x] Driver job history and earning summary.
 
 After this level, SEAPEDIA should support an end-to-end order flow from Buyer checkout to Seller processing and Driver delivery completion. The marketplace is now operational across its three main non-admin roles.
+
+> **Level 5 — Complete**
 
 ---
 
@@ -638,9 +640,9 @@ For the final assessment, the project should be demonstrable as one integrated s
 ### Driver Flow
 
 - [x] Driver can find available jobs.
-- [ ] Driver can take an available job.
-- [ ] Driver can confirm a completed job.
-- [ ] Driver can view job history and earnings.
+- [x] Driver can take an available job.
+- [x] Driver can confirm a completed job.
+- [x] Driver can view job history and earnings.
 
 ### Admin, Overdue, and Security Flow
 

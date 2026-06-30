@@ -2,6 +2,49 @@
 
 import * as z from 'zod';
 
+export const zProduct = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  currency: z.string().optional().default('IDR'),
+  stock: z.number(),
+  storeId: z.string(),
+  storeName: z.string(),
+  storeSlug: z.string(),
+  slug: z.string(),
+});
+
+export const zSellerProductResponse = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  stock: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zReview = z.object({
+  id: z.string(),
+  reviewerName: z.string(),
+  rating: z.number(),
+  comment: z.string(),
+  createdAt: z.string(),
+});
+
+export const zWalletTransactionResponse = z.object({
+  id: z.string(),
+  walletId: z.string(),
+  amount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  type: z.string(),
+  paymentMethod: z.union([z.string(), z.unknown()]),
+  status: z.string(),
+  reference: z.string(),
+  createdAt: z.string(),
+});
+
 export const zAddressResponse = z.object({
   id: z.string(),
   userId: z.string(),
@@ -54,49 +97,6 @@ export const zOrderResponse = z.object({
       }),
     )
     .optional(),
-});
-
-export const zProduct = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  currency: z.string().optional().default('IDR'),
-  stock: z.number(),
-  storeId: z.string(),
-  storeName: z.string(),
-  storeSlug: z.string(),
-  slug: z.string(),
-});
-
-export const zSellerProductResponse = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  stock: z.number(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zReview = z.object({
-  id: z.string(),
-  reviewerName: z.string(),
-  rating: z.number(),
-  comment: z.string(),
-  createdAt: z.string(),
-});
-
-export const zWalletTransactionResponse = z.object({
-  id: z.string(),
-  walletId: z.string(),
-  amount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  type: z.string(),
-  paymentMethod: z.union([z.string(), z.unknown()]),
-  status: z.string(),
-  reference: z.string(),
-  createdAt: z.string(),
 });
 
 export const zVoucherResponse = z.object({
@@ -1034,6 +1034,16 @@ export const zValidateDiscountCodeResponse = z.object({
 });
 
 /**
+ * Driver statistics and jobs history
+ */
+export const zGetDriverStatsResponse = z.object({
+  totalEarnings: z.int().gte(-9007199254740991).lte(9007199254740991),
+  completedJobsCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  activeJobs: z.array(zDeliveryJobResponse),
+  completedJobs: z.array(zDeliveryJobResponse),
+});
+
+/**
  * List of available delivery jobs
  */
 export const zListAvailableJobsResponse = z.array(zDeliveryJobResponse);
@@ -1061,4 +1071,36 @@ export const zGetDriverJobDetailResponse = z.object({
   deliveryMethod: z.string(),
   addressSnapshot: zAddressResponse,
   totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+});
+
+export const zTakeDeliveryJobPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Job taken successfully
+ */
+export const zTakeDeliveryJobResponse = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+
+export const zCompleteDeliveryJobPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Job completed successfully
+ */
+export const zCompleteDeliveryJobResponse = z.object({
+  success: z.boolean(),
+  message: z.string(),
 });

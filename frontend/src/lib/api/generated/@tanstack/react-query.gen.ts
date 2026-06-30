@@ -13,6 +13,7 @@ import {
   addCartItem,
   checkoutPreview,
   clearCart,
+  completeDeliveryJob,
   createAddress,
   createOrder,
   createPromo,
@@ -32,6 +33,7 @@ import {
   getCurrentUser,
   getCurrentUserFinancialSummary,
   getDriverJobDetail,
+  getDriverStats,
   getProductById,
   getProductBySlug,
   getPromo,
@@ -65,6 +67,7 @@ import {
   setDefaultAddress,
   simulateTopUp,
   submitReview,
+  takeDeliveryJob,
   updateAddress,
   updateCartItem,
   updateCurrentSellerStore,
@@ -81,6 +84,9 @@ import type {
   ClearCartData,
   ClearCartError,
   ClearCartResponse,
+  CompleteDeliveryJobData,
+  CompleteDeliveryJobError,
+  CompleteDeliveryJobResponse,
   CreateAddressData,
   CreateAddressError,
   CreateAddressResponse,
@@ -138,6 +144,9 @@ import type {
   GetDriverJobDetailData,
   GetDriverJobDetailError,
   GetDriverJobDetailResponse,
+  GetDriverStatsData,
+  GetDriverStatsError,
+  GetDriverStatsResponse,
   GetProductByIdData,
   GetProductByIdError,
   GetProductByIdResponse,
@@ -233,6 +242,9 @@ import type {
   SubmitReviewData,
   SubmitReviewError,
   SubmitReviewResponse,
+  TakeDeliveryJobData,
+  TakeDeliveryJobError,
+  TakeDeliveryJobResponse,
   UpdateAddressData,
   UpdateAddressError,
   UpdateAddressResponse,
@@ -1828,6 +1840,31 @@ export const validateDiscountCodeMutation = (
   return mutationOptions;
 };
 
+export const getDriverStatsQueryKey = (options?: Options<GetDriverStatsData>) =>
+  createQueryKey('getDriverStats', options);
+
+/**
+ * Get stats, earnings and jobs history for the logged-in driver
+ */
+export const getDriverStatsOptions = (options?: Options<GetDriverStatsData>) =>
+  queryOptions<
+    GetDriverStatsResponse,
+    GetDriverStatsError,
+    GetDriverStatsResponse,
+    ReturnType<typeof getDriverStatsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDriverStats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDriverStatsQueryKey(options),
+  });
+
 export const listAvailableJobsQueryKey = (options?: Options<ListAvailableJobsData>) =>
   createQueryKey('listAvailableJobs', options);
 
@@ -1877,3 +1914,57 @@ export const getDriverJobDetailOptions = (options: Options<GetDriverJobDetailDat
     },
     queryKey: getDriverJobDetailQueryKey(options),
   });
+
+/**
+ * Take a pending delivery job
+ */
+export const takeDeliveryJobMutation = (
+  options?: Partial<Options<TakeDeliveryJobData>>,
+): UseMutationOptions<
+  TakeDeliveryJobResponse,
+  TakeDeliveryJobError,
+  Options<TakeDeliveryJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    TakeDeliveryJobResponse,
+    TakeDeliveryJobError,
+    Options<TakeDeliveryJobData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await takeDeliveryJob({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Complete a taken delivery job
+ */
+export const completeDeliveryJobMutation = (
+  options?: Partial<Options<CompleteDeliveryJobData>>,
+): UseMutationOptions<
+  CompleteDeliveryJobResponse,
+  CompleteDeliveryJobError,
+  Options<CompleteDeliveryJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CompleteDeliveryJobResponse,
+    CompleteDeliveryJobError,
+    Options<CompleteDeliveryJobData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await completeDeliveryJob({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};

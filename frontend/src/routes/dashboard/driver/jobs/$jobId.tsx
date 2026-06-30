@@ -1,11 +1,19 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { getDriverJobDetailOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getDriverJobDetailOptions,
+  takeDeliveryJobMutation,
+  getDriverStatsQueryKey,
+  listAvailableJobsQueryKey,
+  getDriverJobDetailQueryKey,
+} from '@/lib/api/generated/@tanstack/react-query.gen';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Navigation, ArrowLeft, Calendar, DollarSign, Package } from 'lucide-react';
+import { toast } from 'sonner';
+import type { TakeDeliveryJobError } from '@/lib/api/generated';
 
 export const Route = createFileRoute('/dashboard/driver/jobs/$jobId')({
   component: JobDetail,
@@ -13,11 +21,34 @@ export const Route = createFileRoute('/dashboard/driver/jobs/$jobId')({
 
 function JobDetail() {
   const { jobId } = Route.useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const {
     data: job,
     isLoading,
     error,
   } = useQuery(getDriverJobDetailOptions({ path: { id: jobId } }));
+
+  const takeJob = useMutation({
+    ...takeDeliveryJobMutation(),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Job claimed successfully!');
+      queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
+      navigate({ to: '/dashboard/driver' });
+    },
+    onError: (err: TakeDeliveryJobError) => {
+      const apiErr = err as { body?: { error?: string }; status?: number };
+      toast.error(apiErr.body?.error || 'Failed to claim delivery job');
+      // Refresh queries on error (especially for 409 conflicts) to ensure UI is up-to-date
+      queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
+      queryClient.invalidateQueries({
+        queryKey: getDriverJobDetailQueryKey({ path: { id: jobId } }),
+      });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -45,6 +76,8 @@ function JobDetail() {
       </div>
     );
   }
+
+  const isJobClaimedOrDone = job.status !== 'pending';
 
   return (
     <div className="space-y-6">
@@ -125,8 +158,17 @@ function JobDetail() {
                 </p>
               </div>
 
-              <Button className="w-full cursor-pointer mt-2" size="lg">
-                Take Delivery Job
+              <Button
+                className="w-full cursor-pointer mt-2"
+                size="lg"
+                disabled={isJobClaimedOrDone || takeJob.isPending}
+                onClick={() => takeJob.mutate({ path: { id: job.id } })}
+              >
+                {takeJob.isPending
+                  ? 'Taking job...'
+                  : isJobClaimedOrDone
+                    ? `Job already ${job.status}`
+                    : 'Take Delivery Job'}
               </Button>
             </CardContent>
           </Card>

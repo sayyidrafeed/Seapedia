@@ -12,6 +12,9 @@ import type {
   ClearCartData,
   ClearCartErrors,
   ClearCartResponses,
+  CompleteDeliveryJobData,
+  CompleteDeliveryJobErrors,
+  CompleteDeliveryJobResponses,
   CreateAddressData,
   CreateAddressErrors,
   CreateAddressResponses,
@@ -69,6 +72,9 @@ import type {
   GetDriverJobDetailData,
   GetDriverJobDetailErrors,
   GetDriverJobDetailResponses,
+  GetDriverStatsData,
+  GetDriverStatsErrors,
+  GetDriverStatsResponses,
   GetProductByIdData,
   GetProductByIdErrors,
   GetProductByIdResponses,
@@ -164,6 +170,9 @@ import type {
   SubmitReviewData,
   SubmitReviewErrors,
   SubmitReviewResponses,
+  TakeDeliveryJobData,
+  TakeDeliveryJobErrors,
+  TakeDeliveryJobResponses,
   UpdateAddressData,
   UpdateAddressErrors,
   UpdateAddressResponses,
@@ -1338,6 +1347,24 @@ export const validateDiscountCode = <ThrowOnError extends boolean = false>(
   });
 
 /**
+ * Get stats, earnings and jobs history for the logged-in driver
+ */
+export const getDriverStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDriverStatsData, ThrowOnError>,
+): RequestResult<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/me/stats',
+    ...options,
+  });
+
+/**
  * List available delivery jobs for drivers
  */
 export const listAvailableJobs = <ThrowOnError extends boolean = false>(
@@ -1378,5 +1405,45 @@ export const getDriverJobDetail = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/driver/jobs/{id}',
+    ...options,
+  });
+
+/**
+ * Take a pending delivery job
+ */
+export const takeDeliveryJob = <ThrowOnError extends boolean = false>(
+  options: Options<TakeDeliveryJobData, ThrowOnError>,
+): RequestResult<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError> =>
+  (options.client ?? client).post<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}/take',
+    ...options,
+  });
+
+/**
+ * Complete a taken delivery job
+ */
+export const completeDeliveryJob = <ThrowOnError extends boolean = false>(
+  options: Options<CompleteDeliveryJobData, ThrowOnError>,
+): RequestResult<CompleteDeliveryJobResponses, CompleteDeliveryJobErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    CompleteDeliveryJobResponses,
+    CompleteDeliveryJobErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}/complete',
     ...options,
   });
