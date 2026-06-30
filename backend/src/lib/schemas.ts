@@ -21,11 +21,11 @@ export const paginationQuerySchema = z.object({
 });
 
 export const customMsg = (required: string, invalidType: string) => ({
-  error: (issue: any) => {
-    const isRequired = 
-      issue.received === 'undefined' || 
+  error: (issue: { code: string; received?: string; input?: unknown }) => {
+    const isRequired =
+      issue.received === 'undefined' ||
       issue.input === undefined ||
       (issue.code === 'invalid_type' && issue.received === 'undefined');
     return { message: isRequired ? required : invalidType };
-  }
+  },
 });
