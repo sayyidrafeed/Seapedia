@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useNavigate, Link } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 
@@ -9,7 +9,6 @@ export const Route = createFileRoute('/dashboard/driver')({
 function DriverLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     if (!auth.isLoading && auth.activeRole !== 'driver') {
@@ -37,26 +36,23 @@ function DriverLayout() {
           </p>
         </div>
         <div className="space-x-4">
-          <button
-            onClick={() => navigate({ to: '/dashboard/driver' })}
-            className={`text-sm font-medium hover:underline cursor-pointer border-none bg-transparent ${
-              location.pathname === '/dashboard/driver'
-                ? 'text-primary font-bold'
-                : 'text-muted-foreground'
-            }`}
+          <Link
+            to="/dashboard/driver"
+            activeOptions={{ exact: true }}
+            className="text-sm font-medium hover:underline cursor-pointer border-none bg-transparent"
+            activeProps={{ className: 'text-primary font-bold' }}
+            inactiveProps={{ className: 'text-muted-foreground' }}
           >
             Overview
-          </button>
-          <button
-            onClick={() => navigate({ to: '/dashboard/driver/jobs' })}
-            className={`text-sm font-medium hover:underline cursor-pointer border-none bg-transparent ${
-              location.pathname.startsWith('/dashboard/driver/jobs')
-                ? 'text-primary font-bold'
-                : 'text-muted-foreground'
-            }`}
+          </Link>
+          <Link
+            to="/dashboard/driver/jobs"
+            className="text-sm font-medium hover:underline cursor-pointer border-none bg-transparent"
+            activeProps={{ className: 'text-primary font-bold' }}
+            inactiveProps={{ className: 'text-muted-foreground' }}
           >
             Available Jobs
-          </button>
+          </Link>
         </div>
       </div>
 

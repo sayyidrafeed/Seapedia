@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { listAvailableJobsOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { formatCurrency } from '@/lib/utils';
@@ -12,7 +12,6 @@ export const Route = createFileRoute('/dashboard/driver/jobs/')({
 });
 
 function AvailableJobs() {
-  const navigate = useNavigate();
   const { data: jobs, isLoading, error } = useQuery(listAvailableJobsOptions());
 
   if (isLoading) {
@@ -103,18 +102,15 @@ function AvailableJobs() {
 
               <div className="flex justify-end pt-2">
                 <Button
-                  onClick={() =>
-                    navigate({
-                      to: '/dashboard/driver/jobs/$jobId',
-                      params: { jobId: job.id },
-                    })
-                  }
                   variant="outline"
                   size="sm"
                   className="flex items-center gap-2 cursor-pointer"
+                  asChild
                 >
-                  <Eye className="h-4 w-4" />
-                  View Details
+                  <Link to="/dashboard/driver/jobs/$jobId" params={{ jobId: job.id }}>
+                    <Eye className="h-4 w-4" />
+                    View Details
+                  </Link>
                 </Button>
               </div>
             </CardContent>
