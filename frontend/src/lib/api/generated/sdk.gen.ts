@@ -155,6 +155,9 @@ import type {
   PrivateSellerEndpointData,
   PrivateSellerEndpointErrors,
   PrivateSellerEndpointResponses,
+  ProcessOverdueOrdersData,
+  ProcessOverdueOrdersErrors,
+  ProcessOverdueOrdersResponses,
   ProcessSellerOrderData,
   ProcessSellerOrderErrors,
   ProcessSellerOrderResponses,
@@ -170,6 +173,9 @@ import type {
   SetDefaultAddressData,
   SetDefaultAddressErrors,
   SetDefaultAddressResponses,
+  SimulateTimeData,
+  SimulateTimeErrors,
+  SimulateTimeResponses,
   SimulateTopUpData,
   SimulateTopUpErrors,
   SimulateTopUpResponses,
@@ -1346,6 +1352,50 @@ export const getDashboardStats = <ThrowOnError extends boolean = false>(
     ],
     url: '/api/admin/dashboard',
     ...options,
+  });
+
+/**
+ * Process overdue orders by auto-returning and refunding them
+ */
+export const processOverdueOrders = <ThrowOnError extends boolean = false>(
+  options?: Options<ProcessOverdueOrdersData, ThrowOnError>,
+): RequestResult<ProcessOverdueOrdersResponses, ProcessOverdueOrdersErrors, ThrowOnError> =>
+  (options?.client ?? client).post<
+    ProcessOverdueOrdersResponses,
+    ProcessOverdueOrdersErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/dashboard/overdue/process',
+    ...options,
+  });
+
+/**
+ * Simulate system time forward for demo purposes
+ */
+export const simulateTime = <ThrowOnError extends boolean = false>(
+  options: Options<SimulateTimeData, ThrowOnError>,
+): RequestResult<SimulateTimeResponses, SimulateTimeErrors, ThrowOnError> =>
+  (options.client ?? client).post<SimulateTimeResponses, SimulateTimeErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/dashboard/time/simulate',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 /**

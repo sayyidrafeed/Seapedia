@@ -2970,6 +2970,106 @@ export type GetDashboardStatsResponses = {
 export type GetDashboardStatsResponse =
   GetDashboardStatsResponses[keyof GetDashboardStatsResponses];
 
+export type ProcessOverdueOrdersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/dashboard/overdue/process';
+};
+
+export type ProcessOverdueOrdersErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ProcessOverdueOrdersError =
+  ProcessOverdueOrdersErrors[keyof ProcessOverdueOrdersErrors];
+
+export type ProcessOverdueOrdersResponses = {
+  /**
+   * Overdue orders processed successfully
+   */
+  200: {
+    processedCount: number;
+    results: Array<{
+      orderId: string;
+      buyerId: string;
+      refundAmount: number;
+      itemsRestored: number;
+      note: string;
+    }>;
+  };
+};
+
+export type ProcessOverdueOrdersResponse =
+  ProcessOverdueOrdersResponses[keyof ProcessOverdueOrdersResponses];
+
+export type SimulateTimeData = {
+  body: {
+    hoursToAdvance: number;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/admin/dashboard/time/simulate';
+};
+
+export type SimulateTimeErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type SimulateTimeError = SimulateTimeErrors[keyof SimulateTimeErrors];
+
+export type SimulateTimeResponses = {
+  /**
+   * System time offset updated successfully
+   */
+  200: {
+    newOffsetHours: number;
+    effectiveTime: string;
+  };
+};
+
+export type SimulateTimeResponse = SimulateTimeResponses[keyof SimulateTimeResponses];
+
 export type ValidateDiscountCodeData = {
   body: {
     code: string;
