@@ -7,6 +7,7 @@ import * as cart from './cart-schema';
 import * as order from './order-schema';
 import * as discount from './discount-schema';
 import * as delivery from './delivery-schema';
+import * as timeOffset from './system-time-offset-schema';
 
 export const schema = {
   ...auth,
@@ -18,6 +19,7 @@ export const schema = {
   ...order,
   ...discount,
   ...delivery,
+  ...timeOffset,
 };
 
 export const carts = cart.carts;
@@ -28,6 +30,7 @@ export const orderStatusHistory = order.orderStatusHistory;
 export const vouchers = discount.vouchers;
 export const promos = discount.promos;
 export const deliveryJobs = delivery.deliveryJobs;
+export const systemTimeOffset = timeOffset.systemTimeOffset;
 
 export * from './auth-schema';
 export * from './review-schema';
@@ -38,3 +41,4 @@ export * from './cart-schema';
 export * from './order-schema';
 export * from './discount-schema';
 export * from './delivery-schema';
+export * from './system-time-offset-schema';
