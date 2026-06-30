@@ -1,6 +1,8 @@
 import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
+import { DashboardLayout } from '@/components/shared/dashboard-layout';
+import { LayoutDashboard, Ticket } from 'lucide-react';
 
 export const Route = createFileRoute('/dashboard/admin')({
   component: AdminLayout,
@@ -26,32 +28,27 @@ function AdminLayout() {
     );
   }
 
-  return (
-    <div className="container mx-auto px-6 py-12 space-y-6">
-      <div className="border-b border-border pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight capitalize">Admin Portal</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            System configuration, promotions, and marketplace monitoring.
-          </p>
-        </div>
-        <div className="space-x-4">
-          <button
-            onClick={() => navigate({ to: '/dashboard/admin' })}
-            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => navigate({ to: '/dashboard/admin/discounts' })}
-            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-          >
-            Discounts Management
-          </button>
-        </div>
-      </div>
+  const navItems = [
+    {
+      label: 'Dashboard',
+      to: '/dashboard/admin',
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      exact: true,
+    },
+    {
+      label: 'Discounts Management',
+      to: '/dashboard/admin/discounts',
+      icon: <Ticket className="h-4 w-4" />,
+    },
+  ];
 
+  return (
+    <DashboardLayout
+      title="Admin Portal"
+      description="System configuration, promotions, and marketplace monitoring."
+      navItems={navItems}
+    >
       <Outlet />
-    </div>
+    </DashboardLayout>
   );
 }

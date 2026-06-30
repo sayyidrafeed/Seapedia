@@ -1,6 +1,8 @@
-import { createFileRoute, Outlet, useNavigate, Link } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
+import { DashboardLayout } from '@/components/shared/dashboard-layout';
+import { LayoutDashboard, Truck } from 'lucide-react';
 
 export const Route = createFileRoute('/dashboard/driver')({
   component: DriverLayout,
@@ -26,37 +28,27 @@ function DriverLayout() {
     );
   }
 
-  return (
-    <div className="container mx-auto px-6 py-12 space-y-6">
-      <div className="border-b border-border pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight capitalize">Driver Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your delivery jobs, track progress, and view earnings.
-          </p>
-        </div>
-        <div className="space-x-4">
-          <Link
-            to="/dashboard/driver"
-            activeOptions={{ exact: true }}
-            className="text-sm font-medium hover:underline cursor-pointer border-none bg-transparent"
-            activeProps={{ className: 'text-primary font-bold' }}
-            inactiveProps={{ className: 'text-muted-foreground' }}
-          >
-            Overview
-          </Link>
-          <Link
-            to="/dashboard/driver/jobs"
-            className="text-sm font-medium hover:underline cursor-pointer border-none bg-transparent"
-            activeProps={{ className: 'text-primary font-bold' }}
-            inactiveProps={{ className: 'text-muted-foreground' }}
-          >
-            Available Jobs
-          </Link>
-        </div>
-      </div>
+  const navItems = [
+    {
+      label: 'Overview',
+      to: '/dashboard/driver',
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      exact: true,
+    },
+    {
+      label: 'Available Jobs',
+      to: '/dashboard/driver/jobs',
+      icon: <Truck className="h-4 w-4" />,
+    },
+  ];
 
+  return (
+    <DashboardLayout
+      title="Driver Dashboard"
+      description="Manage your delivery jobs, track progress, and view earnings."
+      navItems={navItems}
+    >
       <Outlet />
-    </div>
+    </DashboardLayout>
   );
 }
