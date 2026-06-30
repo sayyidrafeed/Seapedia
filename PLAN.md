@@ -366,16 +366,18 @@ After checkout, orders start in Sedang Dikemas. Before a Driver can take the job
 
 #### Requirements:
 
-- Create a Seller action to process an incoming order.
-- Move the order status from Sedang Dikemas to Menunggu Pengirim after the Seller processes it.
-- Store the status change in the order status history with a timestamp.
-- Show the order timeline or status tracker on both Buyer and Seller pages.
+- [x] Create a Seller action to process an incoming order.
+- [x] Move the order status from Sedang Dikemas to Menunggu Pengirim after the Seller processes it.
+- [x] Store the status change in the order status history with a timestamp.
+- [x] Show the order timeline or status tracker on both Buyer and Seller pages.
 
 #### Business Rules:
 
-- Only the Seller who owns the order may process it.
-- An order cannot become available to Drivers before the Seller processes it.
-- The main order statuses must remain visible in the UI.
+- [x] Only the Seller who owns the order may process it.
+- [x] An order cannot become available to Drivers before the Seller processes it.
+- [x] The main order statuses must remain visible in the UI.
+
+#### Allow Sellers to Process Orders — Complete
 
 ### Add Buyer and Seller Reports (5 pts)
 
@@ -392,7 +394,7 @@ To make the system more useful, Buyers and Sellers should be able to understand 
 #### Deliverables:
 
 - [x] Checkout flow with Voucher or Promo support.
-- Seller order processing flow from Sedang Dikemas to Menunggu Pengirim.
+- [x] Seller order processing flow from Sedang Dikemas to Menunggu Pengirim.
 - Buyer and Seller transaction reports.
 - Visible order status timeline with timestamps.
 
@@ -618,7 +620,7 @@ For the final assessment, the project should be demonstrable as one integrated s
 - [x] Seller can create a store with a unique store name.
 - [x] Seller can create, update, and delete products.
 - [x] Seller products appear in the public catalog.
-- [ ] Seller can process incoming orders from Sedang Dikemas to Menunggu Pengirim.
+- [x] Seller can process incoming orders from Sedang Dikemas to Menunggu Pengirim.
 
 ### Buyer Flow
 
