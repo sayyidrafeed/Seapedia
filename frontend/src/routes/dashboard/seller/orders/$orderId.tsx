@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { getSellerOrderDetailOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getSellerOrderDetailOptions,
+  processSellerOrderMutation,
+} from '@/lib/api/generated/@tanstack/react-query.gen';
 import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { OrderPriceSummary } from '@/components/orders/order-price-summary';
 import { OrderStatusTimeline } from '@/components/orders/order-status-timeline';
@@ -8,6 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { ArrowLeft, MapPin, User, Calendar, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import type { ProcessSellerOrderError } from '@/lib/api/generated/types.gen';
 
 import { Separator } from '@/components/ui/separator';
 
@@ -17,6 +23,10 @@ export const Route = createFileRoute('/dashboard/seller/orders/$orderId')({
 
 function SellerOrderDetailPage() {
   const { orderId } = Route.useParams();
+  const queryClient = useQueryClient();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [note, setNote] = useState('');
 
   const {
     data: order,
@@ -28,6 +38,38 @@ function SellerOrderDetailPage() {
     }),
     retry: false,
   });
+
+  const processMutation = useMutation({
+    ...processSellerOrderMutation(),
+    onSuccess: () => {
+      toast.success('Order processed successfully!');
+      setIsModalOpen(false);
+      setNote('');
+      queryClient.invalidateQueries({
+        queryKey: getSellerOrderDetailOptions({ path: { id: orderId } }).queryKey,
+      });
+    },
+    onError: (err: ProcessSellerOrderError) => {
+      const errorObj = err as unknown as { status?: number; message?: string };
+      if (errorObj.status === 409) {
+        toast.error('Concurrency Conflict: Order status has been updated by another process.');
+        setIsModalOpen(false);
+        setNote('');
+        queryClient.invalidateQueries({
+          queryKey: getSellerOrderDetailOptions({ path: { id: orderId } }).queryKey,
+        });
+      } else {
+        toast.error(errorObj.message || 'Failed to process order');
+      }
+    },
+  });
+
+  const handleProcessOrder = () => {
+    processMutation.mutate({
+      path: { id: orderId },
+      body: { note: note.trim() || undefined },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -181,21 +223,105 @@ function SellerOrderDetailPage() {
 
             <div className="bg-muted/50 rounded-lg p-4 border border-border/80 space-y-2">
               <div className="flex items-center gap-1.5 text-xs text-foreground font-bold uppercase tracking-wider">
-                <ShieldCheck className="h-4 w-4 text-green-500" />
+                <ShieldCheck className="h-4 w-4 text-primary" />
                 <span>Seller Actions</span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                This order is paid and in packaging status (
-                <strong className="text-foreground">Sedang Dikemas</strong>). Processing orders will
-                be fully introduced in Level 4.
-              </p>
-              <Button className="w-full mt-2 cursor-pointer" disabled>
-                Process Order (Level 4)
-              </Button>
+              {order.status === 'sedang_dikemas' ? (
+                <>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    This order is ready to be prepared. Click below to pack and notify a driver for
+                    shipment.
+                  </p>
+                  <Button
+                    className="w-full mt-2 cursor-pointer font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Process Order
+                  </Button>
+                </>
+              ) : order.status === 'menunggu_pengirim' ? (
+                <>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Order processed. Waiting for a driver to accept the shipment job.
+                  </p>
+                  <Button className="w-full mt-2" disabled variant="secondary">
+                    Waiting for Driver
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    No action needed. Order is currently in status:{' '}
+                    <strong className="text-foreground capitalize">
+                      {order.status.replace('_', ' ')}
+                    </strong>
+                    .
+                  </p>
+                </>
+              )}
             </div>
           </Card>
         </div>
       </div>
+
+      {/* Premium Glassmorphism Modal Dialog */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-background border border-border/80 rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-100 transition-all duration-200 p-6 space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-foreground">Process Order</h3>
+              <p className="text-xs text-muted-foreground">
+                Move this order to <strong className="text-foreground">Menunggu Pengirim</strong>{' '}
+                status so drivers can pick it up.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="note-input"
+                className="text-xs font-bold text-foreground uppercase tracking-wider block"
+              >
+                Optional Processing Note
+              </label>
+              <textarea
+                id="note-input"
+                className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                placeholder="e.g. Package packed and ready in front of the store..."
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                maxLength={1000}
+                disabled={processMutation.isPending}
+              />
+              <p className="text-[10px] text-muted-foreground text-right">
+                {note.length} / 1000 characters
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setNote('');
+                }}
+                disabled={processMutation.isPending}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleProcessOrder}
+                disabled={processMutation.isPending}
+                className="cursor-pointer font-bold"
+              >
+                {processMutation.isPending ? 'Processing...' : 'Confirm Process'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

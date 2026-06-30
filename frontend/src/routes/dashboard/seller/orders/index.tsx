@@ -1,17 +1,45 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { listSellerOrdersOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  listSellerOrdersOptions,
+  processSellerOrderMutation,
+} from '@/lib/api/generated/@tanstack/react-query.gen';
 import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
-import { ClipboardList, ArrowRight } from 'lucide-react';
+import { ClipboardList, ArrowRight, PackageCheck } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import type { ProcessSellerOrderError } from '@/lib/api/generated/types.gen';
 
 export const Route = createFileRoute('/dashboard/seller/orders/')({
   component: SellerIncomingOrdersPage,
 });
 
 function SellerIncomingOrdersPage() {
+  const queryClient = useQueryClient();
+  const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
+
+  const processMutation = useMutation({
+    ...processSellerOrderMutation(),
+    onSuccess: () => {
+      toast.success('Order processed successfully!');
+      setProcessingOrderId(null);
+      queryClient.invalidateQueries({ queryKey: listSellerOrdersOptions().queryKey });
+    },
+    onError: (err: ProcessSellerOrderError) => {
+      const errorObj = err as unknown as { status?: number; message?: string };
+      if (errorObj.status === 409) {
+        toast.error('This order has already been processed by another process.');
+      } else {
+        toast.error(errorObj.message || 'Failed to process order');
+      }
+      setProcessingOrderId(null);
+      queryClient.invalidateQueries({ queryKey: listSellerOrdersOptions().queryKey });
+    },
+  });
+
   const {
     data: orders,
     isLoading,
@@ -106,20 +134,71 @@ function SellerIncomingOrdersPage() {
                         {formatCurrency(order.totalAmount)}
                       </span>
                     </div>
-                    <Link to="/dashboard/seller/orders/$orderId" params={{ orderId: order.id }}>
+                    {order.status === 'sedang_dikemas' ? (
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
-                        className="cursor-pointer gap-1.5 hover:bg-primary hover:text-primary-foreground"
+                        className="cursor-pointer gap-1.5"
+                        onClick={() => setProcessingOrderId(order.id)}
+                        disabled={processingOrderId === order.id}
                       >
-                        Process Order <ArrowRight className="h-4 w-4" />
+                        <PackageCheck className="h-4 w-4" />
+                        {processingOrderId === order.id ? 'Processing...' : 'Process'}
                       </Button>
-                    </Link>
+                    ) : (
+                      <Link to="/dashboard/seller/orders/$orderId" params={{ orderId: order.id }}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="cursor-pointer gap-1.5 hover:bg-primary hover:text-primary-foreground"
+                        >
+                          View Details <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {processingOrderId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-background border border-border/80 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-100 transition-all duration-200 p-6 space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-foreground">Process Order</h3>
+              <p className="text-sm text-muted-foreground">
+                Move this order to <strong className="text-foreground">Menunggu Pengirim</strong>{' '}
+                status so drivers can pick it up.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setProcessingOrderId(null)}
+                disabled={processMutation.isPending}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() =>
+                  processMutation.mutate({
+                    path: { id: processingOrderId },
+                    body: {},
+                  })
+                }
+                disabled={processMutation.isPending}
+                className="cursor-pointer font-bold"
+              >
+                {processMutation.isPending ? 'Processing...' : 'Confirm Process'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
