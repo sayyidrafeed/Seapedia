@@ -23,6 +23,7 @@ import { Route as DashboardBuyerRouteImport } from './routes/dashboard/buyer'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
 import { Route as StoreSlugProductSlugRouteImport } from './routes/$storeSlug/$productSlug'
 import { Route as DashboardSellerIndexRouteImport } from './routes/dashboard/seller/index'
+import { Route as DashboardDriverIndexRouteImport } from './routes/dashboard/driver/index'
 import { Route as DashboardBuyerIndexRouteImport } from './routes/dashboard/buyer/index'
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as DashboardSellerStoreRouteImport } from './routes/dashboard/seller/store'
@@ -36,9 +37,11 @@ import { Route as DashboardBuyerAddressesRouteImport } from './routes/dashboard/
 import { Route as DashboardAdminDiscountsRouteImport } from './routes/dashboard/admin/discounts'
 import { Route as DashboardSellerProductsIndexRouteImport } from './routes/dashboard/seller/products/index'
 import { Route as DashboardSellerOrdersIndexRouteImport } from './routes/dashboard/seller/orders/index'
+import { Route as DashboardDriverJobsIndexRouteImport } from './routes/dashboard/driver/jobs/index'
 import { Route as DashboardBuyerOrdersIndexRouteImport } from './routes/dashboard/buyer/orders/index'
 import { Route as DashboardSellerProductsCreateRouteImport } from './routes/dashboard/seller/products/create'
 import { Route as DashboardSellerOrdersOrderIdRouteImport } from './routes/dashboard/seller/orders/$orderId'
+import { Route as DashboardDriverJobsJobIdRouteImport } from './routes/dashboard/driver/jobs/$jobId'
 import { Route as DashboardBuyerOrdersOrderIdRouteImport } from './routes/dashboard/buyer/orders/$orderId'
 import { Route as DashboardSellerProductsProductIdEditRouteImport } from './routes/dashboard/seller/products/$productId/edit'
 
@@ -112,6 +115,11 @@ const DashboardSellerIndexRoute = DashboardSellerIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardSellerRoute,
 } as any)
+const DashboardDriverIndexRoute = DashboardDriverIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardDriverRoute,
+} as any)
 const DashboardBuyerIndexRoute = DashboardBuyerIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -180,6 +188,12 @@ const DashboardSellerOrdersIndexRoute =
     path: '/orders/',
     getParentRoute: () => DashboardSellerRoute,
   } as any)
+const DashboardDriverJobsIndexRoute =
+  DashboardDriverJobsIndexRouteImport.update({
+    id: '/jobs/',
+    path: '/jobs/',
+    getParentRoute: () => DashboardDriverRoute,
+  } as any)
 const DashboardBuyerOrdersIndexRoute =
   DashboardBuyerOrdersIndexRouteImport.update({
     id: '/orders/',
@@ -197,6 +211,12 @@ const DashboardSellerOrdersOrderIdRoute =
     id: '/orders/$orderId',
     path: '/orders/$orderId',
     getParentRoute: () => DashboardSellerRoute,
+  } as any)
+const DashboardDriverJobsJobIdRoute =
+  DashboardDriverJobsJobIdRouteImport.update({
+    id: '/jobs/$jobId',
+    path: '/jobs/$jobId',
+    getParentRoute: () => DashboardDriverRoute,
   } as any)
 const DashboardBuyerOrdersOrderIdRoute =
   DashboardBuyerOrdersOrderIdRouteImport.update({
@@ -221,7 +241,7 @@ export interface FileRoutesByFullPath {
   '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/dashboard/buyer': typeof DashboardBuyerRouteWithChildren
-  '/dashboard/driver': typeof DashboardDriverRoute
+  '/dashboard/driver': typeof DashboardDriverRouteWithChildren
   '/dashboard/seller': typeof DashboardSellerRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
@@ -236,11 +256,14 @@ export interface FileRoutesByFullPath {
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/buyer/': typeof DashboardBuyerIndexRoute
+  '/dashboard/driver/': typeof DashboardDriverIndexRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
   '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
+  '/dashboard/driver/jobs/$jobId': typeof DashboardDriverJobsJobIdRoute
   '/dashboard/seller/orders/$orderId': typeof DashboardSellerOrdersOrderIdRoute
   '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
   '/dashboard/buyer/orders/': typeof DashboardBuyerOrdersIndexRoute
+  '/dashboard/driver/jobs/': typeof DashboardDriverJobsIndexRoute
   '/dashboard/seller/orders/': typeof DashboardSellerOrdersIndexRoute
   '/dashboard/seller/products/': typeof DashboardSellerProductsIndexRoute
   '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
@@ -253,7 +276,6 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/select-role': typeof SelectRoleRoute
   '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
-  '/dashboard/driver': typeof DashboardDriverRoute
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug': typeof StoreSlugIndexRoute
   '/dashboard/admin/discounts': typeof DashboardAdminDiscountsRoute
@@ -267,11 +289,14 @@ export interface FileRoutesByTo {
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/admin': typeof DashboardAdminIndexRoute
   '/dashboard/buyer': typeof DashboardBuyerIndexRoute
+  '/dashboard/driver': typeof DashboardDriverIndexRoute
   '/dashboard/seller': typeof DashboardSellerIndexRoute
   '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
+  '/dashboard/driver/jobs/$jobId': typeof DashboardDriverJobsJobIdRoute
   '/dashboard/seller/orders/$orderId': typeof DashboardSellerOrdersOrderIdRoute
   '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
   '/dashboard/buyer/orders': typeof DashboardBuyerOrdersIndexRoute
+  '/dashboard/driver/jobs': typeof DashboardDriverJobsIndexRoute
   '/dashboard/seller/orders': typeof DashboardSellerOrdersIndexRoute
   '/dashboard/seller/products': typeof DashboardSellerProductsIndexRoute
   '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
@@ -287,7 +312,7 @@ export interface FileRoutesById {
   '/$storeSlug/$productSlug': typeof StoreSlugProductSlugRoute
   '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/dashboard/buyer': typeof DashboardBuyerRouteWithChildren
-  '/dashboard/driver': typeof DashboardDriverRoute
+  '/dashboard/driver': typeof DashboardDriverRouteWithChildren
   '/dashboard/seller': typeof DashboardSellerRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
@@ -302,11 +327,14 @@ export interface FileRoutesById {
   '/dashboard/seller/store': typeof DashboardSellerStoreRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/buyer/': typeof DashboardBuyerIndexRoute
+  '/dashboard/driver/': typeof DashboardDriverIndexRoute
   '/dashboard/seller/': typeof DashboardSellerIndexRoute
   '/dashboard/buyer/orders/$orderId': typeof DashboardBuyerOrdersOrderIdRoute
+  '/dashboard/driver/jobs/$jobId': typeof DashboardDriverJobsJobIdRoute
   '/dashboard/seller/orders/$orderId': typeof DashboardSellerOrdersOrderIdRoute
   '/dashboard/seller/products/create': typeof DashboardSellerProductsCreateRoute
   '/dashboard/buyer/orders/': typeof DashboardBuyerOrdersIndexRoute
+  '/dashboard/driver/jobs/': typeof DashboardDriverJobsIndexRoute
   '/dashboard/seller/orders/': typeof DashboardSellerOrdersIndexRoute
   '/dashboard/seller/products/': typeof DashboardSellerProductsIndexRoute
   '/dashboard/seller/products/$productId/edit': typeof DashboardSellerProductsProductIdEditRoute
@@ -338,11 +366,14 @@ export interface FileRouteTypes {
     | '/dashboard/seller/store'
     | '/dashboard/admin/'
     | '/dashboard/buyer/'
+    | '/dashboard/driver/'
     | '/dashboard/seller/'
     | '/dashboard/buyer/orders/$orderId'
+    | '/dashboard/driver/jobs/$jobId'
     | '/dashboard/seller/orders/$orderId'
     | '/dashboard/seller/products/create'
     | '/dashboard/buyer/orders/'
+    | '/dashboard/driver/jobs/'
     | '/dashboard/seller/orders/'
     | '/dashboard/seller/products/'
     | '/dashboard/seller/products/$productId/edit'
@@ -355,7 +386,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/select-role'
     | '/$storeSlug/$productSlug'
-    | '/dashboard/driver'
     | '/products/$productId'
     | '/$storeSlug'
     | '/dashboard/admin/discounts'
@@ -369,11 +399,14 @@ export interface FileRouteTypes {
     | '/dashboard/seller/store'
     | '/dashboard/admin'
     | '/dashboard/buyer'
+    | '/dashboard/driver'
     | '/dashboard/seller'
     | '/dashboard/buyer/orders/$orderId'
+    | '/dashboard/driver/jobs/$jobId'
     | '/dashboard/seller/orders/$orderId'
     | '/dashboard/seller/products/create'
     | '/dashboard/buyer/orders'
+    | '/dashboard/driver/jobs'
     | '/dashboard/seller/orders'
     | '/dashboard/seller/products'
     | '/dashboard/seller/products/$productId/edit'
@@ -403,11 +436,14 @@ export interface FileRouteTypes {
     | '/dashboard/seller/store'
     | '/dashboard/admin/'
     | '/dashboard/buyer/'
+    | '/dashboard/driver/'
     | '/dashboard/seller/'
     | '/dashboard/buyer/orders/$orderId'
+    | '/dashboard/driver/jobs/$jobId'
     | '/dashboard/seller/orders/$orderId'
     | '/dashboard/seller/products/create'
     | '/dashboard/buyer/orders/'
+    | '/dashboard/driver/jobs/'
     | '/dashboard/seller/orders/'
     | '/dashboard/seller/products/'
     | '/dashboard/seller/products/$productId/edit'
@@ -423,7 +459,7 @@ export interface RootRouteChildren {
   StoreSlugProductSlugRoute: typeof StoreSlugProductSlugRoute
   DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
   DashboardBuyerRoute: typeof DashboardBuyerRouteWithChildren
-  DashboardDriverRoute: typeof DashboardDriverRoute
+  DashboardDriverRoute: typeof DashboardDriverRouteWithChildren
   DashboardSellerRoute: typeof DashboardSellerRouteWithChildren
   ProductsProductIdRoute: typeof ProductsProductIdRoute
   StoreSlugIndexRoute: typeof StoreSlugIndexRoute
@@ -529,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSellerIndexRouteImport
       parentRoute: typeof DashboardSellerRoute
     }
+    '/dashboard/driver/': {
+      id: '/dashboard/driver/'
+      path: '/'
+      fullPath: '/dashboard/driver/'
+      preLoaderRoute: typeof DashboardDriverIndexRouteImport
+      parentRoute: typeof DashboardDriverRoute
+    }
     '/dashboard/buyer/': {
       id: '/dashboard/buyer/'
       path: '/'
@@ -620,6 +663,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSellerOrdersIndexRouteImport
       parentRoute: typeof DashboardSellerRoute
     }
+    '/dashboard/driver/jobs/': {
+      id: '/dashboard/driver/jobs/'
+      path: '/jobs'
+      fullPath: '/dashboard/driver/jobs/'
+      preLoaderRoute: typeof DashboardDriverJobsIndexRouteImport
+      parentRoute: typeof DashboardDriverRoute
+    }
     '/dashboard/buyer/orders/': {
       id: '/dashboard/buyer/orders/'
       path: '/orders'
@@ -640,6 +690,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/seller/orders/$orderId'
       preLoaderRoute: typeof DashboardSellerOrdersOrderIdRouteImport
       parentRoute: typeof DashboardSellerRoute
+    }
+    '/dashboard/driver/jobs/$jobId': {
+      id: '/dashboard/driver/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/dashboard/driver/jobs/$jobId'
+      preLoaderRoute: typeof DashboardDriverJobsJobIdRouteImport
+      parentRoute: typeof DashboardDriverRoute
     }
     '/dashboard/buyer/orders/$orderId': {
       id: '/dashboard/buyer/orders/$orderId'
@@ -698,6 +755,22 @@ const DashboardBuyerRouteWithChildren = DashboardBuyerRoute._addFileChildren(
   DashboardBuyerRouteChildren,
 )
 
+interface DashboardDriverRouteChildren {
+  DashboardDriverIndexRoute: typeof DashboardDriverIndexRoute
+  DashboardDriverJobsJobIdRoute: typeof DashboardDriverJobsJobIdRoute
+  DashboardDriverJobsIndexRoute: typeof DashboardDriverJobsIndexRoute
+}
+
+const DashboardDriverRouteChildren: DashboardDriverRouteChildren = {
+  DashboardDriverIndexRoute: DashboardDriverIndexRoute,
+  DashboardDriverJobsJobIdRoute: DashboardDriverJobsJobIdRoute,
+  DashboardDriverJobsIndexRoute: DashboardDriverJobsIndexRoute,
+}
+
+const DashboardDriverRouteWithChildren = DashboardDriverRoute._addFileChildren(
+  DashboardDriverRouteChildren,
+)
+
 interface DashboardSellerRouteChildren {
   DashboardSellerOnboardingRoute: typeof DashboardSellerOnboardingRoute
   DashboardSellerReportRoute: typeof DashboardSellerReportRoute
@@ -737,7 +810,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoreSlugProductSlugRoute: StoreSlugProductSlugRoute,
   DashboardAdminRoute: DashboardAdminRouteWithChildren,
   DashboardBuyerRoute: DashboardBuyerRouteWithChildren,
-  DashboardDriverRoute: DashboardDriverRoute,
+  DashboardDriverRoute: DashboardDriverRouteWithChildren,
   DashboardSellerRoute: DashboardSellerRouteWithChildren,
   ProductsProductIdRoute: ProductsProductIdRoute,
   StoreSlugIndexRoute: StoreSlugIndexRoute,
