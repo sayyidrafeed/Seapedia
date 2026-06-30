@@ -207,109 +207,116 @@ export class AdminService {
   static async processOverdueOrders() {
     const effectiveNow = await this.getEffectiveNow();
 
-    // Select all potential overdue orders first to process them
-    const allOrders = await db.select().from(orders);
+    const subHoursStr = (h: number) =>
+      new Date(effectiveNow.getTime() - h * 60 * 60 * 1000).toISOString();
 
-    const overdueOrdersList = allOrders.filter((order) => {
-      if (order.status === 'pesanan_selesai' || order.status === 'dikembalikan') {
-        return false;
-      }
-      const slaHours =
-        DELIVERY_SLA_HOURS[order.deliveryMethod as keyof typeof DELIVERY_SLA_HOURS] ?? 48;
-      const createdTime = new Date(order.createdAt).getTime();
-      const elapsedHours = (effectiveNow.getTime() - createdTime) / (60 * 60 * 1000);
-      return elapsedHours > slaHours;
-    });
+    const overdueOrdersList = await db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          sql`${orders.status} NOT IN ('pesanan_selesai', 'dikembalikan')`,
+          sql`(
+            (${orders.deliveryMethod} = 'instant' AND ${orders.createdAt} < ${subHoursStr(DELIVERY_SLA_HOURS.instant)}) OR
+            (${orders.deliveryMethod} = 'next_day' AND ${orders.createdAt} < ${subHoursStr(DELIVERY_SLA_HOURS.next_day)}) OR
+            (${orders.deliveryMethod} = 'regular' AND ${orders.createdAt} < ${subHoursStr(DELIVERY_SLA_HOURS.regular)})
+          )`,
+        ),
+      );
 
     const results = [];
 
     for (const overdueOrder of overdueOrdersList) {
-      const result = await db.transaction(async (tx) => {
-        // 1. Lock the order to prevent concurrent edits
-        const [order] = await tx
-          .select()
-          .from(orders)
-          .where(eq(orders.id, overdueOrder.id))
-          .for('update')
-          .limit(1);
+      try {
+        const result = await db.transaction(async (tx) => {
+          // 1. Lock the order to prevent concurrent edits
+          const [order] = await tx
+            .select()
+            .from(orders)
+            .where(eq(orders.id, overdueOrder.id))
+            .for('update')
+            .limit(1);
 
-        if (!order || order.status === 'pesanan_selesai' || order.status === 'dikembalikan') {
-          return null; // Skip if already completed or returned
-        }
-
-        // 2. Mark status as 'dikembalikan'
-        await tx
-          .update(orders)
-          .set({ status: 'dikembalikan', updatedAt: new Date() })
-          .where(eq(orders.id, order.id));
-
-        // 3. Status history entry
-        const note = `Auto-returned: exceeded delivery SLA for ${order.deliveryMethod}. Refund issued.`;
-        await tx.insert(orderStatusHistory).values({
-          orderId: order.id,
-          status: 'dikembalikan',
-          note,
-        });
-
-        // 4. Refund Buyer Wallet (orders are pre-paid by buyer wallet in Seapedia)
-        let [wallet] = await tx
-          .select()
-          .from(wallets)
-          .where(eq(wallets.userId, order.buyerId))
-          .limit(1);
-        if (!wallet) {
-          // Self-heal/fallback if buyer wallet is somehow missing
-          [wallet] = await tx
-            .insert(wallets)
-            .values({ userId: order.buyerId, balance: 0 })
-            .returning();
-        }
-
-        await tx
-          .update(wallets)
-          .set({
-            balance: sql`${wallets.balance} + ${order.totalAmount}`,
-            updatedAt: new Date(),
-          })
-          .where(eq(wallets.id, wallet.id));
-
-        // Insert wallet transaction for refund
-        const reference = 'REFUND-' + order.id;
-        await tx.insert(walletTransactions).values({
-          walletId: wallet.id,
-          amount: order.totalAmount,
-          type: 'refund',
-          status: 'success',
-          reference,
-        });
-
-        // 5. Restore product stocks
-        const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, order.id));
-        let itemsRestored = 0;
-        for (const item of items) {
-          if (item.productId) {
-            await tx
-              .update(products)
-              .set({
-                stock: sql`${products.stock} + ${item.quantity}`,
-                updatedAt: new Date(),
-              })
-              .where(eq(products.id, item.productId));
-            itemsRestored += item.quantity;
+          if (!order || order.status === 'pesanan_selesai' || order.status === 'dikembalikan') {
+            return null; // Skip if already completed or returned
           }
+
+          // 2. Mark status as 'dikembalikan'
+          await tx
+            .update(orders)
+            .set({ status: 'dikembalikan', updatedAt: new Date() })
+            .where(eq(orders.id, order.id));
+
+          // 3. Status history entry
+          const note = `Auto-returned: exceeded delivery SLA for ${order.deliveryMethod}. Refund issued.`;
+          await tx.insert(orderStatusHistory).values({
+            orderId: order.id,
+            status: 'dikembalikan',
+            note,
+          });
+
+          // 4. Refund Buyer Wallet (orders are pre-paid by buyer wallet in Seapedia)
+          let [wallet] = await tx
+            .select()
+            .from(wallets)
+            .where(eq(wallets.userId, order.buyerId))
+            .limit(1);
+          if (!wallet) {
+            // Self-heal/fallback if buyer wallet is somehow missing
+            [wallet] = await tx
+              .insert(wallets)
+              .values({ userId: order.buyerId, balance: 0 })
+              .returning();
+          }
+
+          await tx
+            .update(wallets)
+            .set({
+              balance: sql`${wallets.balance} + ${order.totalAmount}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(wallets.id, wallet.id));
+
+          // Insert wallet transaction for refund
+          const reference = 'REFUND-' + order.id;
+          await tx.insert(walletTransactions).values({
+            walletId: wallet.id,
+            amount: order.totalAmount,
+            type: 'refund',
+            status: 'success',
+            reference,
+          });
+
+          // 5. Restore product stocks
+          const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, order.id));
+          let itemsRestored = 0;
+          for (const item of items) {
+            if (item.productId) {
+              await tx
+                .update(products)
+                .set({
+                  stock: sql`${products.stock} + ${item.quantity}`,
+                  updatedAt: new Date(),
+                })
+                .where(eq(products.id, item.productId));
+              itemsRestored += item.quantity;
+            }
+          }
+
+          return {
+            orderId: order.id,
+            buyerId: order.buyerId,
+            refundAmount: order.totalAmount,
+            itemsRestored,
+            note,
+          };
+        });
+
+        if (result) {
+          results.push(result);
         }
-
-        return {
-          orderId: order.id,
-          buyerId: order.buyerId,
-          refundAmount: order.totalAmount,
-          itemsRestored,
-          note,
-        };
-      });
-
-      if (result) {
-        results.push(result);
+      } catch (error) {
+        console.error(`Failed to process overdue order ${overdueOrder.id}:`, error);
       }
     }
 
