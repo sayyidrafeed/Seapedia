@@ -1,33 +1,26 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import {
-  getCurrentSellerStoreOptions,
-  listSellerProductsOptions,
-  listSellerOrdersOptions,
-} from '@/lib/api/generated/@tanstack/react-query.gen';
+import { createFileRoute } from '@tanstack/react-router';
+import { useSellerOverview } from '@/features/seller/hooks/use-seller-overview';
+import { SellerSummaryCards } from '@/features/seller/components/seller-summary-cards';
 
 export const Route = createFileRoute('/dashboard/seller/')({
   component: SellerDashboardIndex,
 });
 
 function SellerDashboardIndex() {
-  const { data: store } = useQuery({
-    ...getCurrentSellerStoreOptions(),
-    retry: false,
-  });
+  const { store, totalProducts, pendingOrders, isLoading } = useSellerOverview();
 
-  const { data: productsData } = useQuery({
-    ...listSellerProductsOptions(),
-    retry: false,
-  });
-
-  const { data: orders } = useQuery({
-    ...listSellerOrdersOptions(),
-    retry: false,
-  });
-
-  const totalProducts = productsData?.total ?? 0;
-  const pendingOrders = orders?.filter((o) => o.status === 'sedang_dikemas').length ?? 0;
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-20 bg-muted rounded-lg" />
+        <div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 bg-muted rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -39,24 +32,7 @@ function SellerDashboardIndex() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link to="/dashboard/seller/products" className="block hover:opacity-90 transition-opacity">
-          <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-            <h3 className="font-semibold text-muted-foreground mb-2">Total Products</h3>
-            <p className="text-3xl font-extrabold">{totalProducts}</p>
-          </div>
-        </Link>
-        <Link to="/dashboard/seller/orders" className="block hover:opacity-90 transition-opacity">
-          <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-            <h3 className="font-semibold text-muted-foreground mb-2">Pending Orders</h3>
-            <p className="text-3xl font-extrabold">{pendingOrders}</p>
-          </div>
-        </Link>
-        <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-          <h3 className="font-semibold text-muted-foreground mb-2">Total Income</h3>
-          <p className="text-3xl font-extrabold">Rp 0</p>
-        </div>
-      </div>
+      <SellerSummaryCards totalProducts={totalProducts} pendingOrders={pendingOrders} />
     </div>
   );
 }

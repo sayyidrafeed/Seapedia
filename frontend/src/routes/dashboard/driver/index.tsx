@@ -11,10 +11,12 @@ import {
 import { Card } from '@/components/ui/card';
 import type { CompleteDeliveryJobError } from '@/lib/api/generated';
 import { toast } from 'sonner';
-import { SecurityTest } from './components/SecurityTest';
 import { useState } from 'react';
-import { StatsCards, ActiveDeliveriesCard } from './components/DashboardComponents';
-import { HistoryCard } from './components/HistoryCard';
+import {
+  StatsCards,
+  ActiveDeliveriesCard,
+} from '@/features/driver/components/dashboard-components';
+import { HistoryCard } from '@/features/driver/components/history-card';
 
 export const Route = createFileRoute('/dashboard/driver/')({
   component: DriverOverview,
@@ -87,8 +89,6 @@ function DriverOverview() {
           setPage((p) => Math.max(1, Math.min(Math.ceil((historyData?.total || 0) / limit), p + 1)))
         }
       />
-
-      <SecurityTest />
     </div>
   );
 }

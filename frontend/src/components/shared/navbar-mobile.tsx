@@ -85,7 +85,7 @@ export function NavbarMobile({
                 <button
                   key={role}
                   onClick={() => handleSelectRole(role as 'admin' | 'seller' | 'buyer' | 'driver')}
-                  className={`w-full text-left py-2 px-3 text-xs hover:bg-accent rounded-md capitalize flex items-center gap-2 cursor-pointer bg-transparent border-none ${
+                  className={`w-full text-left py-2 px-3 text-xs hover:bg-muted rounded-md capitalize flex items-center gap-2 cursor-pointer bg-transparent border-none ${
                     auth.activeRole === role ? 'font-bold text-primary' : 'text-foreground'
                   }`}
                 >

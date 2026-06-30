@@ -1,6 +1,8 @@
 import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
+import { DashboardLayout } from '@/components/shared/dashboard-layout';
+import { LayoutDashboard, Wallet, MapPin, Package, BarChart3 } from 'lucide-react';
 
 export const Route = createFileRoute('/dashboard/buyer')({
   component: BuyerLayout,
@@ -26,50 +28,42 @@ function BuyerLayout() {
     );
   }
 
-  return (
-    <div className="container mx-auto px-6 py-12 space-y-6">
-      <div className="border-b border-border pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight capitalize">Buyer Portal</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your wallet, delivery addresses, and orders.
-          </p>
-        </div>
-        <div className="space-x-4">
-          <button
-            onClick={() => navigate({ to: '/dashboard/buyer' })}
-            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => navigate({ to: '/dashboard/buyer/wallet' })}
-            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-          >
-            Wallet & Top-up
-          </button>
-          <button
-            onClick={() => navigate({ to: '/dashboard/buyer/addresses' })}
-            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-          >
-            Manage Addresses
-          </button>
-          <button
-            onClick={() => navigate({ to: '/dashboard/buyer/orders' })}
-            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-          >
-            My Orders
-          </button>
-          <button
-            onClick={() => navigate({ to: '/dashboard/buyer/report' })}
-            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-          >
-            Spending Report
-          </button>
-        </div>
-      </div>
+  const navItems = [
+    {
+      label: 'Overview',
+      to: '/dashboard/buyer',
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      exact: true,
+    },
+    {
+      label: 'Wallet & Top-up',
+      to: '/dashboard/buyer/wallet',
+      icon: <Wallet className="h-4 w-4" />,
+    },
+    {
+      label: 'Manage Addresses',
+      to: '/dashboard/buyer/addresses',
+      icon: <MapPin className="h-4 w-4" />,
+    },
+    {
+      label: 'My Orders',
+      to: '/dashboard/buyer/orders',
+      icon: <Package className="h-4 w-4" />,
+    },
+    {
+      label: 'Spending Report',
+      to: '/dashboard/buyer/report',
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+  ];
 
+  return (
+    <DashboardLayout
+      title="Buyer Portal"
+      description="Manage your wallet, delivery addresses, and orders."
+      navItems={navItems}
+    >
       <Outlet />
-    </div>
+    </DashboardLayout>
   );
 }

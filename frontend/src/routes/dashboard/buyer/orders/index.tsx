@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { listBuyerOrdersOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { useBuyerOrders } from '@/features/buyer/hooks/use-buyer-orders';
 import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,14 +11,7 @@ export const Route = createFileRoute('/dashboard/buyer/orders/')({
 });
 
 function BuyerOrderHistoryPage() {
-  const {
-    data: orders,
-    isLoading,
-    error,
-  } = useQuery({
-    ...listBuyerOrdersOptions(),
-    retry: false,
-  });
+  const { orders, isLoading, error } = useBuyerOrders();
 
   if (isLoading) {
     return (
@@ -74,7 +66,6 @@ function BuyerOrderHistoryPage() {
             const dateStr = new Date(order.createdAt).toLocaleDateString('id-ID', {
               dateStyle: 'medium',
             });
-            // We truncated the UUID for readable display
             const orderIdTrunc = order.id.slice(0, 8).toUpperCase();
 
             return (
@@ -98,7 +89,6 @@ function BuyerOrderHistoryPage() {
                       <span>•</span>
                       <span>Placed on: {dateStr}</span>
                     </div>
-                    {/* Item count or summary */}
                     <p className="text-xs text-muted-foreground">
                       {order.items.length} item{order.items.length > 1 ? 's' : ''} purchased
                     </p>

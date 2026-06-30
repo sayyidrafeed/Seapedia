@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { NavbarMobile } from './navbar-mobile';
+import { Logo } from './logo';
 
 export function Navbar() {
   const auth = useAuth();
@@ -67,11 +68,8 @@ export function Navbar() {
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
         {/* Logo and Brand */}
         <div className="flex items-center gap-6">
-          <Link
-            to="/"
-            className="text-2xl font-bold tracking-tight text-primary transition-colors hover:text-primary/95 flex items-center gap-2"
-          >
-            <span>Seapedia</span>
+          <Link to="/" className="transition-opacity hover:opacity-90">
+            <Logo variant="wordmark" size="md" />
           </Link>
           <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
             <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground">
@@ -117,7 +115,7 @@ export function Navbar() {
               {auth.activeRole === 'buyer' && (
                 <Link
                   to="/dashboard/buyer/cart"
-                  className="relative p-2 text-foreground hover:bg-accent rounded-md transition-colors"
+                  className="relative p-2 text-foreground hover:bg-muted rounded-md transition-colors"
                   title="Cart"
                 >
                   <ShoppingCart className="h-4 w-4" />
@@ -149,7 +147,7 @@ export function Navbar() {
                           onClick={() =>
                             handleSelectRole(role as 'admin' | 'seller' | 'buyer' | 'driver')
                           }
-                          className={`w-full text-left px-4 py-2 text-xs hover:bg-accent/50 capitalize flex items-center gap-2 cursor-pointer bg-transparent border-none ${
+                          className={`w-full text-left px-4 py-2 text-xs hover:bg-muted/50 capitalize flex items-center gap-2 cursor-pointer bg-transparent border-none ${
                             auth.activeRole === role ? 'font-bold text-primary' : 'text-foreground'
                           }`}
                         >
@@ -193,7 +191,7 @@ export function Navbar() {
           {auth.activeRole === 'buyer' && (
             <Link
               to="/dashboard/buyer/cart"
-              className="relative p-2 text-foreground hover:bg-accent rounded-md transition-colors mr-1"
+              className="relative p-2 text-foreground hover:bg-muted rounded-md transition-colors mr-1"
               title="Cart"
               onClick={() => setMobileMenuOpen(false)}
             >

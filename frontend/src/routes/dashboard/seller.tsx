@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentSellerStoreOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { DashboardLayout } from '@/components/shared/dashboard-layout';
+import { LayoutDashboard, ShoppingBag, Clock, BarChart3, User, ExternalLink } from 'lucide-react';
 
 export const Route = createFileRoute('/dashboard/seller')({
   component: SellerLayout,
@@ -46,12 +48,10 @@ function SellerLayout() {
           err.body?.error === 'Store not found');
 
       if (isNotFoundError) {
-        // No store found, redirect to onboarding if not already there
         if (location.pathname !== '/dashboard/seller/onboarding') {
           navigate({ to: '/dashboard/seller/onboarding' });
         }
       } else if (store && location.pathname === '/dashboard/seller/onboarding') {
-        // Store exists, redirect away from onboarding
         navigate({ to: '/dashboard/seller' });
       }
     }
@@ -67,60 +67,53 @@ function SellerLayout() {
     );
   }
 
-  return (
-    <div className="container mx-auto px-6 py-12 space-y-6">
-      <div className="border-b border-border pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight capitalize">
-            {store ? store.name : 'Seller Onboarding'}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {store ? 'Seller Dashboard' : 'Complete your store profile to start selling.'}
-          </p>
-        </div>
-        {store && (
-          <div className="space-x-4">
-            <button
-              onClick={() => navigate({ to: '/dashboard/seller' })}
-              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => navigate({ to: '/dashboard/seller/products' })}
-              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-            >
-              Products
-            </button>
-            <button
-              onClick={() => navigate({ to: '/dashboard/seller/orders' })}
-              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-            >
-              Incoming Orders
-            </button>
-            <button
-              onClick={() => navigate({ to: '/dashboard/seller/report' })}
-              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-            >
-              Income Report
-            </button>
-            <button
-              onClick={() => navigate({ to: '/dashboard/seller/store' })}
-              className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
-            >
-              Store Profile
-            </button>
-            <button
-              onClick={() => navigate({ to: `/${store.slug}` })}
-              className="text-sm font-medium hover:underline text-muted-foreground cursor-pointer border-none bg-transparent"
-            >
-              View Public Store
-            </button>
-          </div>
-        )}
-      </div>
+  const navItems = [
+    {
+      label: 'Overview',
+      to: '/dashboard/seller',
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      exact: true,
+    },
+    {
+      label: 'Products',
+      to: '/dashboard/seller/products',
+      icon: <ShoppingBag className="h-4 w-4" />,
+    },
+    {
+      label: 'Incoming Orders',
+      to: '/dashboard/seller/orders',
+      icon: <Clock className="h-4 w-4" />,
+    },
+    {
+      label: 'Income Report',
+      to: '/dashboard/seller/report',
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      label: 'Store Profile',
+      to: '/dashboard/seller/store',
+      icon: <User className="h-4 w-4" />,
+    },
+  ];
 
+  const extraHeaderContent = store ? (
+    <button
+      onClick={() => navigate({ to: `/${store.slug}` })}
+      className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer border-none bg-transparent"
+    >
+      <span>View Public Store</span>
+      <ExternalLink className="h-3 w-3" />
+    </button>
+  ) : null;
+
+  return (
+    <DashboardLayout
+      title={store ? store.name : 'Seller Onboarding'}
+      description={store ? 'Seller Dashboard' : 'Complete your store profile to start selling.'}
+      navItems={store ? navItems : []}
+      extraHeaderContent={extraHeaderContent}
+    >
       <Outlet />
-    </div>
+    </DashboardLayout>
   );
 }
