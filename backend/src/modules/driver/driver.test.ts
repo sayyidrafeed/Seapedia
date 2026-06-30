@@ -28,26 +28,23 @@ const dbState = {
 };
 
 mock.module('@/db', () => {
-  const dbSelect = () => ({
-    from: () => ({
-      innerJoin: () => ({
-        innerJoin: () => ({
-          where: () => {
-            const data = dbState.selectQueue[dbState.selectIdx++] ?? [];
-            return Object.assign(Promise.resolve(data), {
+  const dbSelect = () => {
+    const builder = {
+      from: () => builder,
+      innerJoin: () => builder,
+      where: () => {
+        const data = dbState.selectQueue[dbState.selectIdx++] ?? [];
+        return Object.assign(Promise.resolve(data), {
+          orderBy: () =>
+            Object.assign(Promise.resolve(data), {
               limit: (n: number) => Promise.resolve(data.slice(0, n)),
-            });
-          },
-        }),
-        where: () => {
-          const data = dbState.selectQueue[dbState.selectIdx++] ?? [];
-          return Object.assign(Promise.resolve(data), {
-            limit: (n: number) => Promise.resolve(data.slice(0, n)),
-          });
-        },
-      }),
-    }),
-  });
+            }),
+          limit: (n: number) => Promise.resolve(data.slice(0, n)),
+        });
+      },
+    };
+    return builder;
+  };
 
   const dbInsert = () => ({
     values: () => ({
@@ -153,7 +150,11 @@ describe('DriverService', () => {
   });
 
   test('getDriverStats returns correct dashboard stats', async () => {
+    // 1. Active jobs query
     dbState.addSelect([{ ...mockJob, id: 'job-active', status: 'taken' }]);
+    // 2. Aggregate stats query
+    dbState.addSelect([{ totalEarnings: 8000, completedCount: 1 }]);
+    // 3. Completed jobs list query
     dbState.addSelect([
       { ...mockJob, id: 'job-completed', status: 'completed', deliveryFee: 8000 },
     ]);

@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { deliveryJobs, orders, stores, orderStatusHistory } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@/lib/errors';
 
 const jobColumns = {
@@ -126,18 +126,28 @@ export class DriverService {
       .innerJoin(stores, eq(orders.storeId, stores.id))
       .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'taken')));
 
-    const completed = await db
+    const [stats] = await db
+      .select({
+        totalEarnings: sql<number>`CAST(COALESCE(SUM(${deliveryJobs.deliveryFee}), 0) AS INTEGER)`,
+        completedCount: sql<number>`CAST(COUNT(*) AS INTEGER)`,
+      })
+      .from(deliveryJobs)
+      .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')));
+
+    const completedJobs = await db
       .select(jobColumns)
       .from(deliveryJobs)
       .innerJoin(orders, eq(deliveryJobs.orderId, orders.id))
       .innerJoin(stores, eq(orders.storeId, stores.id))
-      .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')));
+      .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')))
+      .orderBy(desc(deliveryJobs.updatedAt))
+      .limit(10);
 
     return {
-      totalEarnings: completed.reduce((sum, j) => sum + j.deliveryFee, 0),
-      completedJobsCount: completed.length,
+      totalEarnings: stats?.totalEarnings || 0,
+      completedJobsCount: stats?.completedCount || 0,
       activeJobs: active.map(mapJob),
-      completedJobs: completed.map(mapJob),
+      completedJobs: completedJobs.map(mapJob),
     };
   }
 }
