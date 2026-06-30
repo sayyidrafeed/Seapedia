@@ -48,15 +48,22 @@ async function seed() {
     const usernames = accounts.map((a) => a.username);
     await db.delete(users).where(inArray(users.username, usernames));
 
-    // 2. Insert users and their profiles
-    for (const acc of accounts) {
-      const hash = await Bun.password.hash(acc.password, 'bcrypt');
+    // 2. Hash passwords in parallel
+    const hashedAccounts = await Promise.all(
+      accounts.map(async (acc) => ({
+        ...acc,
+        passwordHash: await Bun.password.hash(acc.password, 'bcrypt'),
+      })),
+    );
+
+    // 3. Insert users and their profiles
+    for (const acc of hashedAccounts) {
       const [insertedUser] = await db
         .insert(users)
         .values({
           username: acc.username,
           email: acc.email,
-          passwordHash: hash,
+          passwordHash: acc.passwordHash,
           name: acc.name,
           isOnboarded: true,
         })
