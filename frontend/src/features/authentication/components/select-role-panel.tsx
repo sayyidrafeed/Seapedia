@@ -1,7 +1,9 @@
 import { useAuth } from '@/lib/auth/context';
 import { useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 
 export function SelectRolePanel() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
 
@@ -23,7 +25,7 @@ export function SelectRolePanel() {
           onClick={() => handleSelect(role as 'admin' | 'seller' | 'buyer' | 'driver')}
           className="flex w-full items-center justify-between rounded-md border border-input bg-background hover:bg-muted px-4 py-3.5 text-sm font-semibold text-foreground transition-all capitalize shadow-sm cursor-pointer"
         >
-          <span>{role} Dashboard</span>
+          <span>{t('dashboard.role', { role: t(`role.${role}`) })}</span>
           {auth.activeRole === role && (
             <span className="inline-flex h-2 w-2 rounded-full bg-primary" />
           )}

@@ -1,23 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { AuthCard } from '@/components/shared/auth-card';
 import { RegisterForm } from '@/features/authentication/components/register-form';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/register')({
   component: RegisterPage,
 });
 
 function RegisterPage() {
+  const { t } = useTranslation();
   const loginLink = (
     <>
-      Or{' '}
+      {t('auth.or')}{' '}
       <a href="/login" className="font-medium text-primary hover:underline">
-        sign in to existing account
+        {t('auth.signInExistingAccount')}
       </a>
     </>
   );
 
   return (
-    <AuthCard title="Create an account" subtitle={loginLink}>
+    <AuthCard title={t('auth.createAccountTitle')} subtitle={loginLink}>
       <RegisterForm />
     </AuthCard>
   );

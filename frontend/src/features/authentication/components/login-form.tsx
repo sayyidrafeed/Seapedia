@@ -3,8 +3,10 @@ import { useAuth } from '@/lib/auth/context';
 import { useNavigate } from '@tanstack/react-router';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export function LoginForm() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
@@ -21,7 +23,7 @@ export function LoginForm() {
       navigate({ to: '/select-role' });
     } catch (err) {
       const error = err as { body?: { error?: string } };
-      setError(error.body?.error || 'Failed to sign in. Please check your credentials.');
+      setError(error.body?.error || t('auth.failedToSignIn'));
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,7 @@ export function LoginForm() {
               htmlFor="username"
               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1"
             >
-              Username or Email
+              {t('auth.usernameOrEmail')}
             </label>
             <Input
               id="username"
@@ -51,7 +53,7 @@ export function LoginForm() {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username or Email"
+              placeholder={t('auth.usernameOrEmail')}
             />
           </div>
           <div>
@@ -59,7 +61,7 @@ export function LoginForm() {
               htmlFor="password"
               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1"
             >
-              Password
+              {t('auth.password')}
             </label>
             <Input
               id="password"
@@ -68,14 +70,14 @@ export function LoginForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder={t('auth.password')}
             />
           </div>
         </div>
 
         <div className="pt-2">
           <Button type="submit" disabled={loading} className="w-full cursor-pointer font-semibold">
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('auth.signingIn') : t('auth.signIn')}
           </Button>
         </div>
       </form>

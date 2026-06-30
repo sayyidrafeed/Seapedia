@@ -1,33 +1,36 @@
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 interface OrderStatusBadgeProps {
   status: string;
 }
 
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
+  const { t } = useTranslation();
+
   const statusMap: Record<string, { label: string; className: string }> = {
     sedang_dikemas: {
-      label: 'Sedang Dikemas',
+      label: t('orderStatus.sedang_dikemas'),
       className:
         'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800',
     },
     menunggu_pengirim: {
-      label: 'Menunggu Pengirim',
+      label: t('orderStatus.menunggu_pengirim'),
       className:
         'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
     },
     sedang_dikirim: {
-      label: 'Sedang Dikirim',
+      label: t('orderStatus.sedang_dikirim'),
       className:
         'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800',
     },
     pesanan_selesai: {
-      label: 'Selesai',
+      label: t('orderStatus.pesanan_selesai'),
       className:
         'bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800',
     },
     dikembalikan: {
-      label: 'Dikembalikan',
+      label: t('orderStatus.dikembalikan'),
       className: 'bg-destructive/10 text-destructive border-destructive/20',
     },
   };

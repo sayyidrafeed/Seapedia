@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '../ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Languages } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '../ui/drawer';
+import { useTranslation } from 'react-i18next';
 
 interface NavbarMobileProps {
   auth: ReturnType<typeof useAuth>;
@@ -21,13 +22,14 @@ export function NavbarMobile({
   handleSelectRole,
   getRoleIcon,
 }: NavbarMobileProps) {
+  const { t, i18n } = useTranslation();
   return (
     <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
       <DrawerContent className="p-6 pb-8">
         <div className="max-w-md mx-auto w-full">
           <DrawerHeader className="px-0 pt-0 text-left">
-            <DrawerTitle className="text-xl font-bold">Menu</DrawerTitle>
-            <DrawerDescription>Browse Seapedia or manage your account.</DrawerDescription>
+            <DrawerTitle className="text-xl font-bold">{t('navbar.menu')}</DrawerTitle>
+            <DrawerDescription>{t('navbar.menuDescription')}</DrawerDescription>
           </DrawerHeader>
 
           <div className="mt-4 space-y-6">
@@ -37,7 +39,7 @@ export function NavbarMobile({
                 onClick={() => setMobileMenuOpen(false)}
                 className="transition-colors hover:text-foreground/80 text-foreground py-1"
               >
-                Home
+                {t('navbar.home')}
               </Link>
               {auth.user && (
                 <Link
@@ -45,7 +47,7 @@ export function NavbarMobile({
                   onClick={() => setMobileMenuOpen(false)}
                   className="transition-colors hover:text-foreground/80 text-foreground py-1"
                 >
-                  Profile
+                  {t('navbar.profile')}
                 </Link>
               )}
               {auth.activeRole === 'buyer' && (
@@ -54,21 +56,38 @@ export function NavbarMobile({
                   onClick={() => setMobileMenuOpen(false)}
                   className="transition-colors hover:text-foreground/80 text-foreground py-1 flex items-center justify-between"
                 >
-                  <span>Cart</span>
+                  <span>{t('navbar.cart')}</span>
                 </Link>
               )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  i18n.changeLanguage(i18n.language === 'id' ? 'en' : 'id');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center justify-start gap-2 w-full text-left px-0 hover:bg-transparent font-bold cursor-pointer text-sm py-1"
+              >
+                <Languages className="h-4 w-4 text-muted-foreground" />
+                <span className="uppercase">
+                  {i18n.language === 'id' ? 'Bahasa Indonesia (ID)' : 'English (EN)'}
+                </span>
+              </Button>
             </nav>
 
             {auth.user ? (
               <div className="pt-4 border-t border-border space-y-3">
                 <div className="text-sm font-medium text-muted-foreground">
-                  Logged in as <strong className="text-foreground">{auth.user.username}</strong>
+                  {t('navbar.loggedInAs')}{' '}
+                  <strong className="text-foreground">{auth.user.username}</strong>
                 </div>
 
                 {auth.activeRole && (
                   <div className="flex items-center gap-2 text-xs font-semibold text-primary capitalize bg-primary/10 w-fit px-2.5 py-0.5 rounded-full">
                     {getRoleIcon(auth.activeRole)}
-                    <span>Active: {auth.activeRole}</span>
+                    <span>
+                      {t('navbar.activeRoleLabel', { role: t(`role.${auth.activeRole}`) })}
+                    </span>
                   </div>
                 )}
 
@@ -78,14 +97,14 @@ export function NavbarMobile({
                     onClick={() => setMobileMenuOpen(false)}
                     className="block text-xs font-medium text-primary hover:underline"
                   >
-                    Switch Role
+                    {t('navbar.switchRole')}
                   </Link>
                 )}
 
                 {auth.roles.length > 0 && (
                   <div className="space-y-1">
                     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Dashboards
+                      {t('navbar.dashboardsHeader')}
                     </div>
                     {auth.roles.map((role: string) => (
                       <button
@@ -98,7 +117,7 @@ export function NavbarMobile({
                         }`}
                       >
                         {getRoleIcon(role)}
-                        <span>{role} Dashboard</span>
+                        <span>{t('navbar.dashboardWithRole', { context: role })}</span>
                       </button>
                     ))}
                   </div>
@@ -111,19 +130,19 @@ export function NavbarMobile({
                   className="w-full text-xs cursor-pointer mt-2"
                 >
                   <LogOut className="h-3 w-3 mr-1" />
-                  Logout
+                  {t('navbar.logout')}
                 </Button>
               </div>
             ) : (
               <div className="pt-4 border-t border-border flex flex-col gap-2">
                 <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="w-full">
                   <Button variant="outline" size="sm" className="w-full text-xs cursor-pointer">
-                    Sign In
+                    {t('navbar.signIn')}
                   </Button>
                 </Link>
                 <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="w-full">
                   <Button size="sm" className="w-full text-xs cursor-pointer">
-                    Register
+                    {t('navbar.register')}
                   </Button>
                 </Link>
               </div>
