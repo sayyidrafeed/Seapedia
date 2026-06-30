@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { deliveryJobs, orders, stores, orderStatusHistory } from '@/db/schema';
+import { deliveryJobs, orders, stores, orderStatusHistory, orderItems } from '@/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@/lib/errors';
 
@@ -59,7 +59,19 @@ export class DriverService {
       .where(eq(deliveryJobs.id, jobId))
       .limit(1);
     if (!job) throw new NotFoundError('Delivery job not found');
-    return mapJob(job);
+
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, job.orderId));
+
+    return {
+      ...mapJob(job),
+      items: items.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        productName: item.productName,
+        productPrice: item.productPrice,
+        quantity: item.quantity,
+      })),
+    };
   }
 
   static async takeJob(jobId: string, driverId: string) {
@@ -148,6 +160,33 @@ export class DriverService {
       completedJobsCount: stats?.completedCount || 0,
       activeJobs: active.map(mapJob),
       completedJobs: completedJobs.map(mapJob),
+    };
+  }
+
+  static async getJobHistory(
+    driverId: string,
+    { page = 1, limit = 10 }: { page?: number; limit?: number } = {},
+  ) {
+    const offset = (page - 1) * limit;
+
+    const list = await db
+      .select(jobColumns)
+      .from(deliveryJobs)
+      .innerJoin(orders, eq(deliveryJobs.orderId, orders.id))
+      .innerJoin(stores, eq(orders.storeId, stores.id))
+      .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')))
+      .orderBy(desc(deliveryJobs.updatedAt))
+      .limit(limit)
+      .offset(offset);
+
+    const [totalCount] = await db
+      .select({ count: sql<number>`CAST(COUNT(*) AS INTEGER)` })
+      .from(deliveryJobs)
+      .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')));
+
+    return {
+      jobs: list.map(mapJob),
+      total: totalCount?.count || 0,
     };
   }
 }
