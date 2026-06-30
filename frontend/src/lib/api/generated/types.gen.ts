@@ -4,6 +4,49 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
+export type Product = {
+  id: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  currency?: string;
+  stock: number;
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  slug: string;
+};
+
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Review = {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  paymentMethod: string | unknown;
+  status: string;
+  reference: string;
+  createdAt: string;
+};
+
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -50,49 +93,6 @@ export type OrderResponse = {
     note: string | unknown;
     createdAt: string;
   }>;
-};
-
-export type Product = {
-  id: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  currency?: string;
-  stock: number;
-  storeId: string;
-  storeName: string;
-  storeSlug: string;
-  slug: string;
-};
-
-export type SellerProductResponse = {
-  id: string;
-  storeId: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  stock: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Review = {
-  id: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-};
-
-export type WalletTransactionResponse = {
-  id: string;
-  walletId: string;
-  amount: number;
-  type: string;
-  paymentMethod: string | unknown;
-  status: string;
-  reference: string;
-  createdAt: string;
 };
 
 export type VoucherResponse = {
@@ -2943,6 +2943,50 @@ export type ValidateDiscountCodeResponses = {
 export type ValidateDiscountCodeResponse =
   ValidateDiscountCodeResponses[keyof ValidateDiscountCodeResponses];
 
+export type GetDriverStatsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/driver/me/stats';
+};
+
+export type GetDriverStatsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetDriverStatsError = GetDriverStatsErrors[keyof GetDriverStatsErrors];
+
+export type GetDriverStatsResponses = {
+  /**
+   * Driver statistics and jobs history
+   */
+  200: {
+    totalEarnings: number;
+    completedJobsCount: number;
+    activeJobs: Array<DeliveryJobResponse>;
+    completedJobs: Array<DeliveryJobResponse>;
+  };
+};
+
+export type GetDriverStatsResponse = GetDriverStatsResponses[keyof GetDriverStatsResponses];
+
 export type ListAvailableJobsData = {
   body?: never;
   path?: never;
@@ -3042,3 +3086,116 @@ export type GetDriverJobDetailResponses = {
 
 export type GetDriverJobDetailResponse =
   GetDriverJobDetailResponses[keyof GetDriverJobDetailResponses];
+
+export type TakeDeliveryJobData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/driver/jobs/{id}/take';
+};
+
+export type TakeDeliveryJobErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type TakeDeliveryJobError = TakeDeliveryJobErrors[keyof TakeDeliveryJobErrors];
+
+export type TakeDeliveryJobResponses = {
+  /**
+   * Job taken successfully
+   */
+  200: {
+    success: boolean;
+    message: string;
+  };
+};
+
+export type TakeDeliveryJobResponse = TakeDeliveryJobResponses[keyof TakeDeliveryJobResponses];
+
+export type CompleteDeliveryJobData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/driver/jobs/{id}/complete';
+};
+
+export type CompleteDeliveryJobErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type CompleteDeliveryJobError = CompleteDeliveryJobErrors[keyof CompleteDeliveryJobErrors];
+
+export type CompleteDeliveryJobResponses = {
+  /**
+   * Job completed successfully
+   */
+  200: {
+    success: boolean;
+    message: string;
+  };
+};
+
+export type CompleteDeliveryJobResponse =
+  CompleteDeliveryJobResponses[keyof CompleteDeliveryJobResponses];
