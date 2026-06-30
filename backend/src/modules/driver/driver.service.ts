@@ -1,68 +1,143 @@
 import { db } from '@/db';
-import { deliveryJobs, orders, stores } from '@/db/schema';
+import { deliveryJobs, orders, stores, orderStatusHistory } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { NotFoundError } from '@/lib/errors';
+import { NotFoundError, ConflictError } from '@/lib/errors';
+
+const jobColumns = {
+  id: deliveryJobs.id,
+  orderId: deliveryJobs.orderId,
+  driverId: deliveryJobs.driverId,
+  status: deliveryJobs.status,
+  deliveryFee: deliveryJobs.deliveryFee,
+  createdAt: deliveryJobs.createdAt,
+  updatedAt: deliveryJobs.updatedAt,
+  storeName: stores.name,
+  deliveryMethod: orders.deliveryMethod,
+  addressSnapshot: orders.addressSnapshot,
+  totalAmount: orders.totalAmount,
+};
+
+interface RawJob {
+  id: string;
+  orderId: string;
+  driverId: string | null;
+  status: string;
+  deliveryFee: number;
+  createdAt: Date;
+  updatedAt: Date;
+  storeName: string;
+  deliveryMethod: string;
+  addressSnapshot: string;
+  totalAmount: number;
+}
+
+const mapJob = (job: RawJob) => ({
+  ...job,
+  addressSnapshot: JSON.parse(job.addressSnapshot),
+  createdAt: job.createdAt.toISOString(),
+  updatedAt: job.updatedAt.toISOString(),
+});
 
 export class DriverService {
   static async getAvailableJobs() {
-    const results = await db
-      .select({
-        id: deliveryJobs.id,
-        orderId: deliveryJobs.orderId,
-        driverId: deliveryJobs.driverId,
-        status: deliveryJobs.status,
-        deliveryFee: deliveryJobs.deliveryFee,
-        createdAt: deliveryJobs.createdAt,
-        updatedAt: deliveryJobs.updatedAt,
-        storeName: stores.name,
-        deliveryMethod: orders.deliveryMethod,
-        addressSnapshot: orders.addressSnapshot,
-        totalAmount: orders.totalAmount,
-      })
+    const list = await db
+      .select(jobColumns)
       .from(deliveryJobs)
       .innerJoin(orders, eq(deliveryJobs.orderId, orders.id))
       .innerJoin(stores, eq(orders.storeId, stores.id))
       .where(and(eq(deliveryJobs.status, 'pending'), eq(orders.status, 'menunggu_pengirim')))
       .limit(50);
-
-    return results.map((job) => ({
-      ...job,
-      addressSnapshot: JSON.parse(job.addressSnapshot),
-      createdAt: job.createdAt.toISOString(),
-      updatedAt: job.updatedAt.toISOString(),
-    }));
+    return list.map(mapJob);
   }
 
   static async getJobDetail(jobId: string) {
     const [job] = await db
-      .select({
-        id: deliveryJobs.id,
-        orderId: deliveryJobs.orderId,
-        driverId: deliveryJobs.driverId,
-        status: deliveryJobs.status,
-        deliveryFee: deliveryJobs.deliveryFee,
-        createdAt: deliveryJobs.createdAt,
-        updatedAt: deliveryJobs.updatedAt,
-        storeName: stores.name,
-        deliveryMethod: orders.deliveryMethod,
-        addressSnapshot: orders.addressSnapshot,
-        totalAmount: orders.totalAmount,
-      })
+      .select(jobColumns)
       .from(deliveryJobs)
       .innerJoin(orders, eq(deliveryJobs.orderId, orders.id))
       .innerJoin(stores, eq(orders.storeId, stores.id))
       .where(eq(deliveryJobs.id, jobId))
       .limit(1);
+    if (!job) throw new NotFoundError('Delivery job not found');
+    return mapJob(job);
+  }
 
-    if (!job) {
-      throw new NotFoundError('Delivery job not found');
-    }
+  static async takeJob(jobId: string, driverId: string) {
+    return await db.transaction(async (tx) => {
+      const [job] = await tx
+        .update(deliveryJobs)
+        .set({ status: 'taken', driverId, updatedAt: new Date() })
+        .where(and(eq(deliveryJobs.id, jobId), eq(deliveryJobs.status, 'pending')))
+        .returning();
+      if (!job) throw new ConflictError('Delivery job unavailable');
+
+      const [order] = await tx
+        .update(orders)
+        .set({ status: 'sedang_dikirim', updatedAt: new Date() })
+        .where(and(eq(orders.id, job.orderId), eq(orders.status, 'menunggu_pengirim')))
+        .returning();
+      if (!order) throw new ConflictError('Order not ready for delivery');
+
+      await tx.insert(orderStatusHistory).values({
+        orderId: job.orderId,
+        status: 'sedang_dikirim',
+        note: 'Driver is delivering your order',
+      });
+      return { success: true, message: 'Delivery job taken successfully' };
+    });
+  }
+
+  static async completeJob(jobId: string, driverId: string) {
+    return await db.transaction(async (tx) => {
+      const [job] = await tx
+        .update(deliveryJobs)
+        .set({ status: 'completed', updatedAt: new Date() })
+        .where(
+          and(
+            eq(deliveryJobs.id, jobId),
+            eq(deliveryJobs.driverId, driverId),
+            eq(deliveryJobs.status, 'taken'),
+          ),
+        )
+        .returning();
+      if (!job) throw new ConflictError('Delivery job cannot be completed');
+
+      const [order] = await tx
+        .update(orders)
+        .set({ status: 'pesanan_selesai', updatedAt: new Date() })
+        .where(and(eq(orders.id, job.orderId), eq(orders.status, 'sedang_dikirim')))
+        .returning();
+      if (!order) throw new ConflictError('Order is not in delivery status');
+
+      await tx.insert(orderStatusHistory).values({
+        orderId: job.orderId,
+        status: 'pesanan_selesai',
+        note: 'Order has been delivered successfully',
+      });
+      return { success: true, message: 'Delivery job completed successfully' };
+    });
+  }
+
+  static async getDriverStats(driverId: string) {
+    const active = await db
+      .select(jobColumns)
+      .from(deliveryJobs)
+      .innerJoin(orders, eq(deliveryJobs.orderId, orders.id))
+      .innerJoin(stores, eq(orders.storeId, stores.id))
+      .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'taken')));
+
+    const completed = await db
+      .select(jobColumns)
+      .from(deliveryJobs)
+      .innerJoin(orders, eq(deliveryJobs.orderId, orders.id))
+      .innerJoin(stores, eq(orders.storeId, stores.id))
+      .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')));
 
     return {
-      ...job,
-      addressSnapshot: JSON.parse(job.addressSnapshot),
-      createdAt: job.createdAt.toISOString(),
-      updatedAt: job.updatedAt.toISOString(),
+      totalEarnings: completed.reduce((sum, j) => sum + j.deliveryFee, 0),
+      completedJobsCount: completed.length,
+      activeJobs: active.map(mapJob),
+      completedJobs: completed.map(mapJob),
     };
   }
 }

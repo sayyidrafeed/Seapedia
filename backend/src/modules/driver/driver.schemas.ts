@@ -21,3 +21,19 @@ export const deliveryJobResponseSchema = z
 export const deliveryJobListResponseSchema = z
   .array(deliveryJobResponseSchema)
   .meta({ id: 'DeliveryJobListResponse' });
+
+export const driverActionSuccessResponseSchema = z
+  .object({
+    success: z.boolean(),
+    message: z.string(),
+  })
+  .meta({ id: 'DriverActionSuccessResponse' });
+
+export const driverStatsResponseSchema = z
+  .object({
+    totalEarnings: z.number().int(),
+    completedJobsCount: z.number().int(),
+    activeJobs: z.array(deliveryJobResponseSchema),
+    completedJobs: z.array(deliveryJobResponseSchema),
+  })
+  .meta({ id: 'DriverStatsResponse' });
