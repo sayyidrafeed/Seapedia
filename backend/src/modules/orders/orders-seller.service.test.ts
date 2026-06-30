@@ -223,4 +223,50 @@ describe('OrdersSellerService', () => {
 
     expect(OrdersSellerService.processOrder('seller-1', 'order-1')).rejects.toThrow(ConflictError);
   });
+
+  test('getReport returns calculated financial values and completed orders', async () => {
+    const completedOrder = {
+      ...mockOrder,
+      status: 'pesanan_selesai',
+      storeName: mockStore.name,
+    };
+    dbState.addSelect([mockStore]);
+    dbState.addSelect([completedOrder]); // ordersList
+    dbState.addSelect(mockOrderItems); // allItems
+
+    const result = await OrdersSellerService.getReport('seller-1');
+
+    expect(result.totalIncome).toBe(10000);
+    expect(result.totalOrders).toBe(1);
+    expect(result.averageRevenue).toBe(10000);
+    expect(result.orders).toHaveLength(1);
+    expect(result.orders[0].id).toBe('order-1');
+  });
+
+  test('getReport includes pending orders in list but excludes them from metrics', async () => {
+    const completedOrder = {
+      ...mockOrder,
+      id: 'order-completed',
+      status: 'pesanan_selesai',
+      storeName: mockStore.name,
+      subtotal: 10000,
+    };
+    const pendingOrder = {
+      ...mockOrder,
+      id: 'order-pending',
+      status: 'sedang_dikemas',
+      storeName: mockStore.name,
+      subtotal: 5000,
+    };
+    dbState.addSelect([mockStore]);
+    dbState.addSelect([completedOrder, pendingOrder]); // ordersList
+    dbState.addSelect(mockOrderItems); // allItems
+
+    const result = await OrdersSellerService.getReport('seller-1');
+
+    expect(result.totalIncome).toBe(10000); // Only completed order subtotals
+    expect(result.totalOrders).toBe(1); // Only completed order count
+    expect(result.averageRevenue).toBe(10000);
+    expect(result.orders).toHaveLength(2); // Both completed and pending returned
+  });
 });
