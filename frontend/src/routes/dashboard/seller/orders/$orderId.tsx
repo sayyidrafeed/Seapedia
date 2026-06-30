@@ -168,6 +168,9 @@ function SellerOrderDetailPage() {
           <Card className="border border-border/80 shadow-sm p-6 space-y-6">
             <OrderPriceSummary
               subtotal={order.subtotal}
+              discountAmount={order.discountAmount}
+              discountCode={order.discountCode as string | null}
+              discountType={order.discountType as string | null}
               deliveryFee={order.deliveryFee}
               ppn={order.ppn}
               totalAmount={order.totalAmount}

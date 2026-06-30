@@ -13,6 +13,7 @@ import {
 import { eq, and, sql } from 'drizzle-orm';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import { BuyersCartService } from '@/modules/buyers/buyers-cart.service';
+import { DiscountsService } from '@/modules/discounts/discounts.service';
 
 export const DELIVERY_FEES: Record<string, number> = {
   instant: 30000,
@@ -21,20 +22,24 @@ export const DELIVERY_FEES: Record<string, number> = {
 };
 
 export class OrdersCheckoutService {
-  static calculateTotals(subtotal: number, deliveryMethod: string) {
+  static calculateTotals(subtotal: number, deliveryMethod: string, discountAmount = 0) {
     const deliveryFee = DELIVERY_FEES[deliveryMethod] ?? 0;
-    const taxBase = subtotal + deliveryFee;
+    const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+    const taxBase = discountedSubtotal + deliveryFee;
     const ppn = Math.round(taxBase * 0.12);
     const totalAmount = taxBase + ppn;
-    return { deliveryFee, taxBase, ppn, totalAmount };
+    return { deliveryFee, taxBase, ppn, totalAmount, discountedSubtotal };
   }
 
-  static async preview(buyerId: string, deliveryMethod: string) {
+  static async preview(buyerId: string, deliveryMethod: string, discountCode?: string) {
     const cartSummary = await BuyersCartService.getCartSummary(buyerId);
     if (cartSummary.items.length === 0) {
       return {
         items: [],
         subtotal: 0,
+        discountAmount: 0,
+        discountCode: null,
+        discountType: null,
         deliveryFee: 0,
         taxBase: 0,
         ppn: 0,
@@ -53,9 +58,24 @@ export class OrdersCheckoutService {
       .orderBy(sql`${addresses.isDefault} DESC, ${addresses.createdAt} DESC`);
     const address = userAddresses[0] ?? null;
 
+    let discountAmount = 0;
+    let appliedCode: string | null = null;
+    let appliedType: string | null = null;
+
+    if (discountCode) {
+      const discountResult = await DiscountsService.validateCode(
+        discountCode,
+        cartSummary.subtotal,
+      );
+      discountAmount = discountResult.discountAmount;
+      appliedCode = discountResult.code;
+      appliedType = discountResult.type;
+    }
+
     const { deliveryFee, taxBase, ppn, totalAmount } = this.calculateTotals(
       cartSummary.subtotal,
       deliveryMethod,
+      discountAmount,
     );
 
     const items = cartSummary.items.map((item) => ({
@@ -69,6 +89,9 @@ export class OrdersCheckoutService {
     return {
       items,
       subtotal: cartSummary.subtotal,
+      discountAmount,
+      discountCode: appliedCode,
+      discountType: appliedType,
       deliveryFee,
       taxBase,
       ppn,
@@ -86,7 +109,12 @@ export class OrdersCheckoutService {
     };
   }
 
-  static async createOrder(buyerId: string, deliveryMethod: string, addressId: string) {
+  static async createOrder(
+    buyerId: string,
+    deliveryMethod: string,
+    addressId: string,
+    discountCode?: string,
+  ) {
     return await db.transaction(async (tx) => {
       // 1. Fetch address and verify ownership
       const [address] = await tx
@@ -132,7 +160,23 @@ export class OrdersCheckoutService {
         subtotal += item.product.price * item.quantity;
       }
 
-      const { deliveryFee, ppn, totalAmount } = this.calculateTotals(subtotal, deliveryMethod);
+      let discountAmount = 0;
+      let appliedCode: string | null = null;
+      let appliedType: string | null = null;
+      let discountResult = null;
+
+      if (discountCode) {
+        discountResult = await DiscountsService.validateCode(discountCode, subtotal, tx);
+        discountAmount = discountResult.discountAmount;
+        appliedCode = discountResult.code;
+        appliedType = discountResult.type;
+      }
+
+      const { deliveryFee, ppn, totalAmount } = this.calculateTotals(
+        subtotal,
+        deliveryMethod,
+        discountAmount,
+      );
 
       // 4. Fetch buyer wallet and verify balance
       let [wallet] = await tx.select().from(wallets).where(eq(wallets.userId, buyerId)).limit(1);
@@ -185,6 +229,11 @@ export class OrdersCheckoutService {
         );
       }
 
+      // 6.5 Decrement Voucher usage if applied
+      if (discountResult && discountResult.type === 'voucher') {
+        await DiscountsService.decrementVoucherUsage(tx, discountResult.id);
+      }
+
       // 7. Create wallet transaction
       const reference = 'PAY-' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
       await tx
@@ -224,6 +273,9 @@ export class OrdersCheckoutService {
           storeId: cart.storeId,
           deliveryMethod,
           subtotal,
+          discountAmount,
+          discountCode: appliedCode,
+          discountType: appliedType,
           deliveryFee,
           ppn,
           totalAmount,

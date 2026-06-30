@@ -1,43 +1,20 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { privateAdminEndpoint } from '@/lib/api/generated';
 
 export const Route = createFileRoute('/dashboard/admin')({
-  component: AdminDashboard,
+  component: AdminLayout,
 });
 
-function AdminDashboard() {
+function AdminLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!auth.isLoading && auth.activeRole !== 'admin') {
       navigate({ to: '/select-role' });
     }
   }, [auth.isLoading, auth.activeRole, navigate]);
-
-  const testPrivateEndpoint = async () => {
-    setLoading(true);
-    setResult(null);
-    setError(null);
-    try {
-      const { data, error: apiError } = await privateAdminEndpoint();
-      if (apiError) {
-        throw new Error(apiError.error || 'Request failed');
-      }
-      if (data) {
-        setResult(data.message);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Request failed');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (auth.isLoading || auth.activeRole !== 'admin') {
     return (
@@ -51,46 +28,30 @@ function AdminDashboard() {
 
   return (
     <div className="container mx-auto px-6 py-12 space-y-6">
-      <div className="border-b border-border pb-4">
-        <h1 className="text-3xl font-extrabold tracking-tight capitalize">
-          {auth.activeRole} Dashboard
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Placeholder for Administrative monitoring controls (Level 6).
-        </p>
+      <div className="border-b border-border pb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight capitalize">Admin Portal</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            System configuration, promotions, and marketplace monitoring.
+          </p>
+        </div>
+        <div className="space-x-4">
+          <button
+            onClick={() => navigate({ to: '/dashboard/admin' })}
+            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
+          >
+            Dashboard
+          </button>
+          <button
+            onClick={() => navigate({ to: '/dashboard/admin/discounts' })}
+            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
+          >
+            Discounts Management
+          </button>
+        </div>
       </div>
 
-      <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-bold text-foreground mb-4">Level 1 Admin Area</h2>
-        <p className="text-sm text-muted-foreground">
-          You are logged in with the active role: <strong>admin</strong>. Full monitoring and
-          discount controls will be added in Level 6.
-        </p>
-      </div>
-
-      <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-bold text-foreground mb-4">Private Endpoint Test</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Test the private endpoint that only allows users with the Admin role.
-        </p>
-        <button
-          onClick={testPrivateEndpoint}
-          disabled={loading}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : 'Test Private Admin Endpoint'}
-        </button>
-        {result && (
-          <p className="mt-4 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md px-4 py-2">
-            {result}
-          </p>
-        )}
-        {error && (
-          <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-4 py-2">
-            {error}
-          </p>
-        )}
-      </div>
+      <Outlet />
     </div>
   );
 }

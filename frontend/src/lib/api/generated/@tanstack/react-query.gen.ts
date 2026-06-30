@@ -15,8 +15,10 @@ import {
   clearCart,
   createAddress,
   createOrder,
+  createPromo,
   createSellerProduct,
   createStore,
+  createVoucher,
   deleteAddress,
   deleteCartItem,
   deleteSellerProduct,
@@ -30,16 +32,20 @@ import {
   getCurrentUserFinancialSummary,
   getProductById,
   getProductBySlug,
+  getPromo,
   getPublicStoreInfo,
   getSellerOrderDetail,
   getSellerProductById,
+  getVoucher,
   getWalletTransactions,
   healthCheck,
   listBuyerOrders,
   listProducts,
+  listPromos,
   listReviews,
   listSellerOrders,
   listSellerProducts,
+  listVouchers,
   loginUser,
   logoutUser,
   onboardUser,
@@ -58,6 +64,7 @@ import {
   updateCartItem,
   updateCurrentSellerStore,
   updateSellerProduct,
+  validateDiscountCode,
 } from '../sdk.gen';
 import type {
   AddCartItemData,
@@ -75,12 +82,18 @@ import type {
   CreateOrderData,
   CreateOrderError,
   CreateOrderResponse,
+  CreatePromoData,
+  CreatePromoError,
+  CreatePromoResponse,
   CreateSellerProductData,
   CreateSellerProductError,
   CreateSellerProductResponse,
   CreateStoreData,
   CreateStoreError,
   CreateStoreResponse,
+  CreateVoucherData,
+  CreateVoucherError,
+  CreateVoucherResponse,
   DeleteAddressData,
   DeleteAddressError,
   DeleteAddressResponse,
@@ -120,6 +133,9 @@ import type {
   GetProductBySlugData,
   GetProductBySlugError,
   GetProductBySlugResponse,
+  GetPromoData,
+  GetPromoError,
+  GetPromoResponse,
   GetPublicStoreInfoData,
   GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
@@ -129,6 +145,9 @@ import type {
   GetSellerProductByIdData,
   GetSellerProductByIdError,
   GetSellerProductByIdResponse,
+  GetVoucherData,
+  GetVoucherError,
+  GetVoucherResponse,
   GetWalletTransactionsData,
   GetWalletTransactionsError,
   GetWalletTransactionsResponse,
@@ -140,6 +159,9 @@ import type {
   ListProductsData,
   ListProductsError,
   ListProductsResponse,
+  ListPromosData,
+  ListPromosError,
+  ListPromosResponse,
   ListReviewsData,
   ListReviewsError,
   ListReviewsResponse,
@@ -149,6 +171,9 @@ import type {
   ListSellerProductsData,
   ListSellerProductsError,
   ListSellerProductsResponse,
+  ListVouchersData,
+  ListVouchersError,
+  ListVouchersResponse,
   LoginUserData,
   LoginUserError,
   LoginUserResponse,
@@ -200,6 +225,9 @@ import type {
   UpdateSellerProductData,
   UpdateSellerProductError,
   UpdateSellerProductResponse,
+  ValidateDiscountCodeData,
+  ValidateDiscountCodeError,
+  ValidateDiscountCodeResponse,
 } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
@@ -1529,3 +1557,176 @@ export const getSellerOrderDetailOptions = (options: Options<GetSellerOrderDetai
     },
     queryKey: getSellerOrderDetailQueryKey(options),
   });
+
+export const listVouchersQueryKey = (options?: Options<ListVouchersData>) =>
+  createQueryKey('listVouchers', options);
+
+/**
+ * List all discount vouchers
+ */
+export const listVouchersOptions = (options?: Options<ListVouchersData>) =>
+  queryOptions<
+    ListVouchersResponse,
+    ListVouchersError,
+    ListVouchersResponse,
+    ReturnType<typeof listVouchersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listVouchers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listVouchersQueryKey(options),
+  });
+
+/**
+ * Create a new discount voucher
+ */
+export const createVoucherMutation = (
+  options?: Partial<Options<CreateVoucherData>>,
+): UseMutationOptions<CreateVoucherResponse, CreateVoucherError, Options<CreateVoucherData>> => {
+  const mutationOptions: UseMutationOptions<
+    CreateVoucherResponse,
+    CreateVoucherError,
+    Options<CreateVoucherData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createVoucher({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getVoucherQueryKey = (options: Options<GetVoucherData>) =>
+  createQueryKey('getVoucher', options);
+
+/**
+ * Get details of a specific voucher
+ */
+export const getVoucherOptions = (options: Options<GetVoucherData>) =>
+  queryOptions<
+    GetVoucherResponse,
+    GetVoucherError,
+    GetVoucherResponse,
+    ReturnType<typeof getVoucherQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getVoucher({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getVoucherQueryKey(options),
+  });
+
+export const listPromosQueryKey = (options?: Options<ListPromosData>) =>
+  createQueryKey('listPromos', options);
+
+/**
+ * List all discount promos
+ */
+export const listPromosOptions = (options?: Options<ListPromosData>) =>
+  queryOptions<
+    ListPromosResponse,
+    ListPromosError,
+    ListPromosResponse,
+    ReturnType<typeof listPromosQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listPromos({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listPromosQueryKey(options),
+  });
+
+/**
+ * Create a new discount promo campaign
+ */
+export const createPromoMutation = (
+  options?: Partial<Options<CreatePromoData>>,
+): UseMutationOptions<CreatePromoResponse, CreatePromoError, Options<CreatePromoData>> => {
+  const mutationOptions: UseMutationOptions<
+    CreatePromoResponse,
+    CreatePromoError,
+    Options<CreatePromoData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createPromo({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getPromoQueryKey = (options: Options<GetPromoData>) =>
+  createQueryKey('getPromo', options);
+
+/**
+ * Get details of a specific promo campaign
+ */
+export const getPromoOptions = (options: Options<GetPromoData>) =>
+  queryOptions<
+    GetPromoResponse,
+    GetPromoError,
+    GetPromoResponse,
+    ReturnType<typeof getPromoQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getPromo({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getPromoQueryKey(options),
+  });
+
+/**
+ * Validate a voucher or promo code for buyer checkout
+ */
+export const validateDiscountCodeMutation = (
+  options?: Partial<Options<ValidateDiscountCodeData>>,
+): UseMutationOptions<
+  ValidateDiscountCodeResponse,
+  ValidateDiscountCodeError,
+  Options<ValidateDiscountCodeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidateDiscountCodeResponse,
+    ValidateDiscountCodeError,
+    Options<ValidateDiscountCodeData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await validateDiscountCode({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};

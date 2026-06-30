@@ -18,12 +18,18 @@ import type {
   CreateOrderData,
   CreateOrderErrors,
   CreateOrderResponses,
+  CreatePromoData,
+  CreatePromoErrors,
+  CreatePromoResponses,
   CreateSellerProductData,
   CreateSellerProductErrors,
   CreateSellerProductResponses,
   CreateStoreData,
   CreateStoreErrors,
   CreateStoreResponses,
+  CreateVoucherData,
+  CreateVoucherErrors,
+  CreateVoucherResponses,
   DeleteAddressData,
   DeleteAddressErrors,
   DeleteAddressResponses,
@@ -63,6 +69,9 @@ import type {
   GetProductBySlugData,
   GetProductBySlugErrors,
   GetProductBySlugResponses,
+  GetPromoData,
+  GetPromoErrors,
+  GetPromoResponses,
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
@@ -72,6 +81,9 @@ import type {
   GetSellerProductByIdData,
   GetSellerProductByIdErrors,
   GetSellerProductByIdResponses,
+  GetVoucherData,
+  GetVoucherErrors,
+  GetVoucherResponses,
   GetWalletTransactionsData,
   GetWalletTransactionsErrors,
   GetWalletTransactionsResponses,
@@ -83,6 +95,9 @@ import type {
   ListProductsData,
   ListProductsErrors,
   ListProductsResponses,
+  ListPromosData,
+  ListPromosErrors,
+  ListPromosResponses,
   ListReviewsData,
   ListReviewsErrors,
   ListReviewsResponses,
@@ -92,6 +107,9 @@ import type {
   ListSellerProductsData,
   ListSellerProductsErrors,
   ListSellerProductsResponses,
+  ListVouchersData,
+  ListVouchersErrors,
+  ListVouchersResponses,
   LoginUserData,
   LoginUserErrors,
   LoginUserResponses,
@@ -143,6 +161,9 @@ import type {
   UpdateSellerProductData,
   UpdateSellerProductErrors,
   UpdateSellerProductResponses,
+  ValidateDiscountCodeData,
+  ValidateDiscountCodeErrors,
+  ValidateDiscountCodeResponses,
 } from './types.gen';
 
 export type Options<
@@ -1087,4 +1108,146 @@ export const getSellerOrderDetail = <ThrowOnError extends boolean = false>(
     ],
     url: '/api/seller/orders/{id}',
     ...options,
+  });
+
+/**
+ * List all discount vouchers
+ */
+export const listVouchers = <ThrowOnError extends boolean = false>(
+  options?: Options<ListVouchersData, ThrowOnError>,
+): RequestResult<ListVouchersResponses, ListVouchersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListVouchersResponses, ListVouchersErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/vouchers',
+    ...options,
+  });
+
+/**
+ * Create a new discount voucher
+ */
+export const createVoucher = <ThrowOnError extends boolean = false>(
+  options: Options<CreateVoucherData, ThrowOnError>,
+): RequestResult<CreateVoucherResponses, CreateVoucherErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateVoucherResponses, CreateVoucherErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/vouchers',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get details of a specific voucher
+ */
+export const getVoucher = <ThrowOnError extends boolean = false>(
+  options: Options<GetVoucherData, ThrowOnError>,
+): RequestResult<GetVoucherResponses, GetVoucherErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetVoucherResponses, GetVoucherErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/vouchers/{id}',
+    ...options,
+  });
+
+/**
+ * List all discount promos
+ */
+export const listPromos = <ThrowOnError extends boolean = false>(
+  options?: Options<ListPromosData, ThrowOnError>,
+): RequestResult<ListPromosResponses, ListPromosErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListPromosResponses, ListPromosErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/promos',
+    ...options,
+  });
+
+/**
+ * Create a new discount promo campaign
+ */
+export const createPromo = <ThrowOnError extends boolean = false>(
+  options: Options<CreatePromoData, ThrowOnError>,
+): RequestResult<CreatePromoResponses, CreatePromoErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreatePromoResponses, CreatePromoErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/promos',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get details of a specific promo campaign
+ */
+export const getPromo = <ThrowOnError extends boolean = false>(
+  options: Options<GetPromoData, ThrowOnError>,
+): RequestResult<GetPromoResponses, GetPromoErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetPromoResponses, GetPromoErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/promos/{id}',
+    ...options,
+  });
+
+/**
+ * Validate a voucher or promo code for buyer checkout
+ */
+export const validateDiscountCode = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateDiscountCodeData, ThrowOnError>,
+): RequestResult<ValidateDiscountCodeResponses, ValidateDiscountCodeErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    ValidateDiscountCodeResponses,
+    ValidateDiscountCodeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/discounts/validate',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });

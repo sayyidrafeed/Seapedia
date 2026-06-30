@@ -4,51 +4,6 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
-export type AddressResponse = {
-  id: string;
-  userId: string;
-  label: string;
-  recipientName: string;
-  phoneNumber: string;
-  province: string;
-  city: string;
-  district: string;
-  postalCode: string;
-  fullAddress: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type OrderResponse = {
-  id: string;
-  buyerId: string;
-  storeId: string;
-  storeName: string;
-  deliveryMethod: string;
-  subtotal: number;
-  deliveryFee: number;
-  ppn: number;
-  totalAmount: number;
-  status: string;
-  addressSnapshot: AddressResponse;
-  createdAt: string;
-  updatedAt: string;
-  items: Array<{
-    id: string;
-    productId: string | unknown;
-    productName: string;
-    productPrice: number;
-    quantity: number;
-  }>;
-  statusHistory?: Array<{
-    id: string;
-    status: string;
-    note: string | unknown;
-    createdAt: string;
-  }>;
-};
-
 export type Product = {
   id: string;
   name: string;
@@ -90,6 +45,76 @@ export type WalletTransactionResponse = {
   status: string;
   reference: string;
   createdAt: string;
+};
+
+export type AddressResponse = {
+  id: string;
+  userId: string;
+  label: string;
+  recipientName: string;
+  phoneNumber: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  fullAddress: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrderResponse = {
+  id: string;
+  buyerId: string;
+  storeId: string;
+  storeName: string;
+  deliveryMethod: string;
+  subtotal: number;
+  discountAmount: number;
+  discountCode: string | unknown;
+  discountType: string | unknown;
+  deliveryFee: number;
+  ppn: number;
+  totalAmount: number;
+  status: string;
+  addressSnapshot: AddressResponse;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    productId: string | unknown;
+    productName: string;
+    productPrice: number;
+    quantity: number;
+  }>;
+  statusHistory?: Array<{
+    id: string;
+    status: string;
+    note: string | unknown;
+    createdAt: string;
+  }>;
+};
+
+export type VoucherResponse = {
+  id: string;
+  code: string;
+  discountAmount: number;
+  minOrderAmount: number;
+  expiresAt: string;
+  remainingUsage: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PromoResponse = {
+  id: string;
+  code: string;
+  discountPercent: number;
+  maxDiscountAmount: number | unknown;
+  minOrderAmount: number;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type HealthCheckData = {
@@ -2054,6 +2079,7 @@ export type UpdateCartItemResponse = UpdateCartItemResponses[keyof UpdateCartIte
 export type CheckoutPreviewData = {
   body: {
     deliveryMethod: 'instant' | 'next_day' | 'regular';
+    discountCode?: string;
   };
   path?: never;
   query?: never;
@@ -2102,6 +2128,9 @@ export type CheckoutPreviewResponses = {
       total: number;
     }>;
     subtotal: number;
+    discountAmount: number;
+    discountCode: string | unknown;
+    discountType: string | unknown;
     deliveryFee: number;
     taxBase: number;
     ppn: number;
@@ -2158,6 +2187,7 @@ export type CreateOrderData = {
   body: {
     deliveryMethod: 'instant' | 'next_day' | 'regular';
     addressId: string;
+    discountCode?: string;
   };
   path?: never;
   query?: never;
@@ -2210,6 +2240,9 @@ export type CreateOrderResponses = {
     storeName: string;
     deliveryMethod: string;
     subtotal: number;
+    discountAmount: number;
+    discountCode: string | unknown;
+    discountType: string | unknown;
     deliveryFee: number;
     ppn: number;
     totalAmount: number;
@@ -2370,3 +2403,374 @@ export type GetSellerOrderDetailResponses = {
 
 export type GetSellerOrderDetailResponse =
   GetSellerOrderDetailResponses[keyof GetSellerOrderDetailResponses];
+
+export type ListVouchersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/vouchers';
+};
+
+export type ListVouchersErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ListVouchersError = ListVouchersErrors[keyof ListVouchersErrors];
+
+export type ListVouchersResponses = {
+  /**
+   * List of vouchers
+   */
+  200: Array<VoucherResponse>;
+};
+
+export type ListVouchersResponse = ListVouchersResponses[keyof ListVouchersResponses];
+
+export type CreateVoucherData = {
+  body: {
+    code: string;
+    discountAmount: number;
+    minOrderAmount?: number;
+    expiresAt: string;
+    remainingUsage: number;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/admin/vouchers';
+};
+
+export type CreateVoucherErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type CreateVoucherError = CreateVoucherErrors[keyof CreateVoucherErrors];
+
+export type CreateVoucherResponses = {
+  /**
+   * Voucher created successfully
+   */
+  200: {
+    id: string;
+    code: string;
+    discountAmount: number;
+    minOrderAmount: number;
+    expiresAt: string;
+    remainingUsage: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type CreateVoucherResponse = CreateVoucherResponses[keyof CreateVoucherResponses];
+
+export type GetVoucherData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/admin/vouchers/{id}';
+};
+
+export type GetVoucherErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetVoucherError = GetVoucherErrors[keyof GetVoucherErrors];
+
+export type GetVoucherResponses = {
+  /**
+   * Voucher details
+   */
+  200: {
+    id: string;
+    code: string;
+    discountAmount: number;
+    minOrderAmount: number;
+    expiresAt: string;
+    remainingUsage: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetVoucherResponse = GetVoucherResponses[keyof GetVoucherResponses];
+
+export type ListPromosData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/promos';
+};
+
+export type ListPromosErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ListPromosError = ListPromosErrors[keyof ListPromosErrors];
+
+export type ListPromosResponses = {
+  /**
+   * List of promos
+   */
+  200: Array<PromoResponse>;
+};
+
+export type ListPromosResponse = ListPromosResponses[keyof ListPromosResponses];
+
+export type CreatePromoData = {
+  body: {
+    code: string;
+    discountPercent: number;
+    maxDiscountAmount?: number | unknown;
+    minOrderAmount?: number;
+    expiresAt: string;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/admin/promos';
+};
+
+export type CreatePromoErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type CreatePromoError = CreatePromoErrors[keyof CreatePromoErrors];
+
+export type CreatePromoResponses = {
+  /**
+   * Promo created successfully
+   */
+  200: {
+    id: string;
+    code: string;
+    discountPercent: number;
+    maxDiscountAmount: number | unknown;
+    minOrderAmount: number;
+    expiresAt: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type CreatePromoResponse = CreatePromoResponses[keyof CreatePromoResponses];
+
+export type GetPromoData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/admin/promos/{id}';
+};
+
+export type GetPromoErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetPromoError = GetPromoErrors[keyof GetPromoErrors];
+
+export type GetPromoResponses = {
+  /**
+   * Promo details
+   */
+  200: {
+    id: string;
+    code: string;
+    discountPercent: number;
+    maxDiscountAmount: number | unknown;
+    minOrderAmount: number;
+    expiresAt: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type GetPromoResponse = GetPromoResponses[keyof GetPromoResponses];
+
+export type ValidateDiscountCodeData = {
+  body: {
+    code: string;
+    subtotal: number;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/discounts/validate';
+};
+
+export type ValidateDiscountCodeErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ValidateDiscountCodeError =
+  ValidateDiscountCodeErrors[keyof ValidateDiscountCodeErrors];
+
+export type ValidateDiscountCodeResponses = {
+  /**
+   * Discount code validation result
+   */
+  200: {
+    type: 'voucher' | 'promo';
+    code: string;
+    discountAmount: number;
+    description: string;
+  };
+};
+
+export type ValidateDiscountCodeResponse =
+  ValidateDiscountCodeResponses[keyof ValidateDiscountCodeResponses];
