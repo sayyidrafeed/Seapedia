@@ -51,7 +51,15 @@ function FormField({ label, placeholder, field, isTextArea = false }: FormFieldP
         />
       )}
       {field.state.meta.errors && (
-        <p className="text-xs text-red-500 mt-1">{field.state.meta.errors.join(', ')}</p>
+        <p className="text-xs text-red-500 mt-1">
+          {field.state.meta.errors
+            .map((err) =>
+              typeof err === 'object' && err !== null && 'message' in err
+                ? (err as { message: string }).message
+                : String(err),
+            )
+            .join(', ')}
+        </p>
       )}
     </div>
   );
