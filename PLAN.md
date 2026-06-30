@@ -541,7 +541,7 @@ Real delivery systems must handle orders that are not completed on time. SEAPEDI
 
 After this level, Admins should be able to monitor the marketplace, manage discount tools, and verify operational cases such as overdue orders. The system should now be demonstrable from marketplace activity to administrative supervision.
 
-> **Level 5 — Complete** ✅
+> **Level 6 — Complete** ✅
 
 ---
 
@@ -607,6 +607,8 @@ Because this is a fullstack challenge with many roles, your final project must b
 - A short security testing note or checklist.
 
 Congratulations! After finishing this level, you have built a complete multi-role e-commerce system with public reviews, authentication, store management, cart and checkout, discounts, seller processing, delivery jobs, admin monitoring, overdue handling, and baseline security hardening. SEAPEDIA is now ready to be demonstrated as a full marketplace application.
+
+> **Level 7 — Complete** ✅
 
 ---
 
