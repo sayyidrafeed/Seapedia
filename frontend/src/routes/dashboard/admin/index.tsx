@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminMonitoringEndpointOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { client } from '@/lib/api/generated/client.gen';
 import {
   Users,
   Store,
@@ -14,9 +15,16 @@ import {
   AlertTriangle,
   Coins,
   ChevronRight,
+  Clock,
+  RotateCcw,
+  Loader2,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { MonitoringCard } from './components/MonitoringCard';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/dashboard/admin/')({
   component: AdminDashboardIndex,
@@ -25,6 +33,13 @@ export const Route = createFileRoute('/dashboard/admin/')({
 function AdminDashboardIndex() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [simulating, setSimulating] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [processResult, setProcessResult] = useState<{
+    processedCount: number;
+    details: Array<{ orderId: string; status: string; refundAmount: number; stockRestored: boolean }>;
+  } | null>(null);
 
   useEffect(() => {
     if (!auth.isLoading && auth.activeRole !== 'admin') {
@@ -40,6 +55,46 @@ function AdminDashboardIndex() {
     ...adminMonitoringEndpointOptions(),
     enabled: auth.activeRole === 'admin',
   });
+
+  const handleSimulateDay = async () => {
+    setSimulating(true);
+    setProcessResult(null);
+    try {
+      const { data, error: apiError } = await client.post({
+        url: '/api/admin/simulate-day',
+      });
+      if (apiError) {
+        throw new Error(typeof apiError === 'string' ? apiError : (apiError as any).error || 'Simulation failed');
+      }
+      toast.success(`Day advanced! Offset is now +${(data as any).dayOffset}`);
+      queryClient.invalidateQueries({ queryKey: adminMonitoringEndpointOptions().queryKey });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to simulate day');
+    } finally {
+      setSimulating(false);
+    }
+  };
+
+  const handleProcessOverdue = async () => {
+    setProcessing(true);
+    setProcessResult(null);
+    try {
+      const { data, error: apiError } = await client.post({
+        url: '/api/admin/overdue/process',
+      });
+      if (apiError) {
+        throw new Error(typeof apiError === 'string' ? apiError : (apiError as any).error || 'Processing failed');
+      }
+      const result = data as any;
+      setProcessResult(result);
+      toast.success(`Processed ${result.processedCount} overdue order(s)`);
+      queryClient.invalidateQueries({ queryKey: adminMonitoringEndpointOptions().queryKey });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to process overdue orders');
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   if (auth.isLoading || auth.activeRole !== 'admin') {
     return (
@@ -159,6 +214,132 @@ function AdminDashboardIndex() {
               icon={<AlertTriangle className="h-4 w-4" />}
               description="Orders exceeding SLA times"
             />
+          </div>
+
+          {/* Simulation & Overdue Controls */}
+          <div className="space-y-4 pt-4">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              Time Simulation & Overdue Management
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="border border-border p-6 rounded-2xl">
+                <div className="flex items-start gap-4">
+                  <div className="h-10 w-10 flex items-center justify-center rounded-full bg-amber-100 text-amber-700 shrink-0">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-3 flex-1">
+                    <div>
+                      <h3 className="font-bold text-foreground">Simulate Next Day</h3>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        Advance the simulation clock by one day. All SLA calculations will use the
+                        simulated time instead of real time.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleSimulateDay}
+                      disabled={simulating}
+                      className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer border-none"
+                    >
+                      {simulating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RotateCcw className="h-4 w-4" />
+                      )}
+                      {simulating ? 'Simulating...' : 'Simulate Day +1'}
+                    </button>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="border border-border p-6 rounded-2xl">
+                <div className="flex items-start gap-4">
+                  <div className="h-10 w-10 flex items-center justify-center rounded-full bg-red-100 text-red-700 shrink-0">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-3 flex-1">
+                    <div>
+                      <h3 className="font-bold text-foreground">Process Overdue Orders</h3>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        Find all orders that exceed their delivery SLA (Instant: 12h, Next Day: 24h,
+                        Regular: 3 days) and apply auto-refund or auto-return.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleProcessOverdue}
+                      disabled={processing}
+                      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer border-none"
+                    >
+                      {processing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RotateCcw className="h-4 w-4" />
+                      )}
+                      {processing ? 'Processing...' : 'Process Overdue Orders'}
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {processResult && (
+              <Card className="border border-border p-6 rounded-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  {processResult.processedCount > 0 ? (
+                    <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                  ) : (
+                    <XCircle className="h-6 w-6 text-muted-foreground" />
+                  )}
+                  <div>
+                    <h3 className="font-bold text-foreground text-lg">
+                      {processResult.processedCount > 0
+                        ? `${processResult.processedCount} Overdue Order(s) Processed`
+                        : 'No Overdue Orders Found'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {processResult.processedCount > 0
+                        ? 'The following orders were auto-refunded or returned:'
+                        : 'All orders are within their delivery SLA.'}
+                    </p>
+                  </div>
+                </div>
+                {processResult.details.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm border-collapse">
+                      <thead>
+                        <tr className="bg-muted/40 border-b border-border text-muted-foreground font-semibold">
+                          <th className="p-3 pl-0">Order ID</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3">Refund Amount</th>
+                          <th className="p-3 pr-0">Stock Restored</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {processResult.details.map((d) => (
+                          <tr key={d.orderId} className="hover:bg-muted/20 transition-colors">
+                            <td className="p-3 pl-0 font-mono text-xs text-foreground">
+                              {d.orderId.slice(0, 8)}...
+                            </td>
+                            <td className="p-3">
+                              <Badge variant="destructive">Dikembalikan</Badge>
+                            </td>
+                            <td className="p-3 font-semibold text-emerald-600">
+                              {formatIdr(d.refundAmount)}
+                            </td>
+                            <td className="p-3 pr-0">
+                              {d.stockRestored ? (
+                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
+            )}
           </div>
         </div>
       ) : null}
