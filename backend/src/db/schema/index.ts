@@ -7,6 +7,7 @@ import * as cart from './cart-schema';
 import * as order from './order-schema';
 import * as discount from './discount-schema';
 import * as delivery from './delivery-schema';
+import * as simulation from './simulation-schema';
 
 export const schema = {
   ...auth,
@@ -18,6 +19,7 @@ export const schema = {
   ...order,
   ...discount,
   ...delivery,
+  ...simulation,
 };
 
 export const carts = cart.carts;
@@ -38,3 +40,4 @@ export * from './cart-schema';
 export * from './order-schema';
 export * from './discount-schema';
 export * from './delivery-schema';
+export * from './simulation-schema';

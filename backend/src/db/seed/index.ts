@@ -8,6 +8,7 @@ import {
   orders, orderItems, orderStatusHistory,
   vouchers, promos,
   deliveryJobs,
+  simulationState,
   appReview,
 } from '../schema';
 import {
@@ -48,6 +49,7 @@ async function cleanAll() {
   await db.delete(appReview);
   await db.delete(vouchers);
   await db.delete(promos);
+  await db.delete(simulationState);
   await db.delete(users);
   console.log('  Done.');
 }
@@ -219,6 +221,7 @@ async function seedOrders(userMap: Map<string, string>, storeMap: Map<string, st
       totalAmount: o.totalAmount,
       status: o.status,
       addressSnapshot: buildAddressSnapshot(o.addressIndex),
+      createdAt: o.createdAt,
     });
     orderMap.set(o.ref, order.id);
     console.log(`  Created order ${o.ref}: ${o.status} (Rp ${o.totalAmount.toLocaleString('id-ID')})`);
@@ -282,6 +285,15 @@ async function seedReviews() {
   }
 }
 
+async function seedSimulation() {
+  console.log('Initializing simulation state...');
+  await db.insert(simulationState).values({
+    id: '00000000-0000-0000-0000-000000000001',
+    dayOffset: 0,
+  });
+  console.log('  Simulation clock set to +0 days.');
+}
+
 async function seed() {
   console.log('=== SEAPEDIA Database Seed ===\n');
 
@@ -303,6 +315,7 @@ async function seed() {
   await seedDiscounts();
   await seedDeliveryJobs(orderMap, userMap);
   await seedReviews();
+  await seedSimulation();
 
   console.log('\n=== Seed Complete! ===');
   console.log('\nDemo Accounts:');

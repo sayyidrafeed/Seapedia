@@ -110,6 +110,7 @@ export async function createOrder(data: {
   totalAmount: number;
   status: string;
   addressSnapshot: string;
+  createdAt?: Date;
 }) {
   const [order] = await db.insert(orders).values(data).returning();
   return order;

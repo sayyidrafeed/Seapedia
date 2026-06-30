@@ -1,5 +1,5 @@
 import { describe, expect, test, mock, beforeEach } from 'bun:test';
-import { activeSession } from '@/db/schema';
+import { activeSession, simulationState } from '@/db/schema';
 
 const testState = {
   hasSession: true,
@@ -54,6 +54,14 @@ mock.module('@/db', () => {
             };
           }
 
+          if (table === simulationState) {
+            return {
+              where: () => ({
+                limit: () => Promise.resolve([{ id: 'sim-state', dayOffset: 0, updatedAt: new Date() }]),
+              }),
+            };
+          }
+
           // Monitoring query builder
           const data = dbQueries.queue[dbQueries.index++] ?? [];
           const queryBuilder = Object.assign(Promise.resolve(data), {
@@ -68,7 +76,7 @@ mock.module('@/db', () => {
         },
       }),
     },
-    schema: { activeSession },
+    schema: { activeSession, simulationState },
   };
 });
 

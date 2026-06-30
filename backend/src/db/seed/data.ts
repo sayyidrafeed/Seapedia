@@ -298,6 +298,12 @@ export const DEMO_CART_ITEMS: DemoCartItem[] = [
   { username: 'multirole', productSlug: 'tas-ransel-kanvas', quantity: 2 },
 ];
 
+export function hoursAgo(hours: number): Date {
+  const d = new Date();
+  d.setHours(d.getHours() - hours);
+  return d;
+}
+
 export interface DemoOrder {
   ref: string;
   buyerUsername: string;
@@ -312,6 +318,7 @@ export interface DemoOrder {
   totalAmount: number;
   status: string;
   addressIndex: number;
+  createdAt?: Date;
 }
 
 export const DEMO_ORDERS: DemoOrder[] = [
@@ -329,6 +336,7 @@ export const DEMO_ORDERS: DemoOrder[] = [
     totalAmount: 470400,
     status: 'sedang_dikemas',
     addressIndex: 0,
+    createdAt: hoursAgo(48),
   },
   {
     ref: 'order-2',
@@ -344,6 +352,7 @@ export const DEMO_ORDERS: DemoOrder[] = [
     totalAmount: 408800,
     status: 'menunggu_pengirim',
     addressIndex: 0,
+    createdAt: hoursAgo(120),
   },
   {
     ref: 'order-3',
@@ -359,6 +368,7 @@ export const DEMO_ORDERS: DemoOrder[] = [
     totalAmount: 593600,
     status: 'sedang_dikirim',
     addressIndex: 1,
+    createdAt: hoursAgo(36),
   },
   {
     ref: 'order-4',
@@ -389,6 +399,7 @@ export const DEMO_ORDERS: DemoOrder[] = [
     totalAmount: 571200,
     status: 'sedang_dikemas',
     addressIndex: 2,
+    createdAt: hoursAgo(24),
   },
   {
     ref: 'order-6',

@@ -16,6 +16,7 @@ import { ordersRouter, sellerOrdersRouter } from '@/modules/orders/orders.index'
 import { discountsAdminRouter, discountsBuyerRouter } from '@/modules/discounts/discounts.index';
 import { driverRouter } from '@/modules/driver/driver.index';
 import { adminRouter } from '@/modules/admin/admin.index';
+import { overdueAdminRouter } from '@/modules/overdue/overdue.index';
 import { frontendUrls } from '@/env';
 
 export const app = factory.createApp();
@@ -56,6 +57,7 @@ app.route('/api/orders', ordersRouter);
 app.route('/api/seller/orders', sellerOrdersRouter);
 app.route('/api/admin', discountsAdminRouter);
 app.route('/api/admin', adminRouter);
+app.route('/api/admin', overdueAdminRouter);
 app.route('/api/discounts', discountsBuyerRouter);
 app.route('/api/driver', driverRouter);
 
