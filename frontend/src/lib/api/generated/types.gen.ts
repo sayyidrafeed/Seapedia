@@ -4,49 +4,6 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
-export type Product = {
-  id: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  currency?: string;
-  stock: number;
-  storeId: string;
-  storeName: string;
-  storeSlug: string;
-  slug: string;
-};
-
-export type SellerProductResponse = {
-  id: string;
-  storeId: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  stock: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Review = {
-  id: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-};
-
-export type WalletTransactionResponse = {
-  id: string;
-  walletId: string;
-  amount: number;
-  type: string;
-  paymentMethod: string | unknown;
-  status: string;
-  reference: string;
-  createdAt: string;
-};
-
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -93,6 +50,49 @@ export type OrderResponse = {
     note: string | unknown;
     createdAt: string;
   }>;
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  currency?: string;
+  stock: number;
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  slug: string;
+};
+
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Review = {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  paymentMethod: string | unknown;
+  status: string;
+  reference: string;
+  createdAt: string;
 };
 
 export type VoucherResponse = {
@@ -2403,6 +2403,68 @@ export type GetSellerOrderDetailResponses = {
 
 export type GetSellerOrderDetailResponse =
   GetSellerOrderDetailResponses[keyof GetSellerOrderDetailResponses];
+
+export type ProcessSellerOrderData = {
+  body: {
+    note?: string;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/seller/orders/{id}/process';
+};
+
+export type ProcessSellerOrderErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Conflict
+   */
+  409: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ProcessSellerOrderError = ProcessSellerOrderErrors[keyof ProcessSellerOrderErrors];
+
+export type ProcessSellerOrderResponses = {
+  /**
+   * Updated order details
+   */
+  200: OrderResponse;
+};
+
+export type ProcessSellerOrderResponse =
+  ProcessSellerOrderResponses[keyof ProcessSellerOrderResponses];
 
 export type ListVouchersData = {
   body?: never;
