@@ -4,49 +4,6 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
-export type Product = {
-  id: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  currency?: string;
-  stock: number;
-  storeId: string;
-  storeName: string;
-  storeSlug: string;
-  slug: string;
-};
-
-export type SellerProductResponse = {
-  id: string;
-  storeId: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  stock: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Review = {
-  id: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-};
-
-export type WalletTransactionResponse = {
-  id: string;
-  walletId: string;
-  amount: number;
-  type: string;
-  paymentMethod: string | unknown;
-  status: string;
-  reference: string;
-  createdAt: string;
-};
-
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -95,6 +52,49 @@ export type OrderResponse = {
   }>;
 };
 
+export type Product = {
+  id: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  currency?: string;
+  stock: number;
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  slug: string;
+};
+
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Review = {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  paymentMethod: string | unknown;
+  status: string;
+  reference: string;
+  createdAt: string;
+};
+
 export type VoucherResponse = {
   id: string;
   code: string;
@@ -115,6 +115,20 @@ export type PromoResponse = {
   expiresAt: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type DeliveryJobResponse = {
+  id: string;
+  orderId: string;
+  driverId: string | unknown;
+  status: string;
+  deliveryFee: number;
+  createdAt: string;
+  updatedAt: string;
+  storeName: string;
+  deliveryMethod: string;
+  addressSnapshot: AddressResponse;
+  totalAmount: number;
 };
 
 export type HealthCheckData = {
@@ -2928,3 +2942,103 @@ export type ValidateDiscountCodeResponses = {
 
 export type ValidateDiscountCodeResponse =
   ValidateDiscountCodeResponses[keyof ValidateDiscountCodeResponses];
+
+export type ListAvailableJobsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/driver/jobs';
+};
+
+export type ListAvailableJobsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type ListAvailableJobsError = ListAvailableJobsErrors[keyof ListAvailableJobsErrors];
+
+export type ListAvailableJobsResponses = {
+  /**
+   * List of available delivery jobs
+   */
+  200: Array<DeliveryJobResponse>;
+};
+
+export type ListAvailableJobsResponse =
+  ListAvailableJobsResponses[keyof ListAvailableJobsResponses];
+
+export type GetDriverJobDetailData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/driver/jobs/{id}';
+};
+
+export type GetDriverJobDetailErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetDriverJobDetailError = GetDriverJobDetailErrors[keyof GetDriverJobDetailErrors];
+
+export type GetDriverJobDetailResponses = {
+  /**
+   * Details of the delivery job
+   */
+  200: {
+    id: string;
+    orderId: string;
+    driverId: string | unknown;
+    status: string;
+    deliveryFee: number;
+    createdAt: string;
+    updatedAt: string;
+    storeName: string;
+    deliveryMethod: string;
+    addressSnapshot: AddressResponse;
+    totalAmount: number;
+  };
+};
+
+export type GetDriverJobDetailResponse =
+  GetDriverJobDetailResponses[keyof GetDriverJobDetailResponses];
