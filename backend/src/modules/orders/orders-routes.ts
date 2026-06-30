@@ -10,6 +10,8 @@ import {
   orderListResponseSchema,
   orderDetailResponseSchema,
   processOrderRequestSchema,
+  buyerReportResponseSchema,
+  sellerReportResponseSchema,
 } from './orders-schemas';
 import { OrdersCheckoutService } from './orders-checkout.service';
 import { OrdersBuyerService } from './orders-buyer.service';
@@ -96,6 +98,28 @@ ordersRouter.get(
   },
 );
 
+// Buyer: Get Expense Report
+ordersRouter.get(
+  '/report/expense',
+  describeRoute({
+    operationId: 'getBuyerExpenseReport',
+    tags: ['Orders'],
+    summary: 'Get expense report for buyer completed orders',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(buyerReportResponseSchema, 'Buyer expense report details'),
+      ...errorResponses(401, 403, 500),
+    },
+  }),
+  requireSession,
+  requireRole('buyer'),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const report = await OrdersBuyerService.getReport(userId);
+    return c.json(report);
+  },
+);
+
 // Buyer: Get Order Detail
 ordersRouter.get(
   '/:id',
@@ -139,6 +163,28 @@ sellerOrdersRouter.get(
     const userId = c.get('userId') as string;
     const list = await OrdersSellerService.list(userId);
     return c.json(list);
+  },
+);
+
+// Seller: Get Income Report
+sellerOrdersRouter.get(
+  '/report/income',
+  describeRoute({
+    operationId: 'getSellerIncomeReport',
+    tags: ['Seller Orders'],
+    summary: 'Get income report for seller completed orders',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(sellerReportResponseSchema, 'Seller income report details'),
+      ...errorResponses(401, 403, 500),
+    },
+  }),
+  requireSession,
+  requireRole('seller'),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const report = await OrdersSellerService.getReport(userId);
+    return c.json(report);
   },
 );
 
