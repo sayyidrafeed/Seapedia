@@ -3,6 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getDriverJobDetailOptions,
   takeDeliveryJobMutation,
+  getDriverStatsQueryKey,
+  listAvailableJobsQueryKey,
+  getDriverJobDetailQueryKey,
 } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,13 +34,19 @@ function JobDetail() {
     ...takeDeliveryJobMutation(),
     onSuccess: (data) => {
       toast.success(data.message || 'Job claimed successfully!');
-      queryClient.invalidateQueries({ queryKey: ['getDriverStats'] });
-      queryClient.invalidateQueries({ queryKey: ['listAvailableJobs'] });
+      queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
       navigate({ to: '/dashboard/driver' });
     },
     onError: (err: TakeDeliveryJobError) => {
-      const apiErr = err as { body?: { error?: string } };
+      const apiErr = err as { body?: { error?: string }; status?: number };
       toast.error(apiErr.body?.error || 'Failed to claim delivery job');
+      // Refresh queries on error (especially for 409 conflicts) to ensure UI is up-to-date
+      queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
+      queryClient.invalidateQueries({
+        queryKey: getDriverJobDetailQueryKey({ path: { id: jobId } }),
+      });
     },
   });
 

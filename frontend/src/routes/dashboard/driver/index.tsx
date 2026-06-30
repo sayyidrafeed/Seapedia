@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getDriverStatsOptions,
   completeDeliveryJobMutation,
+  getDriverStatsQueryKey,
+  listAvailableJobsQueryKey,
 } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,8 +27,8 @@ function DriverOverview() {
     ...completeDeliveryJobMutation(),
     onSuccess: (data) => {
       toast.success(data.message || 'Delivery completed successfully!');
-      queryClient.invalidateQueries({ queryKey: ['getDriverStats'] });
-      queryClient.invalidateQueries({ queryKey: ['listAvailableJobs'] });
+      queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
     },
     onError: (err: CompleteDeliveryJobError) => {
       const apiErr = err as { body?: { error?: string } };
