@@ -5,6 +5,7 @@ import { OrderPriceSummary } from '@/components/orders/order-price-summary';
 import { Wallet, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import type { DeliveryMethod } from '../constants/delivery-options';
+import { useTranslation } from 'react-i18next';
 
 interface Preview {
   subtotal: number;
@@ -35,6 +36,7 @@ export function CheckoutSidebarSummary({
   isSubmitting,
   onSubmit,
 }: CheckoutSidebarSummaryProps) {
+  const { t } = useTranslation();
   const finalTotal = preview?.totalAmount || 0;
   const isBalanceInsufficient = walletBalance < finalTotal;
 
@@ -43,7 +45,9 @@ export function CheckoutSidebarSummary({
       <div className="flex items-center justify-between pb-4 border-b border-border/60">
         <div className="flex items-center gap-2">
           <Wallet className="h-5 w-5 text-primary" />
-          <span className="text-sm font-bold text-foreground">Your Balance</span>
+          <span className="text-sm font-bold text-foreground">
+            {t('buyer.checkout.yourBalance')}
+          </span>
         </div>
         <span className="font-black text-foreground">{formatCurrency(walletBalance)}</span>
       </div>
@@ -70,22 +74,22 @@ export function CheckoutSidebarSummary({
       {hasNoAddress ? (
         <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs rounded-lg p-3.5 flex gap-2">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>Please configure a default shipping address to proceed.</span>
+          <span>{t('buyer.checkout.pleaseConfigureAddress')}</span>
         </div>
       ) : isBalanceInsufficient ? (
         <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs rounded-lg p-3.5 flex flex-col gap-2">
           <div className="flex gap-2">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <span>
-              <strong>Insufficient wallet balance.</strong> You need at least{' '}
-              {formatCurrency(finalTotal)} to check out.
+              <strong>{t('buyer.checkout.insufficientBalance')}</strong>{' '}
+              {t('buyer.checkout.needAtLeast', { amount: formatCurrency(finalTotal) })}
             </span>
           </div>
           <Link
             to="/dashboard/buyer/wallet"
             className="text-primary font-semibold hover:underline mt-1 self-start"
           >
-            Top Up Wallet →
+            {t('buyer.checkout.topUpWallet')}
           </Link>
         </div>
       ) : null}
@@ -95,12 +99,11 @@ export function CheckoutSidebarSummary({
         disabled={hasNoAddress || isBalanceInsufficient || isSubmitting || isPreviewLoading}
         onClick={onSubmit}
       >
-        {isSubmitting ? 'Processing Checkout...' : 'Pay & Confirm Order'}
+        {isSubmitting ? t('buyer.checkout.processing') : t('buyer.checkout.payConfirm')}
       </Button>
 
       <p className="text-[10px] text-center text-muted-foreground leading-relaxed">
-        By confirming, your wallet will be charged immediately. Purchases are protected by the
-        Seapedia Guarantee.
+        {t('buyer.checkout.agreementText')}
       </p>
     </Card>
   );

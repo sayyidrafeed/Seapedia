@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { AddressResponse, CreateAddressData } from '@/lib/api/generated';
+import { useTranslation } from 'react-i18next';
 
 interface AddressFormProps {
   initialData: AddressResponse | null;
@@ -12,12 +13,7 @@ interface AddressFormProps {
 }
 
 interface FieldState {
-  state: {
-    value: string;
-    meta: {
-      errors?: unknown[];
-    };
-  };
+  state: { value: string; meta: { errors?: unknown[] } };
   handleBlur: () => void;
   handleChange: (val: string) => void;
 }
@@ -66,6 +62,7 @@ function FormField({ label, placeholder, field, isTextArea = false }: FormFieldP
 }
 
 export function AddressForm({ initialData, onSubmit, isPending }: AddressFormProps) {
+  const { t } = useTranslation();
   const form = useForm({
     defaultValues: {
       label: initialData?.label || '',
@@ -100,8 +97,8 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
           name="label"
           children={(field) => (
             <FormField
-              label="Label Alamat (Contoh: Rumah, Kantor)"
-              placeholder="Rumah / Kantor"
+              label={t('buyer.address.label')}
+              placeholder={t('buyer.address.labelPlaceholder')}
               field={field}
             />
           )}
@@ -109,7 +106,11 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
         <form.Field
           name="recipientName"
           children={(field) => (
-            <FormField label="Nama Penerima" placeholder="Nama Lengkap" field={field} />
+            <FormField
+              label={t('buyer.address.recipientName')}
+              placeholder={t('buyer.address.recipientPlaceholder')}
+              field={field}
+            />
           )}
         />
       </div>
@@ -118,13 +119,21 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
         <form.Field
           name="phoneNumber"
           children={(field) => (
-            <FormField label="Nomor Telepon" placeholder="Contoh: 0812xxxxxxxx" field={field} />
+            <FormField
+              label={t('buyer.address.phoneNumber')}
+              placeholder={t('buyer.address.phonePlaceholder')}
+              field={field}
+            />
           )}
         />
         <form.Field
           name="postalCode"
           children={(field) => (
-            <FormField label="Kode Pos" placeholder="5 digit angka" field={field} />
+            <FormField
+              label={t('buyer.address.postalCode')}
+              placeholder={t('buyer.address.postalPlaceholder')}
+              field={field}
+            />
           )}
         />
       </div>
@@ -133,19 +142,31 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
         <form.Field
           name="province"
           children={(field) => (
-            <FormField label="Provinsi" placeholder="Contoh: Jawa Barat" field={field} />
+            <FormField
+              label={t('buyer.address.province')}
+              placeholder={t('buyer.address.provincePlaceholder')}
+              field={field}
+            />
           )}
         />
         <form.Field
           name="city"
           children={(field) => (
-            <FormField label="Kota / Kabupaten" placeholder="Contoh: Depok" field={field} />
+            <FormField
+              label={t('buyer.address.city')}
+              placeholder={t('buyer.address.cityPlaceholder')}
+              field={field}
+            />
           )}
         />
         <form.Field
           name="district"
           children={(field) => (
-            <FormField label="Kecamatan" placeholder="Contoh: Beji" field={field} />
+            <FormField
+              label={t('buyer.address.district')}
+              placeholder={t('buyer.address.districtPlaceholder')}
+              field={field}
+            />
           )}
         />
       </div>
@@ -154,8 +175,8 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
         name="fullAddress"
         children={(field) => (
           <FormField
-            label="Alamat Lengkap (Jalan, No. Rumah, RT/RW, dsb)"
-            placeholder="Tulis alamat lengkap Anda..."
+            label={t('buyer.address.fullAddress')}
+            placeholder={t('buyer.address.fullAddressPlaceholder')}
             field={field}
             isTextArea
           />
@@ -178,7 +199,7 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
                 htmlFor="isDefault"
                 className="text-sm font-semibold text-foreground cursor-pointer select-none"
               >
-                Jadikan Alamat Utama
+                {t('buyer.address.setAsDefault')}
               </label>
             </>
           )}
@@ -190,7 +211,7 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
         disabled={isPending}
         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 font-semibold mt-4"
       >
-        {isPending ? 'Saving...' : 'Save Address'}
+        {isPending ? t('buyer.address.saving') : t('buyer.address.saveAddress')}
       </Button>
     </form>
   );

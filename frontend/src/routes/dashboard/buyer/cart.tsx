@@ -5,12 +5,14 @@ import { updateCartItem, deleteCartItem, clearCart } from '@/lib/api/generated';
 import { CartDetails } from '@/components/cart/CartDetails';
 import type { CartSummary } from '@/components/cart/CartDetails';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/buyer/cart')({
   component: BuyerCartPage,
 });
 
 function BuyerCartPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   // Fetch cart details
@@ -36,7 +38,7 @@ function BuyerCartPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getBuyerCartOptions().queryKey });
-      toast.success('Cart updated');
+      toast.success(t('buyer.cart.updated'));
     },
     onError: (err: Error) => {
       toast.error(err.message);
@@ -56,7 +58,7 @@ function BuyerCartPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getBuyerCartOptions().queryKey });
-      toast.success('Item removed from cart');
+      toast.success(t('buyer.cart.removed'));
     },
     onError: (err: Error) => {
       toast.error(err.message);
@@ -74,7 +76,7 @@ function BuyerCartPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getBuyerCartOptions().queryKey });
-      toast.success('Cart cleared');
+      toast.success(t('buyer.cart.cleared'));
     },
     onError: (err: Error) => {
       toast.error(err.message);
@@ -112,7 +114,7 @@ function BuyerCartPage() {
   if (error || !cart) {
     return (
       <div className="container mx-auto px-6 py-8 text-center text-sm text-destructive">
-        Error loading cart. Please try again later.
+        {t('buyer.cart.errorLoading')}
       </div>
     );
   }
@@ -148,10 +150,10 @@ function BuyerCartPage() {
   return (
     <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Shopping Cart</h1>
-        <p className="text-sm text-muted-foreground">
-          Review your items and prepare before checkout.
-        </p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+          {t('buyer.cart.pageTitle')}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t('buyer.cart.pageDesc')}</p>
       </div>
 
       <CartDetails

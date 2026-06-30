@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Wallet, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface BuyerWalletCardProps {
   balance: number | undefined;
@@ -8,6 +9,7 @@ interface BuyerWalletCardProps {
 }
 
 export function BuyerWalletCard({ balance, isLoading }: BuyerWalletCardProps) {
+  const { t } = useTranslation();
   const balanceFormatted = balance !== undefined ? formatCurrency(balance) : 'Rp 0';
 
   return (
@@ -15,7 +17,7 @@ export function BuyerWalletCard({ balance, isLoading }: BuyerWalletCardProps) {
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Wallet Balance
+            {t('buyer.wallet.title')}
           </span>
           <div className="text-3xl font-extrabold text-foreground tracking-tight mt-1">
             {isLoading ? (
@@ -30,12 +32,12 @@ export function BuyerWalletCard({ balance, isLoading }: BuyerWalletCardProps) {
         </div>
       </div>
       <div className="mt-8 border-t border-border/50 pt-4 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Simulate instant virtual top-up</span>
+        <span className="text-xs text-muted-foreground">{t('buyer.wallet.activeBalance')}</span>
         <Link
           to="/dashboard/buyer/wallet"
           className="text-sm font-semibold text-blue-500 hover:text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all"
         >
-          Top Up Now <ArrowRight className="h-4 w-4" />
+          {t('buyer.wallet.topUp')} <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     </div>

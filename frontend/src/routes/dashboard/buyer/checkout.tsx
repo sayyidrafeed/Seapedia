@@ -10,12 +10,14 @@ import { CheckoutSidebarSummary } from '@/features/checkout/components/checkout-
 import { formatCurrency } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/buyer/checkout')({
   component: CheckoutPage,
 });
 
 function CheckoutPage() {
+  const { t } = useTranslation();
   const {
     cart,
     wallet,
@@ -62,10 +64,10 @@ function CheckoutPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Checkout</h1>
-          <p className="text-sm text-muted-foreground">
-            Complete your order summary and confirm payment
-          </p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+            {t('buyer.checkout.title')}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t('buyer.checkout.desc')}</p>
         </div>
       </div>
 
@@ -92,12 +94,12 @@ function CheckoutPage() {
                   onApply={(code, amount, type) => {
                     applyDiscount(code, amount, type);
                     toast.success(
-                      `Discount code ${code} applied successfully! Saved ${formatCurrency(amount)}`,
+                      t('buyer.checkout.appliedSuccess', { code, amount: formatCurrency(amount) }),
                     );
                   }}
                   onRemove={() => {
                     removeDiscount();
-                    toast.info('Discount code removed');
+                    toast.info(t('buyer.checkout.removedInfo'));
                   }}
                 />
               </CardContent>

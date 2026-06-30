@@ -5,12 +5,14 @@ import { AddressList } from '@/features/buyer/components/address-list';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/buyer/addresses')({
   component: BuyerAddressesPage,
 });
 
 function BuyerAddressesPage() {
+  const { t } = useTranslation();
   const {
     addresses,
     isLoading,
@@ -30,7 +32,7 @@ function BuyerAddressesPage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Loading addresses...
+          {t('buyer.address.loading')}
         </span>
       </div>
     );
@@ -44,17 +46,15 @@ function BuyerAddressesPage() {
             onClick={cancelEdit}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground font-semibold"
           >
-            <ArrowLeft className="h-4 w-4" /> Back to Addresses
+            <ArrowLeft className="h-4 w-4" /> {t('buyer.address.backToAddresses')}
           </button>
 
           <Card className="border border-border shadow-sm max-w-2xl">
             <CardHeader>
               <CardTitle>
-                {currentAddress ? 'Edit Alamat Pengiriman' : 'Tambah Alamat Baru'}
+                {currentAddress ? t('buyer.address.editTitle') : t('buyer.address.addTitle')}
               </CardTitle>
-              <CardDescription>
-                Provide detailed shipping coordinates for your deliveries.
-              </CardDescription>
+              <CardDescription>{t('buyer.address.titleDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <AddressForm
@@ -74,12 +74,12 @@ function BuyerAddressesPage() {
       ) : (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-foreground">Daftar Alamat Pengiriman</h2>
+            <h2 className="text-xl font-bold text-foreground">{t('buyer.address.listTitle')}</h2>
             <Button
               onClick={handleAddNewClick}
               className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
             >
-              <Plus className="h-4 w-4" /> Tambah Alamat
+              <Plus className="h-4 w-4" /> {t('buyer.address.addButton')}
             </Button>
           </div>
 

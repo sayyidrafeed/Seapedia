@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { ClipboardList, ArrowRight, ShoppingBag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/buyer/orders/')({
   component: BuyerOrderHistoryPage,
 });
 
 function BuyerOrderHistoryPage() {
+  const { t } = useTranslation();
   const { orders, isLoading, error } = useBuyerOrders();
 
   if (isLoading) {
@@ -29,7 +31,7 @@ function BuyerOrderHistoryPage() {
   if (error || !orders) {
     return (
       <div className="container mx-auto px-6 py-8 max-w-5xl text-center text-sm text-destructive">
-        Error loading order history. Please try again later.
+        {t('buyer.orders.errorLoadingDetails')}
       </div>
     );
   }
@@ -38,10 +40,10 @@ function BuyerOrderHistoryPage() {
     <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">My Orders</h1>
-        <p className="text-sm text-muted-foreground">
-          Monitor and track your purchase transactions
-        </p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+          {t('buyer.orders.title')}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t('buyer.orders.desc')}</p>
       </div>
 
       {orders.length === 0 ? (
@@ -49,14 +51,13 @@ function BuyerOrderHistoryPage() {
           <div className="rounded-full bg-primary/10 p-6 text-primary mb-6">
             <ClipboardList className="h-12 w-12" />
           </div>
-          <h3 className="text-xl font-bold text-foreground">No orders yet</h3>
+          <h3 className="text-xl font-bold text-foreground">{t('buyer.orders.noOrders')}</h3>
           <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-            You haven't placed any orders yet. Visit the marketplace to find our amazing
-            collections.
+            {t('buyer.orders.noOrdersDesc')}
           </p>
           <Link to="/" className="mt-6">
             <Button size="sm" className="cursor-pointer">
-              <ShoppingBag className="mr-2 h-4 w-4" /> Start Shopping
+              <ShoppingBag className="mr-2 h-4 w-4" /> {t('buyer.orders.startShopping')}
             </Button>
           </Link>
         </div>
@@ -83,20 +84,22 @@ function BuyerOrderHistoryPage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span>
-                        Store:{' '}
+                        {t('buyer.orders.store')}{' '}
                         <strong className="text-foreground capitalize">{order.storeName}</strong>
                       </span>
                       <span>•</span>
-                      <span>Placed on: {dateStr}</span>
+                      <span>{t('buyer.orders.placedOn', { date: dateStr })}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {order.items.length} item{order.items.length > 1 ? 's' : ''} purchased
+                      {t('buyer.orders.itemsPurchased', { count: order.items.length })}
                     </p>
                   </div>
 
                   <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-border/60">
                     <div className="text-left md:text-right">
-                      <span className="text-xs text-muted-foreground block">Total Paid</span>
+                      <span className="text-xs text-muted-foreground block">
+                        {t('buyer.orders.totalPaid')}
+                      </span>
                       <span className="font-extrabold text-lg text-primary">
                         {formatCurrency(order.totalAmount)}
                       </span>
@@ -107,7 +110,7 @@ function BuyerOrderHistoryPage() {
                         size="sm"
                         className="cursor-pointer gap-1.5 hover:bg-primary hover:text-primary-foreground"
                       >
-                        View Details <ArrowRight className="h-4 w-4" />
+                        {t('buyer.orders.viewDetails')} <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>
                   </div>
