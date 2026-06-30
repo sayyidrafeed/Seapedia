@@ -4,6 +4,49 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
+export type Product = {
+  id: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  currency?: string;
+  stock: number;
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  slug: string;
+};
+
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Review = {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  paymentMethod: string | unknown;
+  status: string;
+  reference: string;
+  createdAt: string;
+};
+
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -50,49 +93,6 @@ export type OrderResponse = {
     note: string | unknown;
     createdAt: string;
   }>;
-};
-
-export type Product = {
-  id: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  currency?: string;
-  stock: number;
-  storeId: string;
-  storeName: string;
-  storeSlug: string;
-  slug: string;
-};
-
-export type SellerProductResponse = {
-  id: string;
-  storeId: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  stock: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Review = {
-  id: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-};
-
-export type WalletTransactionResponse = {
-  id: string;
-  walletId: string;
-  amount: number;
-  type: string;
-  paymentMethod: string | unknown;
-  status: string;
-  reference: string;
-  createdAt: string;
 };
 
 export type VoucherResponse = {
@@ -2268,6 +2268,52 @@ export type CreateOrderResponses = {
 
 export type CreateOrderResponse = CreateOrderResponses[keyof CreateOrderResponses];
 
+export type GetBuyerExpenseReportData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/orders/report/expense';
+};
+
+export type GetBuyerExpenseReportErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetBuyerExpenseReportError =
+  GetBuyerExpenseReportErrors[keyof GetBuyerExpenseReportErrors];
+
+export type GetBuyerExpenseReportResponses = {
+  /**
+   * Buyer expense report details
+   */
+  200: {
+    totalSpending: number;
+    totalOrders: number;
+    averageOrderValue: number;
+    orders: Array<OrderResponse>;
+  };
+};
+
+export type GetBuyerExpenseReportResponse =
+  GetBuyerExpenseReportResponses[keyof GetBuyerExpenseReportResponses];
+
 export type GetBuyerOrderDetailData = {
   body?: never;
   path: {
@@ -2354,6 +2400,52 @@ export type ListSellerOrdersResponses = {
 };
 
 export type ListSellerOrdersResponse = ListSellerOrdersResponses[keyof ListSellerOrdersResponses];
+
+export type GetSellerIncomeReportData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/seller/orders/report/income';
+};
+
+export type GetSellerIncomeReportErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetSellerIncomeReportError =
+  GetSellerIncomeReportErrors[keyof GetSellerIncomeReportErrors];
+
+export type GetSellerIncomeReportResponses = {
+  /**
+   * Seller income report details
+   */
+  200: {
+    totalIncome: number;
+    totalOrders: number;
+    averageRevenue: number;
+    orders: Array<OrderResponse>;
+  };
+};
+
+export type GetSellerIncomeReportResponse =
+  GetSellerIncomeReportResponses[keyof GetSellerIncomeReportResponses];
 
 export type GetSellerOrderDetailData = {
   body?: never;

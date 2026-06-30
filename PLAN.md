@@ -385,20 +385,24 @@ To make the system more useful, Buyers and Sellers should be able to understand 
 
 #### Requirements:
 
-- Create a Buyer spending report or expense summary.
-- Create a Seller income report or revenue summary.
-- Show Buyer order history, order detail, and status history with timestamps.
-- Show Seller incoming orders, processed orders, and income summary.
-- Make sure discount, delivery fee, PPN 12%, and final total are visible in transaction details.
+- [x] Create a Buyer spending report or expense summary.
+- [x] Create a Seller income report or revenue summary.
+- [x] Show Buyer order history, order detail, and status history with timestamps.
+- [x] Show Seller incoming orders, processed orders, and income summary.
+- [x] Make sure discount, delivery fee, PPN 12%, and final total are visible in transaction details.
 
 #### Deliverables:
 
 - [x] Checkout flow with Voucher or Promo support.
 - [x] Seller order processing flow from Sedang Dikemas to Menunggu Pengirim.
-- Buyer and Seller transaction reports.
-- Visible order status timeline with timestamps.
+- [x] Buyer and Seller transaction reports.
+- [x] Visible order status timeline with timestamps.
+
+#### Add Buyer and Seller Reports — Complete
 
 After completing this level, SEAPEDIA should support a stronger commercial flow. Buyers can use discounts, Sellers can prepare orders for delivery, and both sides can monitor their transaction results.
+
+> **Level 4 — Complete**
 
 ---
 

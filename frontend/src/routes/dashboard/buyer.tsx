@@ -60,6 +60,12 @@ function BuyerLayout() {
           >
             My Orders
           </button>
+          <button
+            onClick={() => navigate({ to: '/dashboard/buyer/report' })}
+            className="text-sm font-medium hover:underline text-primary cursor-pointer border-none bg-transparent"
+          >
+            Spending Report
+          </button>
         </div>
       </div>
 

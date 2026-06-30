@@ -91,3 +91,21 @@ export const processOrderRequestSchema = z
     note: z.string().max(1000, 'Note must not exceed 1000 characters').optional(),
   })
   .meta({ id: 'ProcessOrderRequest' });
+
+export const buyerReportResponseSchema = z
+  .object({
+    totalSpending: z.number().int(),
+    totalOrders: z.number().int(),
+    averageOrderValue: z.number().int(),
+    orders: z.array(orderResponseSchema),
+  })
+  .meta({ id: 'BuyerReportResponse' });
+
+export const sellerReportResponseSchema = z
+  .object({
+    totalIncome: z.number().int(),
+    totalOrders: z.number().int(),
+    averageRevenue: z.number().int(),
+    orders: z.array(orderResponseSchema),
+  })
+  .meta({ id: 'SellerReportResponse' });
