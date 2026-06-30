@@ -1,6 +1,6 @@
 # SEAPEDIA Frontend
 
-React 19 single-page application built with Vite, TanStack Router, TanStack Query, Tailwind CSS v4, shadcn/ui, Clerk authentication, and a hey-api generated SDK.
+React 19 single-page application built with Vite, TanStack Router, TanStack Query, Tailwind CSS v4, shadcn/ui, and a hey-api generated SDK.
 
 ## Tech Stack
 
@@ -12,7 +12,7 @@ React 19 single-page application built with Vite, TanStack Router, TanStack Quer
 | TanStack Query  | Server state management                            |
 | Tailwind CSS v4 | Utility-first CSS framework                        |
 | shadcn/ui       | Radix UI primitives + Tailwind components          |
-| Clerk           | Authentication UI and session management           |
+| Custom Auth     | Cookie-based JWT session management                |
 | hey-api         | Generated type-safe API client from OpenAPI spec   |
 | Lucide React    | Icon library                                       |
 | Sonner          | Toast notifications                                |
@@ -35,11 +35,10 @@ The dev server starts on [http://localhost:5173](http://localhost:5173). The bac
 
 ## Environment Variables
 
-| Variable                     | Required | Default                 | Description                     |
-| ---------------------------- | -------- | ----------------------- | ------------------------------- |
-| `VITE_API_URL`               | Yes      | `http://localhost:8787` | Backend API base URL            |
-| `VITE_APP_URL`               | Yes      | `http://localhost:5173` | Public frontend URL (for Clerk) |
-| `VITE_CLERK_PUBLISHABLE_KEY` | Yes      | —                       | Clerk publishable API key       |
+| Variable       | Required | Default                 | Description          |
+| -------------- | -------- | ----------------------- | -------------------- |
+| `VITE_API_URL` | Yes      | `http://localhost:3001` | Backend API base URL |
+| `VITE_APP_URL` | No       | `http://localhost:5173` | Public frontend URL  |
 
 ## Available Scripts
 
@@ -61,7 +60,7 @@ The dev server starts on [http://localhost:5173](http://localhost:5173). The bac
 src/
 ├── main.tsx                    # App entry point (providers → router)
 ├── routeTree.gen.ts            # Generated router tree (do not edit)
-├── index.css                   # Tailwind CSS v4 + Clerk theme
+├── index.css                   # Tailwind CSS v4 + application theme
 ├── vite-env.d.ts               # Vite type declarations
 ├── config/
 │   └── index.ts                # Environment variable validation (Zod)
@@ -73,7 +72,7 @@ src/
 │   └── query/
 │       └── client.ts           # TanStack Query client (staleTime: 5m, gcTime: 10m)
 ├── routes/
-│   ├── __root.tsx              # Root layout (navbar, Clerk, outlet)
+│   ├── __root.tsx              # Root layout (navbar, session validation, outlet)
 │   └── index.tsx               # Home page
 └── components/
     └── ui/                     # shadcn/ui primitives (Button, Input, Card, etc.)
@@ -101,12 +100,11 @@ Generated hey-api SDK functions produce typed hooks compatible with TanStack Que
 
 ### Authentication
 
-Auth is handled by **Clerk**:
+Auth is handled via custom **JWT** cookies:
 
-- `@clerk/react` provides hooks (`useAuth`, `useUser`, `useSession`) and components (`SignInButton`, `SignUpButton`, `UserButton`).
-- `@clerk/ui` with the bundled shadcn theme renders auth modals.
-- `ClerkProvider` wraps the entire app in `main.tsx`.
-- The Clerk JWT is automatically attached to API requests via the hey-api client configuration.
+- The backend sets a secure HttpOnly cookie `__session` upon successful registration or login.
+- All API requests initiated via the generated hey-api SDK automatically forward credentials (cookies) in accordance with the `credentials: 'include'` client setup.
+- Router guards check the session status on load and redirect non-authenticated requests to the login page.
 
 ### Role Awareness
 
