@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Logo } from './logo';
-import { ShieldCheck, HelpCircle } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -89,13 +89,9 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border/60 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
-            <span>&copy; {currentYear} Seapedia Marketplace. All rights reserved.</span>
+            <span>&copy; {currentYear} Seapedia. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-              <ShieldCheck className="h-4 w-4" />
-              <span>SLA Secured Transactions</span>
-            </div>
             <div className="flex items-center gap-1 font-medium">
               <HelpCircle className="h-4 w-4" />
               <span>Help & Support</span>

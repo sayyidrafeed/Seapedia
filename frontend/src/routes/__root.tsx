@@ -1,10 +1,4 @@
-import {
-  createRootRoute,
-  Outlet,
-  ScrollRestoration,
-  useNavigate,
-  useLocation,
-} from '@tanstack/react-router';
+import { createRootRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useAuth } from '@/lib/auth/context';
 import { useEffect } from 'react';
@@ -37,7 +31,6 @@ function RootComponent() {
 
       <Footer />
 
-      <ScrollRestoration />
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
     </div>
   );
