@@ -1,10 +1,17 @@
 import { z } from 'zod';
 import { addressResponseSchema } from '@/modules/buyers/buyers.schemas';
+import { customMsg } from '@/lib/schemas';
 
 export const checkoutPreviewRequestSchema = z
   .object({
-    deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
-    discountCode: z.string().optional(),
+    deliveryMethod: z.enum(['instant', 'next_day', 'regular'], {
+      message: 'Metode pengiriman tidak valid',
+    }),
+    discountCode: z
+      .string({
+        message: 'Kode diskon harus berupa teks',
+      })
+      .optional(),
   })
   .meta({ id: 'CheckoutPreviewRequest' });
 
@@ -36,9 +43,17 @@ export const checkoutPreviewResponseSchema = z
 
 export const createOrderRequestSchema = z
   .object({
-    deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
-    addressId: z.string().uuid('Invalid address ID format'),
-    discountCode: z.string().optional(),
+    deliveryMethod: z.enum(['instant', 'next_day', 'regular'], {
+      message: 'Metode pengiriman tidak valid',
+    }),
+    addressId: z
+      .string(customMsg('Alamat pengiriman wajib dipilih', 'Alamat pengiriman harus berupa teks'))
+      .uuid('Format ID alamat tidak valid'),
+    discountCode: z
+      .string({
+        message: 'Kode diskon harus berupa teks',
+      })
+      .optional(),
   })
   .meta({ id: 'CreateOrderRequest' });
 
@@ -88,7 +103,12 @@ export const orderDetailResponseSchema = orderResponseSchema.meta({ id: 'OrderDe
 
 export const processOrderRequestSchema = z
   .object({
-    note: z.string().max(1000, 'Note must not exceed 1000 characters').optional(),
+    note: z
+      .string({
+        message: 'Catatan harus berupa teks',
+      })
+      .max(1000, 'Catatan tidak boleh melebihi 1000 karakter')
+      .optional(),
   })
   .meta({ id: 'ProcessOrderRequest' });
 

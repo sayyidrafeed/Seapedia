@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { customMsg } from '@/lib/schemas';
 
 export const dashboardStatsResponseSchema = z
   .object({
@@ -47,7 +48,10 @@ export const dashboardStatsResponseSchema = z
 
 export const simulateTimeRequestSchema = z
   .object({
-    hoursToAdvance: z.number().min(0).max(240),
+    hoursToAdvance: z
+      .number(customMsg('Jumlah jam wajib diisi', 'Jumlah jam harus berupa angka'))
+      .min(0, 'Jumlah jam tidak boleh kurang dari 0')
+      .max(240, 'Jumlah jam tidak boleh melebihi 240 jam (10 hari)'),
   })
   .meta({ id: 'SimulateTimeRequest' });
 
