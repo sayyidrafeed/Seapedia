@@ -24,6 +24,7 @@ import {
   deleteSellerProduct,
   getAddresses,
   getBuyerCart,
+  getBuyerExpenseReport,
   getBuyerOrderDetail,
   getBuyerWallet,
   getCurrentSellerStore,
@@ -34,6 +35,7 @@ import {
   getProductBySlug,
   getPromo,
   getPublicStoreInfo,
+  getSellerIncomeReport,
   getSellerOrderDetail,
   getSellerProductById,
   getVoucher,
@@ -110,6 +112,9 @@ import type {
   GetBuyerCartData,
   GetBuyerCartError,
   GetBuyerCartResponse,
+  GetBuyerExpenseReportData,
+  GetBuyerExpenseReportError,
+  GetBuyerExpenseReportResponse,
   GetBuyerOrderDetailData,
   GetBuyerOrderDetailError,
   GetBuyerOrderDetailResponse,
@@ -140,6 +145,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
+  GetSellerIncomeReportData,
+  GetSellerIncomeReportError,
+  GetSellerIncomeReportResponse,
   GetSellerOrderDetailData,
   GetSellerOrderDetailError,
   GetSellerOrderDetailResponse,
@@ -1487,6 +1495,31 @@ export const createOrderMutation = (
   return mutationOptions;
 };
 
+export const getBuyerExpenseReportQueryKey = (options?: Options<GetBuyerExpenseReportData>) =>
+  createQueryKey('getBuyerExpenseReport', options);
+
+/**
+ * Get expense report for buyer completed orders
+ */
+export const getBuyerExpenseReportOptions = (options?: Options<GetBuyerExpenseReportData>) =>
+  queryOptions<
+    GetBuyerExpenseReportResponse,
+    GetBuyerExpenseReportError,
+    GetBuyerExpenseReportResponse,
+    ReturnType<typeof getBuyerExpenseReportQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBuyerExpenseReport({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBuyerExpenseReportQueryKey(options),
+  });
+
 export const getBuyerOrderDetailQueryKey = (options: Options<GetBuyerOrderDetailData>) =>
   createQueryKey('getBuyerOrderDetail', options);
 
@@ -1535,6 +1568,31 @@ export const listSellerOrdersOptions = (options?: Options<ListSellerOrdersData>)
       return data;
     },
     queryKey: listSellerOrdersQueryKey(options),
+  });
+
+export const getSellerIncomeReportQueryKey = (options?: Options<GetSellerIncomeReportData>) =>
+  createQueryKey('getSellerIncomeReport', options);
+
+/**
+ * Get income report for seller completed orders
+ */
+export const getSellerIncomeReportOptions = (options?: Options<GetSellerIncomeReportData>) =>
+  queryOptions<
+    GetSellerIncomeReportResponse,
+    GetSellerIncomeReportError,
+    GetSellerIncomeReportResponse,
+    ReturnType<typeof getSellerIncomeReportQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getSellerIncomeReport({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getSellerIncomeReportQueryKey(options),
   });
 
 export const getSellerOrderDetailQueryKey = (options: Options<GetSellerOrderDetailData>) =>

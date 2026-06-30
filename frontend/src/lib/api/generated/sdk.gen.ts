@@ -45,6 +45,9 @@ import type {
   GetBuyerCartData,
   GetBuyerCartErrors,
   GetBuyerCartResponses,
+  GetBuyerExpenseReportData,
+  GetBuyerExpenseReportErrors,
+  GetBuyerExpenseReportResponses,
   GetBuyerOrderDetailData,
   GetBuyerOrderDetailErrors,
   GetBuyerOrderDetailResponses,
@@ -75,6 +78,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
+  GetSellerIncomeReportData,
+  GetSellerIncomeReportErrors,
+  GetSellerIncomeReportResponses,
   GetSellerOrderDetailData,
   GetSellerOrderDetailErrors,
   GetSellerOrderDetailResponses,
@@ -1052,6 +1058,28 @@ export const createOrder = <ThrowOnError extends boolean = false>(
   });
 
 /**
+ * Get expense report for buyer completed orders
+ */
+export const getBuyerExpenseReport = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBuyerExpenseReportData, ThrowOnError>,
+): RequestResult<GetBuyerExpenseReportResponses, GetBuyerExpenseReportErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetBuyerExpenseReportResponses,
+    GetBuyerExpenseReportErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders/report/expense',
+    ...options,
+  });
+
+/**
  * Get details of a specific buyer order
  */
 export const getBuyerOrderDetail = <ThrowOnError extends boolean = false>(
@@ -1088,6 +1116,28 @@ export const listSellerOrders = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/seller/orders',
+    ...options,
+  });
+
+/**
+ * Get income report for seller completed orders
+ */
+export const getSellerIncomeReport = <ThrowOnError extends boolean = false>(
+  options?: Options<GetSellerIncomeReportData, ThrowOnError>,
+): RequestResult<GetSellerIncomeReportResponses, GetSellerIncomeReportErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetSellerIncomeReportResponses,
+    GetSellerIncomeReportErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/orders/report/income',
     ...options,
   });
 

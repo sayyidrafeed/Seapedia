@@ -2,6 +2,49 @@
 
 import * as z from 'zod';
 
+export const zProduct = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  currency: z.string().optional().default('IDR'),
+  stock: z.number(),
+  storeId: z.string(),
+  storeName: z.string(),
+  storeSlug: z.string(),
+  slug: z.string(),
+});
+
+export const zSellerProductResponse = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  description: z.union([z.string(), z.unknown()]),
+  price: z.number(),
+  stock: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zReview = z.object({
+  id: z.string(),
+  reviewerName: z.string(),
+  rating: z.number(),
+  comment: z.string(),
+  createdAt: z.string(),
+});
+
+export const zWalletTransactionResponse = z.object({
+  id: z.string(),
+  walletId: z.string(),
+  amount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  type: z.string(),
+  paymentMethod: z.union([z.string(), z.unknown()]),
+  status: z.string(),
+  reference: z.string(),
+  createdAt: z.string(),
+});
+
 export const zAddressResponse = z.object({
   id: z.string(),
   userId: z.string(),
@@ -54,49 +97,6 @@ export const zOrderResponse = z.object({
       }),
     )
     .optional(),
-});
-
-export const zProduct = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  currency: z.string().optional().default('IDR'),
-  stock: z.number(),
-  storeId: z.string(),
-  storeName: z.string(),
-  storeSlug: z.string(),
-  slug: z.string(),
-});
-
-export const zSellerProductResponse = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  stock: z.number(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zReview = z.object({
-  id: z.string(),
-  reviewerName: z.string(),
-  rating: z.number(),
-  comment: z.string(),
-  createdAt: z.string(),
-});
-
-export const zWalletTransactionResponse = z.object({
-  id: z.string(),
-  walletId: z.string(),
-  amount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  type: z.string(),
-  paymentMethod: z.union([z.string(), z.unknown()]),
-  status: z.string(),
-  reference: z.string(),
-  createdAt: z.string(),
 });
 
 export const zVoucherResponse = z.object({
@@ -834,6 +834,16 @@ export const zCreateOrderResponse = z.object({
     .optional(),
 });
 
+/**
+ * Buyer expense report details
+ */
+export const zGetBuyerExpenseReportResponse = z.object({
+  totalSpending: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalOrders: z.int().gte(-9007199254740991).lte(9007199254740991),
+  averageOrderValue: z.int().gte(-9007199254740991).lte(9007199254740991),
+  orders: z.array(zOrderResponse),
+});
+
 export const zGetBuyerOrderDetailPath = z.object({
   id: z.string(),
 });
@@ -847,6 +857,16 @@ export const zGetBuyerOrderDetailResponse = zOrderResponse;
  * List of seller store orders
  */
 export const zListSellerOrdersResponse = z.array(zOrderResponse);
+
+/**
+ * Seller income report details
+ */
+export const zGetSellerIncomeReportResponse = z.object({
+  totalIncome: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalOrders: z.int().gte(-9007199254740991).lte(9007199254740991),
+  averageRevenue: z.int().gte(-9007199254740991).lte(9007199254740991),
+  orders: z.array(zOrderResponse),
+});
 
 export const zGetSellerOrderDetailPath = z.object({
   id: z.string(),
