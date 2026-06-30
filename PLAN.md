@@ -541,6 +541,8 @@ Real delivery systems must handle orders that are not completed on time. SEAPEDI
 
 After this level, Admins should be able to monitor the marketplace, manage discount tools, and verify operational cases such as overdue orders. The system should now be demonstrable from marketplace activity to administrative supervision.
 
+> **Level 5 — Complete** ✅
+
 ---
 
 ## Level 7: Security Hardening and Finalization (Total 10 pts)
