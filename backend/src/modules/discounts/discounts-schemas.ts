@@ -22,7 +22,9 @@ export const createVoucherRequestSchema = z
       .string(customMsg('Tanggal kedaluwarsa wajib diisi', 'Tanggal kedaluwarsa harus berupa teks'))
       .datetime({ message: 'Format tanggal kedaluwarsa tidak valid' }),
     remainingUsage: z
-      .number(customMsg('Sisa kuota penggunaan wajib diisi', 'Sisa kuota penggunaan harus berupa angka'))
+      .number(
+        customMsg('Sisa kuota penggunaan wajib diisi', 'Sisa kuota penggunaan harus berupa angka'),
+      )
       .int('Sisa kuota penggunaan harus berupa bilangan bulat')
       .nonnegative('Sisa kuota penggunaan tidak boleh negatif'),
   })

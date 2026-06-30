@@ -103,7 +103,7 @@ driverRouter.get(
       id: z
         .string(customMsg('ID wajib diisi', 'ID harus berupa teks'))
         .uuid('Format ID tidak valid'),
-    })
+    }),
   ),
   async (c) => {
     const { id } = c.req.valid('param');
@@ -133,7 +133,7 @@ driverRouter.post(
       id: z
         .string(customMsg('ID wajib diisi', 'ID harus berupa teks'))
         .uuid('Format ID tidak valid'),
-    })
+    }),
   ),
   async (c) => {
     const { id } = c.req.valid('param');
@@ -164,7 +164,7 @@ driverRouter.post(
       id: z
         .string(customMsg('ID wajib diisi', 'ID harus berupa teks'))
         .uuid('Format ID tidak valid'),
-    })
+    }),
   ),
   async (c) => {
     const { id } = c.req.valid('param');

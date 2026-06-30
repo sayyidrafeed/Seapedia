@@ -57,7 +57,7 @@ export const onboardSchema = z
       z.enum(['buyer', 'seller', 'driver'], {
         message: 'Role tidak valid',
       }),
-      customMsg('Pilih minimal satu role', 'Role harus berupa list')
+      customMsg('Pilih minimal satu role', 'Role harus berupa list'),
     ),
   })
   .meta({ id: 'OnboardInput' });
