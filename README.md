@@ -118,6 +118,24 @@ seapedia/
 | 7 | Security hardening (XSS, SQLi, RBAC, input validation) | 10 |
 | **Bonus** | UI quality + deployment | 25 |
 
+## Admin Dashboard
+
+The Admin dashboard (`/dashboard/admin`) provides a control center for marketplace supervision:
+
+### Monitoring Cards
+- **Gross Merchandise Value (GMV)** — total revenue from completed (`pesanan_selesai`) orders
+- **Total Users / Stores / Products / Orders** — aggregate counts across all entities
+- **Delivery Jobs** — assigned and completed delivery tasks
+- **Total Vouchers / Promos** — discount resource counts
+- **Overdue Orders** — count of orders beyond their delivery SLA (calculated using simulated time)
+
+### Tools
+| Tool | Action | Description |
+|------|--------|-------------|
+| Manage Discounts | `/dashboard/admin/discounts` | Create and list vouchers (flat discounts) and promos (percentage discounts) |
+| Simulate Day +1 | `POST /api/admin/simulate-day` | Advances the simulation clock by 24 hours for SLA testing |
+| Process Overdue | `POST /api/admin/overdue/process` | Scans and processes all eligible overdue orders |
+
 ## Business Rules
 
 ### Single-Store Checkout Rule
@@ -146,24 +164,25 @@ Drivers earn **100% of the delivery fee** for each completed delivery. The deliv
 
 ### Delivery SLA and Overdue Handling
 
-| Method | SLA | Overdue Action |
-|--------|-----|----------------|
-| Instant | 1 simulation day | Auto refund to Buyer wallet |
-| Next Day | 2 simulation days | Auto refund to Buyer wallet |
-| Regular | 3 simulation days | Auto return (refund + stock restore) |
+| Method | SLA Window | Overdue Action |
+|--------|------------|----------------|
+| Instant | 12 hours | Auto refund to Buyer wallet |
+| Next Day | 24 hours | Auto refund to Buyer wallet |
+| Regular | 3 days | Auto return (refund + stock restore) |
 
 When an order becomes overdue:
-- Buyer wallet is credited with the refund amount.
-- Seller income is reversed (or excluded if not yet recorded).
-- Product stock is restored.
+- Buyer wallet is credited with the full `totalAmount`.
+- A `refund` wallet transaction is recorded with a unique reference.
+- Product stock is restored (Regular only; Instant/Next Day are refund-only).
 - Order status moves to **Dikembalikan**.
-- Status change is recorded with a timestamp in the order history.
+- Status change is recorded with a timestamp and refund details in the order history.
+- Seller income reports are automatically adjusted (overdue orders are excluded from revenue).
 
-The system prevents double refund, double reversal, or double stock restoration for the same order.
+The system prevents double refund, double reversal, or double stock restoration for the same order via idempotency checks on status history.
 
 ### Time Simulation
 
-The Admin dashboard provides a trigger to advance simulated time by 1 day. Overdue orders are identified and processed automatically after each advance. The trigger is idempotent.
+The Admin dashboard provides a **Simulate Day +1** button that advances the internal simulation clock by 24 hours. A **Process Overdue Orders** button scans for orders exceeding their SLA (using the simulated clock) and applies the overdue actions above. Both triggers are idempotent and auditable. The simulation state (day offset) is stored in the database and persists across server restarts.
 
 ## Demo Accounts
 
