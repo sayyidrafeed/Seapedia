@@ -67,7 +67,7 @@ export class DiscountsService {
       }
 
       let discountAmount = Math.floor((subtotal * promo.discountPercent) / 100);
-      if (promo.maxDiscountAmount !== null && promo.maxDiscountAmount !== undefined) {
+      if (promo.maxDiscountAmount != null) {
         discountAmount = Math.min(discountAmount, promo.maxDiscountAmount);
       }
       discountAmount = Math.min(discountAmount, subtotal);

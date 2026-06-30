@@ -50,13 +50,27 @@ function AdminDiscountsPage() {
       if (!vCode || !vAmount || !vExpiry || !vUsage) {
         throw new Error('Please fill in all required fields');
       }
+      const parsedAmount = parseInt(vAmount, 10);
+      const parsedMinOrder = vMinOrder ? parseInt(vMinOrder, 10) : 0;
+      const parsedUsage = parseInt(vUsage, 10);
+
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error('Discount amount must be a valid positive number');
+      }
+      if (isNaN(parsedMinOrder) || parsedMinOrder < 0) {
+        throw new Error('Minimum order amount must be a valid non-negative number');
+      }
+      if (isNaN(parsedUsage) || parsedUsage < 0) {
+        throw new Error('Remaining usage must be a valid non-negative number');
+      }
+
       const { data, error } = await createVoucher({
         body: {
           code: vCode.trim().toUpperCase(),
-          discountAmount: parseInt(vAmount, 10),
-          minOrderAmount: vMinOrder ? parseInt(vMinOrder, 10) : 0,
+          discountAmount: parsedAmount,
+          minOrderAmount: parsedMinOrder,
           expiresAt: new Date(vExpiry).toISOString(),
-          remainingUsage: parseInt(vUsage, 10),
+          remainingUsage: parsedUsage,
         },
       });
       if (error) {
@@ -85,12 +99,26 @@ function AdminDiscountsPage() {
       if (!pCode || !pPercent || !pExpiry) {
         throw new Error('Please fill in all required fields');
       }
+      const parsedPercent = parseInt(pPercent, 10);
+      const parsedMaxDiscount = pMaxDiscount ? parseInt(pMaxDiscount, 10) : null;
+      const parsedMinOrder = pMinOrder ? parseInt(pMinOrder, 10) : 0;
+
+      if (isNaN(parsedPercent) || parsedPercent < 1 || parsedPercent > 100) {
+        throw new Error('Discount percentage must be a number between 1 and 100');
+      }
+      if (parsedMaxDiscount !== null && (isNaN(parsedMaxDiscount) || parsedMaxDiscount <= 0)) {
+        throw new Error('Max discount amount must be a valid positive number');
+      }
+      if (isNaN(parsedMinOrder) || parsedMinOrder < 0) {
+        throw new Error('Minimum order amount must be a valid non-negative number');
+      }
+
       const { data, error } = await createPromo({
         body: {
           code: pCode.trim().toUpperCase(),
-          discountPercent: parseInt(pPercent, 10),
-          maxDiscountAmount: pMaxDiscount ? parseInt(pMaxDiscount, 10) : null,
-          minOrderAmount: pMinOrder ? parseInt(pMinOrder, 10) : 0,
+          discountPercent: parsedPercent,
+          maxDiscountAmount: parsedMaxDiscount,
+          minOrderAmount: parsedMinOrder,
           expiresAt: new Date(pExpiry).toISOString(),
         },
       });
