@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStoreInfoOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { listProducts } from '@/lib/api/generated/sdk.gen';
-import { formatCurrency } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { StoreHeader } from '@/features/marketplace/components/store-header';
+import { MarketplaceProductCard } from '@/features/marketplace/components/marketplace-product-card';
+import { PaginationControls } from '@/components/shared/pagination-controls';
 
 export const Route = createFileRoute('/$storeSlug/')({
   component: PublicStorePage,
@@ -68,20 +69,7 @@ function PublicStorePage() {
   return (
     <div className="container mx-auto px-6 py-12 space-y-8">
       {/* Store Header */}
-      <div className="bg-card border border-border p-8 rounded-xl shadow-sm text-center md:text-left md:flex items-center gap-6">
-        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto md:mx-0 text-3xl font-bold text-primary">
-          {store.name.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">{store.name}</h1>
-          <p className="text-muted-foreground mt-2 max-w-2xl">
-            {(store.description as string) || 'Welcome to our store on Seapedia!'}
-          </p>
-          <div className="mt-4 text-sm text-muted-foreground">
-            Joined on {new Date(store.createdAt).toLocaleDateString()}
-          </div>
-        </div>
-      </div>
+      <StoreHeader store={store} />
 
       {/* Store Products */}
       <div className="space-y-4">
@@ -111,63 +99,12 @@ function PublicStorePage() {
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {productsData?.products.map((product) => (
-                <div
-                  key={product.id}
-                  className="group bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {(product.description as string) || ''}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-6 mt-4 border-t border-border/50">
-                    <span className="text-base font-extrabold text-foreground">
-                      {formatCurrency(product.price)}
-                    </span>
-                    <Link
-                      to="/$storeSlug/$productSlug"
-                      params={{
-                        storeSlug: product.storeSlug,
-                        productSlug: product.slug,
-                      }}
-                    >
-                      <Button variant="secondary" size="sm" className="text-xs cursor-pointer">
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                <MarketplaceProductCard key={product.id} product={product} showStoreName={false} />
               ))}
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm font-medium">
-                  Page {page} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
+            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
       </div>
