@@ -160,7 +160,7 @@ export function OrderReportList({
                     <div className="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-border/80 pt-2 sm:pt-0 sm:pl-4">
                       <span className="text-muted-foreground block mb-0.5">{totalLabel}</span>
                       <span className="font-black text-primary text-sm">
-                        {formatCurrency(showStoreName ? order.totalAmount : order.totalAmount)}
+                        {formatCurrency(order.totalAmount)}
                       </span>
                     </div>
                   </div>

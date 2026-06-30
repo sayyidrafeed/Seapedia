@@ -2,6 +2,7 @@ import { useForm } from '@tanstack/react-form';
 import { zCreateAddressBody } from '@/lib/api/generated/zod.gen';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import type { AddressResponse, CreateAddressData } from '@/lib/api/generated';
 
 interface AddressFormProps {
@@ -35,9 +36,8 @@ function FormField({ label, placeholder, field, isTextArea = false }: FormFieldP
         {label}
       </label>
       {isTextArea ? (
-        <textarea
+        <Textarea
           placeholder={placeholder}
-          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           value={field.state.value}
           onBlur={field.handleBlur}
           onChange={(e) => field.handleChange(e.target.value)}

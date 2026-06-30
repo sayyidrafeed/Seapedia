@@ -68,8 +68,8 @@ export function useWallet() {
     onSuccess: () => {
       toast.success('Payment simulated successfully! Balance updated.');
       setPendingPayment(null);
-      queryClient.invalidateQueries({ queryKey: ['getBuyerWallet'] });
-      queryClient.invalidateQueries({ queryKey: ['getWalletTransactions'] });
+      queryClient.invalidateQueries({ queryKey: getBuyerWalletOptions().queryKey });
+      queryClient.invalidateQueries({ queryKey: getWalletTransactionsOptions().queryKey });
     },
     onError: (err) => {
       toast.error(err.message);

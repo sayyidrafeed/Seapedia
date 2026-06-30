@@ -5,6 +5,7 @@ import { useForm } from '@tanstack/react-form';
 import { zUpdateCurrentSellerStoreBody } from '@/lib/api/generated/zod.gen';
 import { useState } from 'react';
 import { z } from 'zod';
+import { Textarea } from '@/components/ui/textarea';
 
 interface StoreProfileFormProps {
   store: {
@@ -96,13 +97,12 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
               <label htmlFor={field.name} className="text-sm font-medium">
                 Store Description
               </label>
-              <textarea
+              <Textarea
                 id={field.name}
                 name={field.name}
                 value={field.state.value || ''}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               {field.state.meta.errors ? (
                 <em className="text-xs text-destructive block mt-1">

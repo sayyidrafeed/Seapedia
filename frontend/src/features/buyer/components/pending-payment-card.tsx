@@ -26,8 +26,14 @@ export function PendingPaymentCard({
   onSimulateSuccess,
 }: PendingPaymentCardProps) {
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!');
+    if (navigator.clipboard) {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => toast.success('Copied to clipboard!'))
+        .catch(() => toast.error('Failed to copy to clipboard'));
+    } else {
+      toast.error('Clipboard not supported in this browser');
+    }
   };
 
   const methodName =

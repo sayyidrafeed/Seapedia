@@ -29,7 +29,7 @@ export function useAddresses() {
     onSuccess: () => {
       toast.success('Address added successfully!');
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['getAddresses'] });
+      queryClient.invalidateQueries({ queryKey: getAddressesOptions().queryKey });
     },
     onError: (err) => {
       toast.error(err.message);
@@ -49,7 +49,7 @@ export function useAddresses() {
       toast.success('Address updated successfully!');
       setIsEditing(false);
       setCurrentAddress(null);
-      queryClient.invalidateQueries({ queryKey: ['getAddresses'] });
+      queryClient.invalidateQueries({ queryKey: getAddressesOptions().queryKey });
     },
     onError: (err) => {
       toast.error(err.message);
@@ -64,7 +64,7 @@ export function useAddresses() {
     },
     onSuccess: () => {
       toast.success('Address deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['getAddresses'] });
+      queryClient.invalidateQueries({ queryKey: getAddressesOptions().queryKey });
     },
     onError: (err) => {
       toast.error(err.message);
@@ -79,7 +79,7 @@ export function useAddresses() {
     },
     onSuccess: () => {
       toast.success('Default address updated!');
-      queryClient.invalidateQueries({ queryKey: ['getAddresses'] });
+      queryClient.invalidateQueries({ queryKey: getAddressesOptions().queryKey });
     },
     onError: (err) => {
       toast.error(err.message);
