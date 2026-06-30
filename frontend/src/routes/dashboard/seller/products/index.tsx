@@ -1,57 +1,18 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  listSellerProductsOptions,
-  listSellerProductsQueryKey,
-} from '@/lib/api/generated/@tanstack/react-query.gen';
-import { deleteSellerProduct } from '@/lib/api/generated';
+import { useSellerProducts } from '@/features/seller/hooks/use-seller-products';
 import { ProductList } from '@/components/products/product-list';
 import type { ProductItem } from '@/components/products/product-list';
 import { Button } from '@/components/ui/button';
+import { PaginationControls } from '@/components/shared/pagination-controls';
 import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
-
-import { useState } from 'react';
 
 export const Route = createFileRoute('/dashboard/seller/products/')({
   component: SellerProductsPage,
 });
 
 function SellerProductsPage() {
-  const queryClient = useQueryClient();
-  const [page, setPage] = useState(1);
-  const limit = 20;
-
-  const { data, isLoading } = useQuery({
-    ...listSellerProductsOptions({ query: { page, limit } }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await deleteSellerProduct({
-        path: { id },
-      });
-      if (error) {
-        throw new Error((error as { error?: string }).error || 'Failed to delete product');
-      }
-    },
-    onSuccess: () => {
-      toast.success('Product deleted successfully');
-      queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      deleteMutation.mutate(id);
-    }
-  };
-
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / limit) || 1;
+  const { products, totalPages, page, isLoading, isDeleting, setPage, deleteProduct } =
+    useSellerProducts();
 
   return (
     <div className="space-y-6">
@@ -79,35 +40,13 @@ function SellerProductsPage() {
       ) : (
         <div className="space-y-4">
           <ProductList
-            products={(data?.products as ProductItem[]) ?? []}
-            onDelete={handleDelete}
-            isDeleting={deleteMutation.isPending}
+            products={(products as ProductItem[]) ?? []}
+            onDelete={deleteProduct}
+            isDeleting={isDeleting}
           />
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Previous
-              </Button>
-              <span className="text-sm font-medium">
-                Page {page} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
+          <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
     </div>
