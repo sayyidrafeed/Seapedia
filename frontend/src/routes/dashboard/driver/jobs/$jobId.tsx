@@ -19,7 +19,7 @@ import {
   DropoffCard,
   PackageContentsCard,
   OrderSummaryCard,
-} from '../components/JobCards';
+} from '@/features/driver/components/job-cards';
 
 export const Route = createFileRoute('/dashboard/driver/jobs/$jobId')({
   component: JobDetail,
