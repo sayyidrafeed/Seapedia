@@ -1029,6 +1029,21 @@ export const zGetPromoResponse = z.object({
   updatedAt: z.string(),
 });
 
+/**
+ * Monitoring statistics retrieved successfully
+ */
+export const zAdminMonitoringEndpointResponse = z.object({
+  totalUsers: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalStores: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalProducts: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalOrders: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalRevenue: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalVouchers: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalPromos: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalDeliveryJobs: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalOverdueOrders: z.int().gte(-9007199254740991).lte(9007199254740991),
+});
+
 export const zValidateDiscountCodeBody = z.object({
   code: z.string().min(1),
   subtotal: z.int().lte(9007199254740991),

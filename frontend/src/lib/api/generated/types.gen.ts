@@ -2889,6 +2889,57 @@ export type GetPromoResponses = {
 
 export type GetPromoResponse = GetPromoResponses[keyof GetPromoResponses];
 
+export type AdminMonitoringEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/monitoring';
+};
+
+export type AdminMonitoringEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type AdminMonitoringEndpointError =
+  AdminMonitoringEndpointErrors[keyof AdminMonitoringEndpointErrors];
+
+export type AdminMonitoringEndpointResponses = {
+  /**
+   * Monitoring statistics retrieved successfully
+   */
+  200: {
+    totalUsers: number;
+    totalStores: number;
+    totalProducts: number;
+    totalOrders: number;
+    totalRevenue: number;
+    totalVouchers: number;
+    totalPromos: number;
+    totalDeliveryJobs: number;
+    totalOverdueOrders: number;
+  };
+};
+
+export type AdminMonitoringEndpointResponse =
+  AdminMonitoringEndpointResponses[keyof AdminMonitoringEndpointResponses];
+
 export type ValidateDiscountCodeData = {
   body: {
     code: string;

@@ -6,6 +6,9 @@ import type {
   AddCartItemData,
   AddCartItemErrors,
   AddCartItemResponses,
+  AdminMonitoringEndpointData,
+  AdminMonitoringEndpointErrors,
+  AdminMonitoringEndpointResponses,
   CheckoutPreviewData,
   CheckoutPreviewErrors,
   CheckoutPreviewResponses,
@@ -1320,6 +1323,28 @@ export const getPromo = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/admin/promos/{id}',
+    ...options,
+  });
+
+/**
+ * Get marketplace monitoring statistics
+ */
+export const adminMonitoringEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<AdminMonitoringEndpointData, ThrowOnError>,
+): RequestResult<AdminMonitoringEndpointResponses, AdminMonitoringEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    AdminMonitoringEndpointResponses,
+    AdminMonitoringEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/monitoring',
     ...options,
   });
 

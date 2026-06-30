@@ -2,6 +2,7 @@
 
 export {
   addCartItem,
+  adminMonitoringEndpoint,
   checkoutPreview,
   clearCart,
   completeDeliveryJob,
@@ -73,6 +74,11 @@ export type {
   AddCartItemResponse,
   AddCartItemResponses,
   AddressResponse,
+  AdminMonitoringEndpointData,
+  AdminMonitoringEndpointError,
+  AdminMonitoringEndpointErrors,
+  AdminMonitoringEndpointResponse,
+  AdminMonitoringEndpointResponses,
   CheckoutPreviewData,
   CheckoutPreviewError,
   CheckoutPreviewErrors,

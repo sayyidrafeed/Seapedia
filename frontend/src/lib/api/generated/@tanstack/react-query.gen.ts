@@ -11,6 +11,7 @@ import {
 import { client } from '../client.gen';
 import {
   addCartItem,
+  adminMonitoringEndpoint,
   checkoutPreview,
   clearCart,
   completeDeliveryJob,
@@ -79,6 +80,9 @@ import type {
   AddCartItemData,
   AddCartItemError,
   AddCartItemResponse,
+  AdminMonitoringEndpointData,
+  AdminMonitoringEndpointError,
+  AdminMonitoringEndpointResponse,
   CheckoutPreviewData,
   CheckoutPreviewError,
   CheckoutPreviewResponse,
@@ -1815,6 +1819,31 @@ export const getPromoOptions = (options: Options<GetPromoData>) =>
       return data;
     },
     queryKey: getPromoQueryKey(options),
+  });
+
+export const adminMonitoringEndpointQueryKey = (options?: Options<AdminMonitoringEndpointData>) =>
+  createQueryKey('adminMonitoringEndpoint', options);
+
+/**
+ * Get marketplace monitoring statistics
+ */
+export const adminMonitoringEndpointOptions = (options?: Options<AdminMonitoringEndpointData>) =>
+  queryOptions<
+    AdminMonitoringEndpointResponse,
+    AdminMonitoringEndpointError,
+    AdminMonitoringEndpointResponse,
+    ReturnType<typeof adminMonitoringEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await adminMonitoringEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: adminMonitoringEndpointQueryKey(options),
   });
 
 /**
