@@ -47,9 +47,3 @@ export function requireRole(allowedRole: string) {
     await next();
   });
 }
-
-export function requirePermission(_resource: string, _actions: string[]) {
-  return factory.createMiddleware(async (_c, next) => {
-    await next();
-  });
-}

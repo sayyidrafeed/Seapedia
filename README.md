@@ -8,11 +8,11 @@ SEAPEDIA is a multi-role e-commerce platform connecting Buyers, Sellers, Drivers
 
 | Layer | Backend | Frontend |
 |-------|---------|----------|
-| Runtime | Cloudflare Workers | Cloudflare Pages (static SPA) |
+| Runtime | Bun | Bun (Vite dev server) |
 | Framework | [Hono](https://hono.dev) | [React 19](https://react.dev) + [Vite](https://vite.dev) |
-| Database | [Cloudflare D1](https://developers.cloudflare.com/d1/) (SQLite) | — |
+| Database | PostgreSQL | — |
 | ORM | [Drizzle ORM](https://orm.drizzle.team) | — |
-| Auth | [Clerk](https://clerk.com) (`@clerk/hono`) | [Clerk](https://clerk.com) (`@clerk/react`) |
+| Auth | Custom JWT (HS256, HttpOnly cookie) | Custom JWT (Cookie-based session) |
 | Validation | [Zod](https://zod.dev) | Zod (env only) |
 | API Docs | [Scalar](https://scalar.com) at `/docs` | — |
 | API Client | — | [hey-api](https://heyapi.dev) generated SDK |
@@ -24,8 +24,7 @@ SEAPEDIA is a multi-role e-commerce platform connecting Buyers, Sellers, Drivers
 ## Prerequisites
 
 - [Bun](https://bun.sh) >= 1.2
-- [Wrangler](https://developers.cloudflare.com/workers/wrangler/) (`bun add -g wrangler`)
-- [Cloudflare account](https://dash.cloudflare.com) (free plan works)
+- PostgreSQL >= 15
 
 ## Quick Start
 
@@ -38,7 +37,7 @@ bun install
 bun run dev
 ```
 
-The backend API starts on [http://localhost:8787](http://localhost:8787).
+The backend API starts on [http://localhost:3001](http://localhost:3001).
 
 ### 2. Frontend
 
@@ -77,9 +76,9 @@ bun run seed
 | Service | URL |
 |---------|-----|
 | Frontend app | [http://localhost:5173](http://localhost:5173) |
-| Backend API | [http://localhost:8787](http://localhost:8787) |
-| Scalar API Docs | [http://localhost:8787/docs](http://localhost:8787/docs) |
-| OpenAPI JSON | [http://localhost:8787/openapi.json](http://localhost:8787/openapi.json) |
+| Backend API | [http://localhost:3001](http://localhost:3001) |
+| Scalar API Docs | [http://localhost:3001/docs](http://localhost:3001/docs) |
+| OpenAPI JSON | [http://localhost:3001/openapi.json](http://localhost:3001/openapi.json) |
 
 ## Project Structure
 
@@ -205,21 +204,82 @@ Every HTTP boundary (path params, query params, request body) is validated using
 
 ### Session & Token Behavior
 
-Authentication uses **Clerk** with JWT-based session management. Tokens are short-lived with automatic refresh via the Clerk client SDK. Logout invalidates the session on both client and server.
+Authentication uses custom **JWT** tokens with session management stored in the database. Session tokens are set in secure HttpOnly cookies (`__session`) with a 2-hour expiration. Logout invalidates the session by removing the session record from the database.
 
 ### Role-Based Access Control
 
 Authorization is enforced **server-side** on every protected endpoint. The backend verifies the **active role** before granting access. Admin-only endpoints are inaccessible to non-admin users. Resource ownership is enforced: Sellers manage only their own products, Buyers view only their own orders, Drivers can only take available jobs.
 
+## Testing Guide
+
+This guide describes how to verify the multi-role flows and security features of SEAPEDIA.
+
+### 1. Setup
+Ensure both servers are running and the database is seeded:
+```bash
+# In backend directory
+bun run db:seed
+bun run dev
+
+# In frontend directory
+bun run dev
+```
+
+### 2. Admin Walkthrough
+1. Go to [http://localhost:5173/auth/login](http://localhost:5173/auth/login) (or click Login).
+2. Login with `admin` / `admin123`.
+3. Verify access to the Admin Dashboard (discounts management, system time simulation).
+4. Go to simulated time controls, advance simulated time by 1 day, and check that overdue orders are processed if any.
+
+### 3. Seller Walkthrough
+1. Login with `seller1` / `seller123`.
+2. Verify you can view the Seller Dashboard.
+3. Add a new product or edit an existing one.
+4. Verify you can see incoming orders in the orders section.
+
+### 4. Buyer Walkthrough
+1. Login with `buyer1` / `buyer123`.
+2. Go to the Catalog, add a product to the cart.
+3. Top up the wallet if the balance is low (go to Wallet tab).
+4. Complete the checkout using single-store checkout.
+5. Check Order History and verify the status is "Menunggu Konfirmasi" (Pending Confirmation).
+
+### 5. Driver Walkthrough
+1. Login with `driver1` / `driver123`.
+2. Accept a delivery job from the Driver Dashboard.
+3. Complete the delivery stages.
+4. Verify driver earnings increase by 100% of the delivery fee.
+
+### 6. Multirole Walkthrough
+1. Login with `multirole` / `multi123`.
+2. Use the role switcher in the navigation bar to switch between Seller, Buyer, and Driver dashboards.
+3. Verify role-specific navigation guards restrict access depending on the active role.
+
+## Security Test Checklist
+
+To verify the security controls implemented in Level 7:
+
+- [ ] **SQL Injection Prevention:**
+  Verify that all queries are parameterized. Input single quotes `'` or SQL keywords like `OR 1=1` into Search fields, Review Comments, or Login fields. Ensure they are treated as literal strings and do not cause SQL syntax errors or bypass checks.
+- [ ] **Cross-Site Scripting (XSS) Prevention:**
+  Log in as a Buyer and leave a review comment containing `<script>alert('XSS')</script>`. Verify that the script tag renders as plain text in the public catalog reviews list and no alert popup is triggered.
+- [ ] **Input Validation:**
+  Attempt to submit invalid fields (e.g. invalid email format in registration, negative price in product management, rating out of bounds `[1-5]`). Verify that the server rejects these with a `400 Bad Request` and structured Zod validation errors.
+- [ ] **Session Invalidation on Logout:**
+  Authenticate and inspect the cookie `__session` in browser devtools. Copy its value. Click Logout. Replay a request using the copied `__session` token via curl/Postman to a protected endpoint. Verify that the request is rejected with `401 Unauthorized` because the session row was deleted from the database.
+- [ ] **Role-Based Access Control (RBAC):**
+  Attempt to access a protected endpoint directly (e.g., GET `/api/admin/summary` or POST `/api/products`) without logging in or using a buyer session. Verify the API returns `401 Unauthorized` or `403 Forbidden` rather than exposing the endpoint.
+- [ ] **Resource Ownership Enforcement:**
+  Attempt to retrieve or modify another buyer's order or another seller's store products using direct API calls (e.g. GET `/api/orders/{orderId}`). Verify that the service scopes queries by the current user ID and denies access.
+
 ## Deployment
 
 *Deployment instructions are provided here once deployed.*
 
-The frontend deploys to Cloudflare Pages and the backend deploys to Cloudflare Workers:
+The app runs locally using Docker:
 
 ```bash
-cd backend && bun run deploy
-cd frontend && bun run build   # upload dist/ to Cloudflare Pages
+docker compose up --build
 ```
 
 ---
