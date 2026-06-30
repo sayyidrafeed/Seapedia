@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { orders, orderItems, orderStatusHistory, stores } from '@/db/schema';
-import { eq, and, desc, inArray } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@/lib/errors';
 
 export class OrdersSellerService {
@@ -38,7 +38,6 @@ export class OrdersSellerService {
       return [];
     }
 
-    const orderIds = ordersList.map((o) => o.id);
     const allItems = await db
       .select({
         id: orderItems.id,
@@ -49,7 +48,8 @@ export class OrdersSellerService {
         quantity: orderItems.quantity,
       })
       .from(orderItems)
-      .where(inArray(orderItems.orderId, orderIds));
+      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+      .where(eq(orders.storeId, store.id));
 
     type MappedItem = {
       id: string;
@@ -239,7 +239,6 @@ export class OrdersSellerService {
       };
     }
 
-    const orderIds = ordersList.map((o) => o.id);
     const allItems = await db
       .select({
         id: orderItems.id,
@@ -250,7 +249,8 @@ export class OrdersSellerService {
         quantity: orderItems.quantity,
       })
       .from(orderItems)
-      .where(inArray(orderItems.orderId, orderIds));
+      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+      .where(eq(orders.storeId, store.id));
 
     type MappedItem = {
       id: string;
