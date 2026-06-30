@@ -1,13 +1,21 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  BUN_VERSION: "latest"
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   check:
+    name: Lint, Format & Typecheck
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,9 +25,17 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache node_modules (${{ matrix.package }})
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.package }}/node_modules
+          key: ${{ runner.os }}-bun-${{ matrix.package }}-${{ hashFiles(format('{0}/bun.lock', matrix.package)) }}
 
       - name: Install dependencies (${{ matrix.package }})
+        if: steps.cache-deps.outputs.cache-hit != 'true'
         working-directory: ${{ matrix.package }}
         run: bun install --frozen-lockfile
 
@@ -30,3 +46,45 @@ jobs:
       - name: Format + lint (${{ matrix.package }})
         working-directory: ${{ matrix.package }}
         run: bun run fl
+
+  deploy:
+    name: Build & Push Backend Image
+    runs-on: ubuntu-latest
+    needs: [check]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set image name
+        run: echo "IMAGE=ghcr.io/${{ github.repository_owner }}/seapedia-backend" >> "$GITHUB_ENV"
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:main
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Notify deployment
+        if: vars.DEPLOY_WEBHOOK_URL != ''
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ vars.DEPLOY_WEBHOOK_URL }}
+        run: curl -fsS -X POST "$DEPLOY_WEBHOOK_URL"
