@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDashboardStatsOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { processOverdueOrders, simulateTime } from '@/lib/api/generated';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   Users,
   Store,
@@ -13,6 +16,8 @@ import {
   AlertTriangle,
   Truck,
   Loader2,
+  Clock,
+  RefreshCw,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -73,6 +78,48 @@ function AdminDashboardIndex() {
       navigate({ to: '/select-role' });
     }
   }, [auth.isLoading, auth.activeRole, navigate]);
+
+  const queryClient = useQueryClient();
+
+  const simulateMutation = useMutation({
+    mutationFn: async (hours: number) => {
+      const { data, error } = await simulateTime({
+        body: { hoursToAdvance: hours },
+      });
+      if (error) throw new Error(error.error || 'Failed to simulate time');
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(
+        data.newOffsetHours === 0
+          ? 'System time offset has been reset!'
+          : `Simulated time forward by ${data.newOffsetHours} hours!`,
+      );
+      queryClient.invalidateQueries({ queryKey: getDashboardStatsOptions().queryKey });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  const processOverdueMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await processOverdueOrders();
+      if (error) throw new Error(error.error || 'Failed to process overdue orders');
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.processedCount > 0) {
+        toast.success(`Successfully processed ${data.processedCount} overdue orders!`);
+      } else {
+        toast.info('No overdue orders found to process.');
+      }
+      queryClient.invalidateQueries({ queryKey: getDashboardStatsOptions().queryKey });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
 
   const {
     data: stats,
@@ -183,11 +230,37 @@ function AdminDashboardIndex() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">
-          Comprehensive real-time monitoring of SEAPEDIA marketplace system.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">
+            Comprehensive real-time monitoring of SEAPEDIA marketplace system.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => simulateMutation.mutate(24)}
+            disabled={simulateMutation.isPending}
+            variant="outline"
+            className="flex items-center gap-2 rounded-xl font-bold cursor-pointer"
+          >
+            {simulateMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Clock className="h-4 w-4" />
+            )}
+            Simulate +1 Day
+          </Button>
+          <Button
+            onClick={() => simulateMutation.mutate(0)}
+            disabled={simulateMutation.isPending}
+            variant="ghost"
+            className="flex items-center gap-2 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Reset Time
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -262,19 +335,39 @@ function AdminDashboardIndex() {
               }`}
             />
           </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${
-                stats.overdueOrders.total > 0
-                  ? 'text-rose-600 dark:text-rose-400'
-                  : 'text-foreground'
-              }`}
-            >
-              {stats.overdueOrders.total}
+          <CardContent className="space-y-4">
+            <div>
+              <div
+                className={`text-2xl font-bold ${
+                  stats.overdueOrders.total > 0
+                    ? 'text-rose-600 dark:text-rose-400'
+                    : 'text-foreground'
+                }`}
+              >
+                {stats.overdueOrders.total}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Active orders past delivery SLA
+              </p>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              Active orders past delivery SLA
-            </p>
+            {stats.overdueOrders.total > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-full font-bold rounded-lg text-xs py-1.5 h-auto cursor-pointer"
+                onClick={() => processOverdueMutation.mutate()}
+                disabled={processOverdueMutation.isPending}
+              >
+                {processOverdueMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    Processing...
+                  </>
+                ) : (
+                  'Process Overdue Orders'
+                )}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
