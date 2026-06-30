@@ -417,16 +417,16 @@ Your task is to expose eligible delivery jobs to Drivers. A job should only beco
 
 #### Requirements:
 
-- Create a delivery or delivery job resource.
-- Create a Driver endpoint and UI to find available jobs.
-- Create a Driver endpoint and UI to view job details.
-- Only show jobs that are ready to be taken by Drivers.
+- [x] Create a delivery or delivery job resource.
+- [x] Create a Driver endpoint and UI to find available jobs.
+- [x] Create a Driver endpoint and UI to view job details.
+- [x] Only show jobs that are ready to be taken by Drivers.
 
 #### Business Rules:
 
-- Drivers may only take jobs with status Menunggu Pengirim.
-- Drivers must not see or take orders that are still Sedang Dikemas.
-- A delivery job must be connected to a specific order.
+- [x] Drivers may only take jobs with status Menunggu Pengirim.
+- [x] Drivers must not see or take orders that are still Sedang Dikemas.
+- [x] A delivery job must be connected to a specific order.
 
 ### Implement Take Job and Delivery Completion (4 pts)
 
@@ -637,7 +637,7 @@ For the final assessment, the project should be demonstrable as one integrated s
 
 ### Driver Flow
 
-- [ ] Driver can find available jobs.
+- [x] Driver can find available jobs.
 - [ ] Driver can take an available job.
 - [ ] Driver can confirm a completed job.
 - [ ] Driver can view job history and earnings.

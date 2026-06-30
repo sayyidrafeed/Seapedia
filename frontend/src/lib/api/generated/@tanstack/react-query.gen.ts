@@ -31,6 +31,7 @@ import {
   getCurrentSession,
   getCurrentUser,
   getCurrentUserFinancialSummary,
+  getDriverJobDetail,
   getProductById,
   getProductBySlug,
   getPromo,
@@ -41,6 +42,7 @@ import {
   getVoucher,
   getWalletTransactions,
   healthCheck,
+  listAvailableJobs,
   listBuyerOrders,
   listProducts,
   listPromos,
@@ -133,6 +135,9 @@ import type {
   GetCurrentUserFinancialSummaryError,
   GetCurrentUserFinancialSummaryResponse,
   GetCurrentUserResponse,
+  GetDriverJobDetailData,
+  GetDriverJobDetailError,
+  GetDriverJobDetailResponse,
   GetProductByIdData,
   GetProductByIdError,
   GetProductByIdResponse,
@@ -162,6 +167,9 @@ import type {
   GetWalletTransactionsResponse,
   HealthCheckData,
   HealthCheckResponse,
+  ListAvailableJobsData,
+  ListAvailableJobsError,
+  ListAvailableJobsResponse,
   ListBuyerOrdersData,
   ListBuyerOrdersError,
   ListBuyerOrdersResponse,
@@ -1819,3 +1827,53 @@ export const validateDiscountCodeMutation = (
   };
   return mutationOptions;
 };
+
+export const listAvailableJobsQueryKey = (options?: Options<ListAvailableJobsData>) =>
+  createQueryKey('listAvailableJobs', options);
+
+/**
+ * List available delivery jobs for drivers
+ */
+export const listAvailableJobsOptions = (options?: Options<ListAvailableJobsData>) =>
+  queryOptions<
+    ListAvailableJobsResponse,
+    ListAvailableJobsError,
+    ListAvailableJobsResponse,
+    ReturnType<typeof listAvailableJobsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listAvailableJobs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listAvailableJobsQueryKey(options),
+  });
+
+export const getDriverJobDetailQueryKey = (options: Options<GetDriverJobDetailData>) =>
+  createQueryKey('getDriverJobDetail', options);
+
+/**
+ * Get details of a specific delivery job
+ */
+export const getDriverJobDetailOptions = (options: Options<GetDriverJobDetailData>) =>
+  queryOptions<
+    GetDriverJobDetailResponse,
+    GetDriverJobDetailError,
+    GetDriverJobDetailResponse,
+    ReturnType<typeof getDriverJobDetailQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDriverJobDetail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDriverJobDetailQueryKey(options),
+  });

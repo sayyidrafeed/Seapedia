@@ -64,6 +64,13 @@
       "when": 1782758808595,
       "tag": "0008_past_chamber",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1782801826698,
+      "tag": "0009_bright_maria_hill",
+      "breakpoints": true
     }
   ]
 }

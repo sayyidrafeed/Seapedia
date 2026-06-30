@@ -142,7 +142,7 @@ SEAPEDIA is a multi-seller marketplace, but each cart may only contain products 
 
 ### Driver Earning Rule
 
-Drivers earn a fixed percentage of the delivery fee for each completed delivery. The exact percentage is documented in the system configuration and visible in the Driver dashboard earnings summary.
+Drivers earn **100% of the delivery fee** for each completed delivery. The delivery fee is set during checkout based on the selected delivery method and fully passed to the driver upon successful job completion. The earning amount is displayed in the job detail view before the driver accepts the job.
 
 ### Delivery SLA and Overdue Handling
 

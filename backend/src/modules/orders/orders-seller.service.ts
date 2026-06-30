@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { orders, orderItems, orderStatusHistory, stores } from '@/db/schema';
+import { orders, orderItems, orderStatusHistory, stores, deliveryJobs } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@/lib/errors';
 
@@ -189,6 +189,12 @@ export class OrdersSellerService {
         orderId: order.id,
         status: 'menunggu_pengirim',
         note: note || null,
+      });
+
+      await tx.insert(deliveryJobs).values({
+        orderId: order.id,
+        status: 'pending',
+        deliveryFee: order.deliveryFee,
       });
     });
 

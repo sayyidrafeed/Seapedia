@@ -66,6 +66,9 @@ import type {
   GetCurrentUserFinancialSummaryErrors,
   GetCurrentUserFinancialSummaryResponses,
   GetCurrentUserResponses,
+  GetDriverJobDetailData,
+  GetDriverJobDetailErrors,
+  GetDriverJobDetailResponses,
   GetProductByIdData,
   GetProductByIdErrors,
   GetProductByIdResponses,
@@ -95,6 +98,9 @@ import type {
   GetWalletTransactionsResponses,
   HealthCheckData,
   HealthCheckResponses,
+  ListAvailableJobsData,
+  ListAvailableJobsErrors,
+  ListAvailableJobsResponses,
   ListBuyerOrdersData,
   ListBuyerOrdersErrors,
   ListBuyerOrdersResponses,
@@ -1329,4 +1335,48 @@ export const validateDiscountCode = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+/**
+ * List available delivery jobs for drivers
+ */
+export const listAvailableJobs = <ThrowOnError extends boolean = false>(
+  options?: Options<ListAvailableJobsData, ThrowOnError>,
+): RequestResult<ListAvailableJobsResponses, ListAvailableJobsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListAvailableJobsResponses,
+    ListAvailableJobsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs',
+    ...options,
+  });
+
+/**
+ * Get details of a specific delivery job
+ */
+export const getDriverJobDetail = <ThrowOnError extends boolean = false>(
+  options: Options<GetDriverJobDetailData, ThrowOnError>,
+): RequestResult<GetDriverJobDetailResponses, GetDriverJobDetailErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetDriverJobDetailResponses,
+    GetDriverJobDetailErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}',
+    ...options,
   });
