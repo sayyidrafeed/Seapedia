@@ -13,11 +13,8 @@ import type { CompleteDeliveryJobError } from '@/lib/api/generated';
 import { toast } from 'sonner';
 import { SecurityTest } from './components/SecurityTest';
 import { useState } from 'react';
-import {
-  StatsCards,
-  ActiveDeliveriesCard,
-  HistoryCard,
-} from './components/DashboardComponents';
+import { StatsCards, ActiveDeliveriesCard } from './components/DashboardComponents';
+import { HistoryCard } from './components/HistoryCard';
 
 export const Route = createFileRoute('/dashboard/driver/')({
   component: DriverOverview,
@@ -85,11 +82,12 @@ function DriverOverview() {
         limit={limit}
         isLoading={isHistoryLoading}
         onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-        onNextPage={() => setPage((p) => Math.min(Math.ceil((historyData?.total || 0) / limit), p + 1))}
+        onNextPage={() =>
+          setPage((p) => Math.min(Math.ceil((historyData?.total || 0) / limit), p + 1))
+        }
       />
 
       <SecurityTest />
     </div>
   );
 }
-
