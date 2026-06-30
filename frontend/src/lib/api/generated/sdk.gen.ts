@@ -131,6 +131,9 @@ import type {
   PrivateSellerEndpointData,
   PrivateSellerEndpointErrors,
   PrivateSellerEndpointResponses,
+  ProcessSellerOrderData,
+  ProcessSellerOrderErrors,
+  ProcessSellerOrderResponses,
   RegisterUserData,
   RegisterUserErrors,
   RegisterUserResponses,
@@ -1108,6 +1111,32 @@ export const getSellerOrderDetail = <ThrowOnError extends boolean = false>(
     ],
     url: '/api/seller/orders/{id}',
     ...options,
+  });
+
+/**
+ * Process an incoming order to move it to Waiting for Driver status
+ */
+export const processSellerOrder = <ThrowOnError extends boolean = false>(
+  options: Options<ProcessSellerOrderData, ThrowOnError>,
+): RequestResult<ProcessSellerOrderResponses, ProcessSellerOrderErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    ProcessSellerOrderResponses,
+    ProcessSellerOrderErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/orders/{id}/process',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 /**

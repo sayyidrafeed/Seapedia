@@ -1,7 +1,7 @@
 import { db } from '@/db';
 import { orders, orderItems, orderStatusHistory, stores } from '@/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
-import { NotFoundError } from '@/lib/errors';
+import { NotFoundError, ConflictError } from '@/lib/errors';
 
 export class OrdersSellerService {
   static async list(sellerId: string) {
@@ -152,5 +152,46 @@ export class OrdersSellerService {
         createdAt: sh.createdAt.toISOString(),
       })),
     };
+  }
+
+  static async processOrder(sellerId: string, orderId: string, note?: string) {
+    const [store] = await db.select().from(stores).where(eq(stores.sellerId, sellerId)).limit(1);
+    if (!store) {
+      throw new NotFoundError('Store not found for this seller');
+    }
+
+    await db.transaction(async (tx) => {
+      const [order] = await tx
+        .select()
+        .from(orders)
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, store.id)))
+        .limit(1);
+
+      if (!order) {
+        throw new NotFoundError('Order not found');
+      }
+
+      if (order.status !== 'sedang_dikemas') {
+        throw new ConflictError(
+          `Order cannot be processed because it is in status ${order.status}`,
+        );
+      }
+
+      await tx
+        .update(orders)
+        .set({
+          status: 'menunggu_pengirim',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, order.id));
+
+      await tx.insert(orderStatusHistory).values({
+        orderId: order.id,
+        status: 'menunggu_pengirim',
+        note: note || null,
+      });
+    });
+
+    return this.getDetail(sellerId, orderId);
   }
 }

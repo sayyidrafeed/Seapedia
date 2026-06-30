@@ -54,6 +54,7 @@ import {
   privateBuyerEndpoint,
   privateDriverEndpoint,
   privateSellerEndpoint,
+  processSellerOrder,
   registerUser,
   requestTopUp,
   selectActiveRole,
@@ -195,6 +196,9 @@ import type {
   PrivateSellerEndpointData,
   PrivateSellerEndpointError,
   PrivateSellerEndpointResponse,
+  ProcessSellerOrderData,
+  ProcessSellerOrderError,
+  ProcessSellerOrderResponse,
   RegisterUserData,
   RegisterUserError,
   RegisterUserResponse,
@@ -1557,6 +1561,33 @@ export const getSellerOrderDetailOptions = (options: Options<GetSellerOrderDetai
     },
     queryKey: getSellerOrderDetailQueryKey(options),
   });
+
+/**
+ * Process an incoming order to move it to Waiting for Driver status
+ */
+export const processSellerOrderMutation = (
+  options?: Partial<Options<ProcessSellerOrderData>>,
+): UseMutationOptions<
+  ProcessSellerOrderResponse,
+  ProcessSellerOrderError,
+  Options<ProcessSellerOrderData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProcessSellerOrderResponse,
+    ProcessSellerOrderError,
+    Options<ProcessSellerOrderData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await processSellerOrder({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
 
 export const listVouchersQueryKey = (options?: Options<ListVouchersData>) =>
   createQueryKey('listVouchers', options);

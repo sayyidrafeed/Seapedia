@@ -9,6 +9,7 @@ import {
   orderResponseSchema,
   orderListResponseSchema,
   orderDetailResponseSchema,
+  processOrderRequestSchema,
 } from './orders-schemas';
 import { OrdersCheckoutService } from './orders-checkout.service';
 import { OrdersBuyerService } from './orders-buyer.service';
@@ -162,5 +163,31 @@ sellerOrdersRouter.get(
 
     const detail = await OrdersSellerService.getDetail(userId, orderId);
     return c.json(detail);
+  },
+);
+
+// Seller: Process Incoming Order
+sellerOrdersRouter.post(
+  '/:id/process',
+  describeRoute({
+    operationId: 'processSellerOrder',
+    tags: ['Seller Orders'],
+    summary: 'Process an incoming order to move it to Waiting for Driver status',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(orderDetailResponseSchema, 'Updated order details'),
+      ...errorResponses(400, 401, 403, 404, 409, 500),
+    },
+  }),
+  requireSession,
+  requireRole('seller'),
+  validator('json', processOrderRequestSchema),
+  async (c) => {
+    const userId = c.get('userId') as string;
+    const orderId = c.req.param('id');
+    const { note } = c.req.valid('json');
+
+    const result = await OrdersSellerService.processOrder(userId, orderId, note);
+    return c.json(result);
   },
 );

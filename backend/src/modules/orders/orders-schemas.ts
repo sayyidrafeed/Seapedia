@@ -85,3 +85,9 @@ export const orderListResponseSchema = z
   .meta({ id: 'OrderListResponse' });
 
 export const orderDetailResponseSchema = orderResponseSchema.meta({ id: 'OrderDetailResponse' });
+
+export const processOrderRequestSchema = z
+  .object({
+    note: z.string().max(1000, 'Note must not exceed 1000 characters').optional(),
+  })
+  .meta({ id: 'ProcessOrderRequest' });
