@@ -124,6 +124,11 @@ seapedia/
 
 SEAPEDIA is a multi-seller marketplace, but each cart may only contain products from **one store**. If a buyer tries to add a product from a different store, the system prevents the addition and displays an explanatory confirmation dialog. The buyer can choose to cancel the action or clear the cart and switch to the new store. This rule is enforced on both the frontend (UI guard) and backend (API validation).
 
+### Transaction and Financial Reports
+
+- **Seller Revenue:** Calculated exclusively as the sum of `subtotal` from fully completed (`pesanan_selesai`) orders. Delivery fees, PPN, and other checkout components are excluded from seller income to keep marketplace accounting consistent.
+- **Buyer Spending:** Calculated as the sum of `totalAmount` strictly from fully completed (`pesanan_selesai`) orders. This excludes cancelled, refunded, or returned orders, aligning with the refund/return mechanics.
+
 ### Discount System
 
 | Type | Description | Expiry | Usage Limit |
