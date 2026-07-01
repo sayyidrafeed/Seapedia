@@ -10,6 +10,7 @@ export const stores = pgTable('stores', {
   name: varchar('name', { length: 255 }).notNull().unique(),
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   description: text('description'),
+  logoKey: varchar('logo_key', { length: 512 }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
