@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, varchar, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, varchar, integer, numeric } from 'drizzle-orm/pg-core';
 import { stores } from './store-schema';
 
 export const products = pgTable('products', {
@@ -12,6 +12,8 @@ export const products = pgTable('products', {
   price: integer('price').notNull(), // IDR only integer price
   stock: integer('stock').notNull(), // stored for checkout stock checks
   imageKey: varchar('image_key', { length: 512 }),
+  rating: numeric('rating', { precision: 3, scale: 2 }).default('0.00').notNull(),
+  reviewCount: integer('review_count').default(0).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
