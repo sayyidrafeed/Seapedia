@@ -1,7 +1,8 @@
 import { db } from '@/db';
 import { stores } from '@/db/schema';
 import { eq, ilike } from 'drizzle-orm';
-import { ConflictError, NotFoundError } from '@/lib/errors';
+import { ConflictError, NotFoundError, ForbiddenError } from '@/lib/errors';
+import { StorageService } from '@/lib/storage';
 
 export class StoreService {
   static slugify(text: string) {
@@ -37,7 +38,10 @@ export class StoreService {
     return slug;
   }
 
-  static async create(userId: string, input: { name: string; description?: string }) {
+  static async create(
+    userId: string,
+    input: { name: string; description?: string; logoKey?: string | null },
+  ) {
     const existingStore = await db.query.stores.findFirst({
       where: eq(stores.sellerId, userId),
     });
@@ -63,6 +67,7 @@ export class StoreService {
         name: input.name,
         slug,
         description: input.description,
+        logoKey: input.logoKey || null,
       })
       .returning();
 
@@ -81,7 +86,10 @@ export class StoreService {
     return store;
   }
 
-  static async update(userId: string, input: { name?: string; description?: string }) {
+  static async update(
+    userId: string,
+    input: { name?: string; description?: string; logoKey?: string | null },
+  ) {
     const store = await db.query.stores.findFirst({
       where: eq(stores.sellerId, userId),
     });
@@ -102,18 +110,44 @@ export class StoreService {
       slug = await StoreService.getUniqueSlug(input.name, store.id);
     }
 
+    const oldLogoKey = store.logoKey;
+
     const [updatedStore] = await db
       .update(stores)
       .set({
         name: input.name ?? store.name,
         slug,
         description: input.description ?? store.description,
+        logoKey: input.logoKey !== undefined ? input.logoKey : store.logoKey,
         updatedAt: new Date(),
       })
       .where(eq(stores.id, store.id))
       .returning();
 
+    if (input.logoKey !== undefined && oldLogoKey && oldLogoKey !== input.logoKey) {
+      await StorageService.deleteObject(oldLogoKey);
+    }
+
     return updatedStore;
+  }
+
+  /**
+   * Generates pre-signed URL for store logo upload
+   */
+  static async presignLogo(userId: string, storeId: string, mimeType: string) {
+    const store = await db.query.stores.findFirst({
+      where: eq(stores.id, storeId),
+    });
+
+    if (!store) {
+      throw new NotFoundError('Store not found');
+    }
+
+    if (store.sellerId !== userId) {
+      throw new ForbiddenError('You do not own this store');
+    }
+
+    return await StorageService.generatePresignedUpload('stores/logos', mimeType);
   }
 
   static async getPublic(slugOrId: string) {

@@ -78,6 +78,13 @@
       "when": 1782818932586,
       "tag": "0010_past_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782893567723,
+      "tag": "0011_exotic_strong_guy",
+      "breakpoints": true
     }
   ]
 }

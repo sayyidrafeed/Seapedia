@@ -12,6 +12,7 @@ import { ProductsService } from './products.service';
 import { z } from 'zod';
 import { HTTPException } from 'hono/http-exception';
 import { paginationQuerySchema } from '@/lib/schemas';
+import { StorageService } from '@/lib/storage';
 
 export const sellerProductsRouter = factory.createApp();
 
@@ -39,6 +40,7 @@ sellerProductsRouter.get(
     const { products, total } = await ProductsService.getSellerProducts(userId, { page, limit });
     const formatted = products.map((p) => ({
       ...p,
+      imageUrl: p.imageKey ? StorageService.getPublicUrl(p.imageKey) : null,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
     }));
@@ -72,6 +74,7 @@ sellerProductsRouter.get(
 
     return c.json({
       ...product,
+      imageUrl: product.imageKey ? StorageService.getPublicUrl(product.imageKey) : null,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     });
@@ -100,6 +103,7 @@ sellerProductsRouter.post(
 
     return c.json({
       ...product,
+      imageUrl: product.imageKey ? StorageService.getPublicUrl(product.imageKey) : null,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     });
@@ -131,6 +135,7 @@ sellerProductsRouter.put(
 
     return c.json({
       ...product,
+      imageUrl: product.imageKey ? StorageService.getPublicUrl(product.imageKey) : null,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     });

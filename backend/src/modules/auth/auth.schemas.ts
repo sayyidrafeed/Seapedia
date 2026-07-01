@@ -46,6 +46,8 @@ export const userResponseSchema = z
     username: z.string(),
     email: z.string(),
     name: z.string().nullable(),
+    avatarKey: z.string().nullable(),
+    avatarUrl: z.string().nullable(),
     isOnboarded: z.boolean(),
     createdAt: z.string(),
   })

@@ -88,9 +88,17 @@ export function UserMenu() {
     return (
       <div className="flex flex-col h-full">
         <div className="px-4 py-3 border-b border-border flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base">
-            {auth.user.username.charAt(0).toUpperCase()}
-          </div>
+          {auth.user.avatarUrl ? (
+            <img
+              src={auth.user.avatarUrl as string}
+              alt={auth.user.username}
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base">
+              {auth.user.username.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">{auth.user.username}</p>
             <p className="text-xs text-muted-foreground truncate">{auth.user.email || ''}</p>
@@ -167,9 +175,17 @@ export function UserMenu() {
         aria-haspopup="true"
         aria-expanded={isOpen || drawerOpen}
       >
-        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
-          {auth.user.username.charAt(0).toUpperCase()}
-        </div>
+        {auth.user.avatarUrl ? (
+          <img
+            src={auth.user.avatarUrl as string}
+            alt={auth.user.username}
+            className="h-8 w-8 rounded-full object-cover"
+          />
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+            {auth.user.username.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="hidden sm:block text-xs font-semibold pr-1">
           <p className="text-foreground leading-none">{auth.user.username}</p>
           {auth.activeRole && (

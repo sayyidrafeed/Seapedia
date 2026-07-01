@@ -3,6 +3,7 @@ import { products, stores } from '@/db/schema';
 import { eq, and, ilike, or, sql } from 'drizzle-orm';
 import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/errors';
 import { StoreService } from '@/modules/stores/stores.service';
+import { StorageService } from '@/lib/storage';
 
 export class ProductsService {
   static slugify(text: string) {
@@ -44,7 +45,13 @@ export class ProductsService {
 
   static async createSellerProduct(
     sellerId: string,
-    input: { name: string; description?: string | null; price: number; stock: number },
+    input: {
+      name: string;
+      description?: string | null;
+      price: number;
+      stock: number;
+      imageKey?: string | null;
+    },
   ) {
     const store = await StoreService.getBySellerId(sellerId);
     if (!store) {
@@ -69,6 +76,7 @@ export class ProductsService {
         description: input.description,
         price: input.price,
         stock: input.stock,
+        imageKey: input.imageKey || null,
       })
       .returning();
 
@@ -119,7 +127,13 @@ export class ProductsService {
   static async updateSellerProduct(
     sellerId: string,
     productId: string,
-    input: { name?: string; description?: string | null; price?: number; stock?: number },
+    input: {
+      name?: string;
+      description?: string | null;
+      price?: number;
+      stock?: number;
+      imageKey?: string | null;
+    },
   ) {
     const store = await StoreService.getBySellerId(sellerId);
     if (!store) {
@@ -146,6 +160,8 @@ export class ProductsService {
       slug = await ProductsService.getUniqueProductSlug(store.id, input.name, productId);
     }
 
+    const oldImageKey = product.imageKey;
+
     const [updatedProduct] = await db
       .update(products)
       .set({
@@ -154,10 +170,15 @@ export class ProductsService {
         description: input.description !== undefined ? input.description : product.description,
         price: input.price ?? product.price,
         stock: input.stock ?? product.stock,
+        imageKey: input.imageKey !== undefined ? input.imageKey : product.imageKey,
         updatedAt: new Date(),
       })
       .where(eq(products.id, productId))
       .returning();
+
+    if (input.imageKey !== undefined && oldImageKey && oldImageKey !== input.imageKey) {
+      await StorageService.deleteObject(oldImageKey);
+    }
 
     return updatedProduct;
   }
@@ -177,6 +198,9 @@ export class ProductsService {
     }
 
     await db.delete(products).where(eq(products.id, productId));
+    if (product.imageKey) {
+      await StorageService.deleteObject(product.imageKey);
+    }
     return { success: true };
   }
 
@@ -230,6 +254,7 @@ export class ProductsService {
         storeName: stores.name,
         storeSlug: stores.slug,
         slug: products.slug,
+        imageKey: products.imageKey,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
@@ -260,6 +285,7 @@ export class ProductsService {
         storeName: stores.name,
         storeSlug: stores.slug,
         slug: products.slug,
+        imageKey: products.imageKey,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
@@ -285,6 +311,7 @@ export class ProductsService {
         storeName: stores.name,
         storeSlug: stores.slug,
         slug: products.slug,
+        imageKey: products.imageKey,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
@@ -296,5 +323,17 @@ export class ProductsService {
     }
 
     return result[0];
+  }
+
+  /**
+   * Generates pre-signed URL for seller product image upload
+   */
+  static async presignImage(sellerId: string, mimeType: string) {
+    const store = await StoreService.getBySellerId(sellerId);
+    if (!store) {
+      throw new ForbiddenError('You must have a store to upload images');
+    }
+
+    return await StorageService.generatePresignedUpload('products/images', mimeType);
   }
 }

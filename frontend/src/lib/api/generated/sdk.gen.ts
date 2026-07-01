@@ -152,6 +152,15 @@ import type {
   OnboardUserData,
   OnboardUserErrors,
   OnboardUserResponses,
+  PresignProductImageData,
+  PresignProductImageErrors,
+  PresignProductImageResponses,
+  PresignStoreLogoData,
+  PresignStoreLogoErrors,
+  PresignStoreLogoResponses,
+  PresignUserAvatarData,
+  PresignUserAvatarErrors,
+  PresignUserAvatarResponses,
   PrivateAdminEndpointData,
   PrivateAdminEndpointErrors,
   PrivateAdminEndpointResponses,
@@ -206,6 +215,9 @@ import type {
   UpdateSellerProductData,
   UpdateSellerProductErrors,
   UpdateSellerProductResponses,
+  UpdateUserProfileData,
+  UpdateUserProfileErrors,
+  UpdateUserProfileResponses,
   ValidateDiscountCodeData,
   ValidateDiscountCodeErrors,
   ValidateDiscountCodeResponses,
@@ -429,6 +441,34 @@ export const getProductBySlug = <ThrowOnError extends boolean = false>(
   (options.client ?? client).get<GetProductBySlugResponses, GetProductBySlugErrors, ThrowOnError>({
     url: '/api/products/by-slug/{storeSlug}/{productSlug}',
     ...options,
+  });
+
+/**
+ * Generate pre-signed URL for product image upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a product image to Cloudflare R2.
+ */
+export const presignProductImage = <ThrowOnError extends boolean = false>(
+  options: Options<PresignProductImageData, ThrowOnError>,
+): RequestResult<PresignProductImageResponses, PresignProductImageErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    PresignProductImageResponses,
+    PresignProductImageErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/products/image/presign',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 /**
@@ -752,6 +792,84 @@ export const getPublicStoreInfo = <ThrowOnError extends boolean = false>(
     GetPublicStoreInfoErrors,
     ThrowOnError
   >({ url: '/api/stores/public/{slugOrId}', ...options });
+
+/**
+ * Generate pre-signed URL for store logo upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a store logo to Cloudflare R2.
+ */
+export const presignStoreLogo = <ThrowOnError extends boolean = false>(
+  options: Options<PresignStoreLogoData, ThrowOnError>,
+): RequestResult<PresignStoreLogoResponses, PresignStoreLogoErrors, ThrowOnError> =>
+  (options.client ?? client).post<PresignStoreLogoResponses, PresignStoreLogoErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/stores/{storeId}/logo/presign',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Generate pre-signed URL for avatar upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
+ */
+export const presignUserAvatar = <ThrowOnError extends boolean = false>(
+  options: Options<PresignUserAvatarData, ThrowOnError>,
+): RequestResult<PresignUserAvatarResponses, PresignUserAvatarErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    PresignUserAvatarResponses,
+    PresignUserAvatarErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/users/me/avatar/presign',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Update current user profile info
+ *
+ * Update profile information (e.g. name, avatarKey) for the logged-in user.
+ */
+export const updateUserProfile = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateUserProfileData, ThrowOnError>,
+): RequestResult<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError> =>
+  (options.client ?? client).put<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError>(
+    {
+      security: [
+        {
+          in: 'cookie',
+          name: '__session',
+          type: 'apiKey',
+        },
+      ],
+      url: '/api/users/me',
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    },
+  );
 
 /**
  * Get buyer wallet balance

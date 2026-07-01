@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { updateSellerProduct } from '@/lib/api/generated';
+import { updateSellerProduct, presignProductImage } from '@/lib/api/generated';
 import {
   getSellerProductByIdOptions,
   listSellerProductsQueryKey,
@@ -10,6 +10,7 @@ import { ProductForm } from '@/components/products/product-form';
 import type { ProductFormValues } from '@/components/products/product-form';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { uploadImageToR2, type AllowedMime, type PresignResponse } from '@/lib/upload';
 
 export const Route = createFileRoute('/dashboard/seller/products/$productId/edit')({
   component: EditProductPage,
@@ -40,6 +41,7 @@ function EditProductPage() {
           description: values.description || null,
           price: values.price,
           stock: values.stock,
+          imageKey: values.imageKey || null,
         },
       });
       if (error) {
@@ -59,6 +61,15 @@ function EditProductPage() {
       toast.error(error.message);
     },
   });
+
+  const handleImageUpload = async (file: File): Promise<string | null> => {
+    return await uploadImageToR2(file, async (mimeType: AllowedMime) => {
+      const res = await presignProductImage({
+        body: { mimeType },
+      });
+      return res as { data?: PresignResponse; error?: unknown };
+    });
+  };
 
   if (isLoading) {
     return (
@@ -91,12 +102,15 @@ function EditProductPage() {
           description: (product.description as string) || undefined,
           price: product.price,
           stock: product.stock,
+          imageKey: (product.imageKey as string) || null,
         }}
+        initialImageUrl={(product.imageUrl as string) || null}
         onSubmit={async (values) => {
           await updateMutation.mutateAsync(values);
         }}
         isLoading={updateMutation.isPending}
         submitLabel={t('seller.store.saveButton')}
+        onUpload={handleImageUpload}
       />
     </div>
   );

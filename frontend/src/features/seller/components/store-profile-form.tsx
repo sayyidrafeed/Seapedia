@@ -1,4 +1,4 @@
-import { updateCurrentSellerStore } from '@/lib/api/generated';
+import { updateCurrentSellerStore, presignStoreLogo } from '@/lib/api/generated';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
@@ -7,23 +7,33 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from 'react-i18next';
+import { ImageUploader } from '@/components/ui/image-uploader';
+import { uploadImageToR2, type AllowedMime, type PresignResponse } from '@/lib/upload';
 
 interface StoreProfileFormProps {
   store: {
+    id: string;
     name: string;
     description: unknown;
+    logoKey?: unknown;
+    logoUrl?: unknown;
   };
 }
 
 export function StoreProfileForm({ store }: StoreProfileFormProps) {
   const queryClient = useQueryClient();
   const [errorMap, setErrorMap] = useState<string | null>(null);
+  const [logoValue, setLogoValue] = useState<File | string | null>(
+    (store.logoUrl as string) || null,
+  );
+  const [isUploading, setIsUploading] = useState(false);
   const { t } = useTranslation();
 
   const form = useForm({
     defaultValues: {
       name: store.name,
       description: (store.description as string) || undefined,
+      logoKey: (store.logoKey as string) || undefined,
     } as z.infer<typeof zUpdateCurrentSellerStoreBody>,
     validators: {
       onChange: zUpdateCurrentSellerStoreBody,
@@ -46,8 +56,41 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
 
       toast.success(t('seller.store.updateSuccess'));
       await queryClient.invalidateQueries({ queryKey: ['getCurrentSellerStore'] });
+      // Reset form state dirty flag
+      form.reset();
     },
   });
+
+  const handleLogoChange = async (file: File | null) => {
+    if (!file) {
+      setLogoValue(null);
+      form.setFieldValue('logoKey', null);
+      return;
+    }
+
+    setIsUploading(true);
+    const loadingToast = toast.loading('Mengunggah logo...');
+    try {
+      const key = await uploadImageToR2(file, async (mimeType: AllowedMime) => {
+        const res = await presignStoreLogo({
+          path: { storeId: store.id },
+          body: { mimeType },
+        });
+        return res as { data?: PresignResponse; error?: unknown };
+      });
+
+      if (key) {
+        form.setFieldValue('logoKey', key);
+        setLogoValue(file);
+        toast.success('Logo berhasil diunggah (klik Simpan untuk menerapkan)');
+      }
+    } catch {
+      toast.error('Gagal mengunggah logo');
+    } finally {
+      toast.dismiss(loadingToast);
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl bg-card border border-border p-8 rounded-xl shadow-sm">
@@ -61,6 +104,17 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
         }}
         className="space-y-6"
       >
+        <div className="flex flex-col items-center gap-2 mb-4">
+          <label className="text-sm font-medium self-start">Logo Toko</label>
+          <ImageUploader
+            value={logoValue}
+            onChange={handleLogoChange}
+            disabled={isUploading || form.state.isSubmitting}
+            aspectRatio="square"
+            className="w-full max-w-[200px]"
+          />
+        </div>
+
         <form.Field
           name="name"
           children={(field) => (
@@ -126,7 +180,7 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
           children={([isDirty, canSubmit, isSubmitting]) => (
             <button
               type="submit"
-              disabled={!isDirty || !canSubmit || isSubmitting}
+              disabled={!isDirty || !canSubmit || isSubmitting || isUploading}
               className="bg-primary text-primary-foreground h-10 px-4 py-2 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors disabled:opacity-50 hover:bg-primary/90"
             >
               {isSubmitting ? t('seller.store.saving') : t('seller.store.saveButton')}

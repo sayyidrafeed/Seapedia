@@ -108,6 +108,34 @@ mock.module('@/db', () => {
   return { db };
 });
 
+const storageState = {
+  deleteCalls: [] as string[],
+  reset() {
+    this.deleteCalls = [];
+  },
+};
+
+mock.module('@/lib/storage', () => {
+  return {
+    StorageService: {
+      generatePresignedUpload: (prefix: string, _mimeType: string) => {
+        return Promise.resolve({
+          uploadUrl: `https://r2-mock.com/${prefix}/file.png`,
+          objectKey: `${prefix}/file.png`,
+          publicUrl: `https://cdn.mock.com/${prefix}/file.png`,
+        });
+      },
+      deleteObject: (key: string) => {
+        storageState.deleteCalls.push(key);
+        return Promise.resolve();
+      },
+      getPublicUrl: (key: string) => {
+        return `https://cdn.mock.com/${key}`;
+      },
+    },
+  };
+});
+
 // ─── Import SUT ──────────────────────────────────────────────────────────────
 import { StoreService } from './stores.service';
 
@@ -117,6 +145,7 @@ const makeStore = (overrides: Record<string, unknown> = {}) => ({
   sellerId: 'seller-1',
   name: 'My Store',
   description: 'A great store',
+  logoKey: null,
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   updatedAt: new Date('2024-01-01T00:00:00.000Z'),
   ...overrides,
@@ -126,6 +155,7 @@ const makeStore = (overrides: Record<string, unknown> = {}) => ({
 describe('StoreService', () => {
   beforeEach(() => {
     dbState.reset();
+    storageState.reset();
   });
 
   describe('create', () => {
@@ -223,6 +253,38 @@ describe('StoreService', () => {
 
       await expect(StoreService.update('seller-1', { name: 'Taken Name' })).rejects.toThrow(
         'Store name is already used',
+      );
+    });
+
+    test('updates logoKey and deletes old logo', async () => {
+      dbState.addSelect([makeStore({ logoKey: 'stores/logos/old.png' })]); // existing store
+      dbState.addUpdate([makeStore({ logoKey: 'stores/logos/new.png' })]);
+
+      const result = await StoreService.update('seller-1', { logoKey: 'stores/logos/new.png' });
+      expect(result.logoKey).toBe('stores/logos/new.png');
+      expect(storageState.deleteCalls).toContain('stores/logos/old.png');
+    });
+  });
+
+  describe('presignLogo', () => {
+    test('generates presigned logo URL successfully', async () => {
+      dbState.addSelect([makeStore()]);
+      const result = await StoreService.presignLogo('seller-1', 'store-1', 'image/png');
+      expect(result.uploadUrl).toBe('https://r2-mock.com/stores/logos/file.png');
+      expect(result.objectKey).toBe('stores/logos/file.png');
+    });
+
+    test('throws NotFoundError if store not found', async () => {
+      dbState.addSelect([]);
+      await expect(StoreService.presignLogo('seller-1', 'store-1', 'image/png')).rejects.toThrow(
+        'Store not found',
+      );
+    });
+
+    test('throws ForbiddenError if seller does not own store', async () => {
+      dbState.addSelect([makeStore({ sellerId: 'other-seller' })]);
+      await expect(StoreService.presignLogo('seller-1', 'store-1', 'image/png')).rejects.toThrow(
+        'You do not own this store',
       );
     });
   });

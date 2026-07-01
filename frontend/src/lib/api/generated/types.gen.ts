@@ -4,6 +4,17 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
+export type UserResponse = {
+  id: string;
+  username: string;
+  email: string;
+  name: string | unknown;
+  avatarKey: string | unknown;
+  avatarUrl: string | unknown;
+  isOnboarded: boolean;
+  createdAt: string;
+};
+
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -63,6 +74,8 @@ export type Product = {
   storeName: string;
   storeSlug: string;
   slug: string;
+  imageKey: string | unknown;
+  imageUrl: string | unknown;
 };
 
 export type SellerProductResponse = {
@@ -72,6 +85,8 @@ export type SellerProductResponse = {
   description: string | unknown;
   price: number;
   stock: number;
+  imageKey: string | unknown;
+  imageUrl: string | unknown;
   createdAt: string;
   updatedAt: string;
 };
@@ -313,6 +328,8 @@ export type GetCurrentUserResponses = {
     username: string;
     email: string;
     name: string | unknown;
+    avatarKey: string | unknown;
+    avatarUrl: string | unknown;
     isOnboarded: boolean;
     createdAt: string;
   };
@@ -579,6 +596,8 @@ export type GetProductByIdResponses = {
     storeName: string;
     storeSlug: string;
     slug: string;
+    imageKey: string | unknown;
+    imageUrl: string | unknown;
   };
 };
 
@@ -626,10 +645,64 @@ export type GetProductBySlugResponses = {
     storeName: string;
     storeSlug: string;
     slug: string;
+    imageKey: string | unknown;
+    imageUrl: string | unknown;
   };
 };
 
 export type GetProductBySlugResponse = GetProductBySlugResponses[keyof GetProductBySlugResponses];
+
+export type PresignProductImageData = {
+  body: {
+    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  };
+  path?: never;
+  query?: never;
+  url: '/api/products/image/presign';
+};
+
+export type PresignProductImageErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type PresignProductImageError = PresignProductImageErrors[keyof PresignProductImageErrors];
+
+export type PresignProductImageResponses = {
+  /**
+   * Presigned URL generated successfully
+   */
+  200: {
+    uploadUrl: string;
+    objectKey: string;
+    publicUrl: string;
+  };
+};
+
+export type PresignProductImageResponse =
+  PresignProductImageResponses[keyof PresignProductImageResponses];
 
 export type ListSellerProductsData = {
   body?: never;
@@ -686,6 +759,7 @@ export type CreateSellerProductData = {
     description?: string | unknown;
     price: number;
     stock: number;
+    imageKey?: string | unknown;
   };
   path?: never;
   query?: never;
@@ -732,6 +806,8 @@ export type CreateSellerProductResponses = {
     description: string | unknown;
     price: number;
     stock: number;
+    imageKey: string | unknown;
+    imageUrl: string | unknown;
     createdAt: string;
     updatedAt: string;
   };
@@ -840,6 +916,8 @@ export type GetSellerProductByIdResponses = {
     description: string | unknown;
     price: number;
     stock: number;
+    imageKey: string | unknown;
+    imageUrl: string | unknown;
     createdAt: string;
     updatedAt: string;
   };
@@ -854,6 +932,7 @@ export type UpdateSellerProductData = {
     description?: string | unknown;
     price?: number;
     stock?: number;
+    imageKey?: string | unknown;
   };
   path: {
     id: string;
@@ -908,6 +987,8 @@ export type UpdateSellerProductResponses = {
     description: string | unknown;
     price: number;
     stock: number;
+    imageKey: string | unknown;
+    imageUrl: string | unknown;
     createdAt: string;
     updatedAt: string;
   };
@@ -1166,6 +1247,7 @@ export type CreateStoreData = {
   body: {
     name: string;
     description?: string;
+    logoKey?: string | unknown;
   };
   path?: never;
   query?: never;
@@ -1205,6 +1287,8 @@ export type CreateStoreResponses = {
     name: string;
     slug: string;
     description: string | unknown;
+    logoKey: string | unknown;
+    logoUrl: string | unknown;
     createdAt: string;
     updatedAt: string;
   };
@@ -1247,6 +1331,8 @@ export type GetCurrentSellerStoreResponses = {
     name: string;
     slug: string;
     description: string | unknown;
+    logoKey: string | unknown;
+    logoUrl: string | unknown;
     createdAt: string;
     updatedAt: string;
   };
@@ -1259,6 +1345,7 @@ export type UpdateCurrentSellerStoreData = {
   body: {
     name?: string;
     description?: string;
+    logoKey?: string | unknown;
   };
   path?: never;
   query?: never;
@@ -1305,6 +1392,8 @@ export type UpdateCurrentSellerStoreResponses = {
     name: string;
     slug: string;
     description: string | unknown;
+    logoKey: string | unknown;
+    logoUrl: string | unknown;
     createdAt: string;
     updatedAt: string;
   };
@@ -1343,6 +1432,8 @@ export type GetPublicStoreInfoResponses = {
     name: string;
     slug: string;
     description: string | unknown;
+    logoKey: string | unknown;
+    logoUrl: string | unknown;
     createdAt: string;
     updatedAt: string;
   };
@@ -1350,6 +1441,154 @@ export type GetPublicStoreInfoResponses = {
 
 export type GetPublicStoreInfoResponse =
   GetPublicStoreInfoResponses[keyof GetPublicStoreInfoResponses];
+
+export type PresignStoreLogoData = {
+  body: {
+    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  };
+  path: {
+    storeId: string;
+  };
+  query?: never;
+  url: '/api/stores/{storeId}/logo/presign';
+};
+
+export type PresignStoreLogoErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type PresignStoreLogoError = PresignStoreLogoErrors[keyof PresignStoreLogoErrors];
+
+export type PresignStoreLogoResponses = {
+  /**
+   * Presigned URL generated successfully
+   */
+  200: {
+    uploadUrl: string;
+    objectKey: string;
+    publicUrl: string;
+  };
+};
+
+export type PresignStoreLogoResponse = PresignStoreLogoResponses[keyof PresignStoreLogoResponses];
+
+export type PresignUserAvatarData = {
+  body: {
+    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  };
+  path?: never;
+  query?: never;
+  url: '/api/users/me/avatar/presign';
+};
+
+export type PresignUserAvatarErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type PresignUserAvatarError = PresignUserAvatarErrors[keyof PresignUserAvatarErrors];
+
+export type PresignUserAvatarResponses = {
+  /**
+   * Presigned URL generated successfully
+   */
+  200: {
+    uploadUrl: string;
+    objectKey: string;
+    publicUrl: string;
+  };
+};
+
+export type PresignUserAvatarResponse =
+  PresignUserAvatarResponses[keyof PresignUserAvatarResponses];
+
+export type UpdateUserProfileData = {
+  body: {
+    name?: string;
+    avatarKey?: string | unknown;
+  };
+  path?: never;
+  query?: never;
+  url: '/api/users/me';
+};
+
+export type UpdateUserProfileErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type UpdateUserProfileError = UpdateUserProfileErrors[keyof UpdateUserProfileErrors];
+
+export type UpdateUserProfileResponses = {
+  /**
+   * Profile updated successfully
+   */
+  200: UserResponse;
+};
+
+export type UpdateUserProfileResponse =
+  UpdateUserProfileResponses[keyof UpdateUserProfileResponses];
 
 export type GetBuyerWalletData = {
   body?: never;

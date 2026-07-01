@@ -16,6 +16,7 @@ import {
 } from './auth.schemas';
 import { AuthService } from './auth.service';
 import { signJwt } from '@/lib/jwt';
+import { StorageService } from '@/lib/storage';
 
 export const authRouter = factory.createApp();
 
@@ -128,6 +129,8 @@ authRouter.get(
       username: user.username,
       email: user.email,
       name: user.name,
+      avatarKey: user.avatarKey,
+      avatarUrl: user.avatarKey ? StorageService.getPublicUrl(user.avatarKey) : null,
       isOnboarded: user.isOnboarded,
       createdAt: user.createdAt.toISOString(),
     });

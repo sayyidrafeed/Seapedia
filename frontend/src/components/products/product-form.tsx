@@ -3,6 +3,8 @@ import { zCreateSellerProductBody } from '@/lib/api/generated/zod.gen';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { ImageUploader } from '@/components/ui/image-uploader';
+import { toast } from 'sonner';
 
 // We base the validation on zCreateSellerProductBody but price and stock are parsed as numbers
 const formSchema = zCreateSellerProductBody;
@@ -22,17 +24,29 @@ export interface ProductFormValues {
   description?: string;
   price: number;
   stock: number;
+  imageKey?: string | null;
 }
 
 interface ProductFormProps {
   initialValues?: ProductFormValues;
-  onSubmit: (values: ProductFormValues) => Promise<void>;
+  initialImageUrl?: string | null;
+  onSubmit: (values: ProductFormValues, imageFile?: File | null) => Promise<void>;
   isLoading?: boolean;
   submitLabel: string;
+  onUpload?: (file: File) => Promise<string | null>;
 }
 
-export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }: ProductFormProps) {
+export function ProductForm({
+  initialValues,
+  initialImageUrl,
+  onSubmit,
+  isLoading,
+  submitLabel,
+  onUpload,
+}: ProductFormProps) {
   const [errorMap, setErrorMap] = useState<string | null>(null);
+  const [imageValue, setImageValue] = useState<File | string | null>(initialImageUrl || null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -40,6 +54,7 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
       description: initialValues?.description ?? '',
       price: initialValues?.price ?? 0,
       stock: initialValues?.stock ?? 0,
+      imageKey: initialValues?.imageKey ?? null,
     } as ProductFormValues,
     validators: {
       onChange: formSchema as never,
@@ -47,13 +62,42 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
     onSubmit: async ({ value }) => {
       setErrorMap(null);
       try {
-        await onSubmit(value);
+        const fileToUpload = imageValue instanceof File ? imageValue : null;
+        await onSubmit(value, fileToUpload);
       } catch (err: unknown) {
         const error = err as { message?: string };
         setErrorMap(error.message || 'An error occurred during submission.');
       }
     },
   });
+
+  const handleImageChange = async (file: File | null) => {
+    if (!file) {
+      setImageValue(null);
+      form.setFieldValue('imageKey', null);
+      return;
+    }
+
+    if (onUpload) {
+      setIsUploading(true);
+      const loadingToast = toast.loading('Mengunggah gambar...');
+      try {
+        const key = await onUpload(file);
+        if (key) {
+          form.setFieldValue('imageKey', key);
+          setImageValue(file);
+          toast.success('Gambar berhasil diunggah (klik Simpan untuk menerapkan)');
+        }
+      } catch {
+        toast.error('Gagal mengunggah gambar');
+      } finally {
+        toast.dismiss(loadingToast);
+        setIsUploading(false);
+      }
+    } else {
+      setImageValue(file);
+    }
+  };
 
   return (
     <form
@@ -64,6 +108,17 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
       }}
       className="space-y-6 max-w-2xl bg-card border border-border p-8 rounded-xl shadow-sm"
     >
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Product Image</label>
+        <ImageUploader
+          value={imageValue}
+          onChange={handleImageChange}
+          disabled={isUploading || isLoading}
+          aspectRatio="square"
+          className="w-full max-w-[240px]"
+        />
+      </div>
+
       <form.Field
         name="name"
         children={(field) => (
@@ -175,7 +230,13 @@ export function ProductForm({ initialValues, onSubmit, isLoading, submitLabel }:
         children={([isDirty, canSubmit, isSubmitting]) => (
           <Button
             type="submit"
-            disabled={(!isDirty && !initialValues) || !canSubmit || isSubmitting || isLoading}
+            disabled={
+              (!isDirty && !initialValues && !imageValue) ||
+              !canSubmit ||
+              isSubmitting ||
+              isLoading ||
+              isUploading
+            }
             className="w-full md:w-auto"
           >
             {isSubmitting || isLoading ? 'Submitting...' : submitLabel}

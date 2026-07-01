@@ -66,6 +66,7 @@ src/
 │   └── index.ts                # Environment variable validation (Zod)
 ├── lib/
 │   ├── utils.ts                # cn() — clsx + tailwind-merge
+│   ├── upload.ts               # Client-side R2 presigned upload utility
 │   ├── api/
 │   │   ├── hey-api.ts          # hey-api client configuration
 │   │   └── generated/          # Generated SDK (do not edit)
@@ -75,7 +76,8 @@ src/
 │   ├── __root.tsx              # Root layout (navbar, session validation, outlet)
 │   └── index.tsx               # Home page
 └── components/
-    └── ui/                     # shadcn/ui primitives (Button, Input, Card, etc.)
+    ├── ui/                     # shadcn/ui primitives + custom (Button, Input, Card, ImageUploader, etc.)
+    └── products/               # Product-specific components (ProductForm, etc.)
 ```
 
 ## Architecture
@@ -133,8 +135,14 @@ The frontend communicates with the backend through a **generated type-safe SDK**
 ## Component Conventions
 
 - Reusable primitives in `src/components/ui/` (shadcn convention).
-- Page-specific components live alongside their route or in `src/components/`.
+- Domain-specific components in `src/components/` (e.g. `ProductForm`).
 - Custom hooks live in `src/hooks/`.
 - All components use TypeScript with strict types.
+
+### Image Uploader (`ImageUploader`)
+
+A reusable upload component in `src/components/ui/image-uploader.tsx` that supports click-to-upload, drag-and-drop, image preview with hover actions (replace/remove), and three aspect ratio modes (`square`, `avatar` circle, `wide`). Used across product forms, store profile, and user profile pages.
+
+The companion utility `src/lib/upload.ts` handles the presigned URL flow: validates file type (JPEG/PNG/WEBP) and size (max 5 MB), fetches a presigned PUT URL from the backend, uploads directly to Cloudflare R2, and returns the object key to be saved on the entity.
 
 For detailed code conventions and agent development rules, see [AGENTS.md](./AGENTS.md).

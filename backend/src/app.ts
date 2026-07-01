@@ -11,6 +11,7 @@ import { productsRouter, sellerProductsRouter } from '@/modules/products/product
 import { reviewsRouter } from '@/modules/reviews/reviews.index';
 import { privateRouter } from '@/modules/private/private.index';
 import { storesRouter } from '@/modules/stores/stores.index';
+import { usersRouter } from '@/modules/users/users.index';
 import { buyersRouter } from '@/modules/buyers/buyers.index';
 import { ordersRouter, sellerOrdersRouter } from '@/modules/orders/orders.index';
 import { adminRouter } from '@/modules/admin/admin.index';
@@ -52,6 +53,7 @@ app.route('/api/seller/products', sellerProductsRouter);
 app.route('/api/reviews', reviewsRouter);
 app.route('/api/private', privateRouter);
 app.route('/api/stores', storesRouter);
+app.route('/api/users', usersRouter);
 app.route('/api/buyers', buyersRouter);
 app.route('/api/orders', ordersRouter);
 app.route('/api/seller/orders', sellerOrdersRouter);

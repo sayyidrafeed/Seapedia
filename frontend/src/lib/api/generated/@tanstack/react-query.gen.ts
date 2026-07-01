@@ -61,6 +61,9 @@ import {
   logoutUser,
   onboardUser,
   type Options,
+  presignProductImage,
+  presignStoreLogo,
+  presignUserAvatar,
   privateAdminEndpoint,
   privateBuyerEndpoint,
   privateDriverEndpoint,
@@ -79,6 +82,7 @@ import {
   updateCartItem,
   updateCurrentSellerStore,
   updateSellerProduct,
+  updateUserProfile,
   validateDiscountCode,
 } from '../sdk.gen';
 import type {
@@ -231,6 +235,15 @@ import type {
   OnboardUserData,
   OnboardUserError,
   OnboardUserResponse,
+  PresignProductImageData,
+  PresignProductImageError,
+  PresignProductImageResponse,
+  PresignStoreLogoData,
+  PresignStoreLogoError,
+  PresignStoreLogoResponse,
+  PresignUserAvatarData,
+  PresignUserAvatarError,
+  PresignUserAvatarResponse,
   PrivateAdminEndpointData,
   PrivateAdminEndpointError,
   PrivateAdminEndpointResponse,
@@ -285,6 +298,9 @@ import type {
   UpdateSellerProductData,
   UpdateSellerProductError,
   UpdateSellerProductResponse,
+  UpdateUserProfileData,
+  UpdateUserProfileError,
+  UpdateUserProfileResponse,
   ValidateDiscountCodeData,
   ValidateDiscountCodeError,
   ValidateDiscountCodeResponse,
@@ -702,6 +718,35 @@ export const getProductBySlugOptions = (options: Options<GetProductBySlugData>) 
     },
     queryKey: getProductBySlugQueryKey(options),
   });
+
+/**
+ * Generate pre-signed URL for product image upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a product image to Cloudflare R2.
+ */
+export const presignProductImageMutation = (
+  options?: Partial<Options<PresignProductImageData>>,
+): UseMutationOptions<
+  PresignProductImageResponse,
+  PresignProductImageError,
+  Options<PresignProductImageData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PresignProductImageResponse,
+    PresignProductImageError,
+    Options<PresignProductImageData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await presignProductImage({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
 
 export const listSellerProductsQueryKey = (options?: Options<ListSellerProductsData>) =>
   createQueryKey('listSellerProducts', options);
@@ -1133,6 +1178,93 @@ export const getPublicStoreInfoOptions = (options: Options<GetPublicStoreInfoDat
     },
     queryKey: getPublicStoreInfoQueryKey(options),
   });
+
+/**
+ * Generate pre-signed URL for store logo upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a store logo to Cloudflare R2.
+ */
+export const presignStoreLogoMutation = (
+  options?: Partial<Options<PresignStoreLogoData>>,
+): UseMutationOptions<
+  PresignStoreLogoResponse,
+  PresignStoreLogoError,
+  Options<PresignStoreLogoData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PresignStoreLogoResponse,
+    PresignStoreLogoError,
+    Options<PresignStoreLogoData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await presignStoreLogo({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Generate pre-signed URL for avatar upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
+ */
+export const presignUserAvatarMutation = (
+  options?: Partial<Options<PresignUserAvatarData>>,
+): UseMutationOptions<
+  PresignUserAvatarResponse,
+  PresignUserAvatarError,
+  Options<PresignUserAvatarData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PresignUserAvatarResponse,
+    PresignUserAvatarError,
+    Options<PresignUserAvatarData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await presignUserAvatar({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Update current user profile info
+ *
+ * Update profile information (e.g. name, avatarKey) for the logged-in user.
+ */
+export const updateUserProfileMutation = (
+  options?: Partial<Options<UpdateUserProfileData>>,
+): UseMutationOptions<
+  UpdateUserProfileResponse,
+  UpdateUserProfileError,
+  Options<UpdateUserProfileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateUserProfileResponse,
+    UpdateUserProfileError,
+    Options<UpdateUserProfileData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateUserProfile({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
 
 export const getBuyerWalletQueryKey = (options?: Options<GetBuyerWalletData>) =>
   createQueryKey('getBuyerWallet', options);

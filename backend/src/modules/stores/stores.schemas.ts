@@ -13,6 +13,14 @@ export const createStoreSchema = z
         message: 'Deskripsi harus berupa teks',
       })
       .optional(),
+    logoKey: z
+      .string({
+        message: 'Logo key harus berupa teks',
+      })
+      .trim()
+      .max(512)
+      .optional()
+      .nullable(),
   })
   .meta({ id: 'CreateStoreInput' });
 
@@ -31,6 +39,14 @@ export const updateStoreSchema = z
         message: 'Deskripsi harus berupa teks',
       })
       .optional(),
+    logoKey: z
+      .string({
+        message: 'Logo key harus berupa teks',
+      })
+      .trim()
+      .max(512)
+      .optional()
+      .nullable(),
   })
   .meta({ id: 'UpdateStoreInput' });
 
@@ -41,6 +57,8 @@ export const storeResponseSchema = z
     name: z.string(),
     slug: z.string(),
     description: z.string().nullable(),
+    logoKey: z.string().nullable(),
+    logoUrl: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })
