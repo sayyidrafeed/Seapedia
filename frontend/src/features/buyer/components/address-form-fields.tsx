@@ -58,8 +58,8 @@ export function FormField({ label, placeholder, field, isTextArea = false }: For
       )}
       {hasErrors && (
         <p id={errorId} className="text-xs text-red-500 mt-1" role="alert">
-          {field.state.meta.errors!
-            .map((err) =>
+          {field.state.meta
+            .errors!.map((err) =>
               typeof err === 'object' && err !== null && 'message' in err
                 ? (err as { message: string }).message
                 : String(err),
