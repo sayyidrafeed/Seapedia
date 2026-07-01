@@ -28,17 +28,20 @@ import {
   getBuyerExpenseReport,
   getBuyerOrderDetail,
   getBuyerWallet,
+  getCities,
   getCurrentSellerStore,
   getCurrentSession,
   getCurrentUser,
   getCurrentUserFinancialSummary,
   getDashboardStats,
+  getDistricts,
   getDriverJobDetail,
   getDriverJobHistory,
   getDriverStats,
   getProductById,
   getProductBySlug,
   getPromo,
+  getProvinces,
   getPublicStoreInfo,
   getSellerIncomeReport,
   getSellerOrderDetail,
@@ -133,6 +136,9 @@ import type {
   GetBuyerWalletData,
   GetBuyerWalletError,
   GetBuyerWalletResponse,
+  GetCitiesData,
+  GetCitiesError,
+  GetCitiesResponse,
   GetCurrentSellerStoreData,
   GetCurrentSellerStoreError,
   GetCurrentSellerStoreResponse,
@@ -148,6 +154,9 @@ import type {
   GetDashboardStatsData,
   GetDashboardStatsError,
   GetDashboardStatsResponse,
+  GetDistrictsData,
+  GetDistrictsError,
+  GetDistrictsResponse,
   GetDriverJobDetailData,
   GetDriverJobDetailError,
   GetDriverJobDetailResponse,
@@ -166,6 +175,9 @@ import type {
   GetPromoData,
   GetPromoError,
   GetPromoResponse,
+  GetProvincesData,
+  GetProvincesError,
+  GetProvincesResponse,
   GetPublicStoreInfoData,
   GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
@@ -2129,3 +2141,78 @@ export const completeDeliveryJobMutation = (
   };
   return mutationOptions;
 };
+
+export const getProvincesQueryKey = (options?: Options<GetProvincesData>) =>
+  createQueryKey('getProvinces', options);
+
+/**
+ * Get all provinces
+ */
+export const getProvincesOptions = (options?: Options<GetProvincesData>) =>
+  queryOptions<
+    GetProvincesResponse,
+    GetProvincesError,
+    GetProvincesResponse,
+    ReturnType<typeof getProvincesQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProvinces({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProvincesQueryKey(options),
+  });
+
+export const getCitiesQueryKey = (options: Options<GetCitiesData>) =>
+  createQueryKey('getCities', options);
+
+/**
+ * Get cities by province ID
+ */
+export const getCitiesOptions = (options: Options<GetCitiesData>) =>
+  queryOptions<
+    GetCitiesResponse,
+    GetCitiesError,
+    GetCitiesResponse,
+    ReturnType<typeof getCitiesQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getCities({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getCitiesQueryKey(options),
+  });
+
+export const getDistrictsQueryKey = (options: Options<GetDistrictsData>) =>
+  createQueryKey('getDistricts', options);
+
+/**
+ * Get districts by city ID
+ */
+export const getDistrictsOptions = (options: Options<GetDistrictsData>) =>
+  queryOptions<
+    GetDistrictsResponse,
+    GetDistrictsError,
+    GetDistrictsResponse,
+    ReturnType<typeof getDistrictsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDistricts({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDistrictsQueryKey(options),
+  });

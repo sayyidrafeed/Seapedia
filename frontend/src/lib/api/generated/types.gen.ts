@@ -138,6 +138,11 @@ export type DeliveryJobResponse = {
   }>;
 };
 
+export type LocationItem = {
+  id: string;
+  name: string;
+};
+
 export type HealthCheckData = {
   body?: never;
   path?: never;
@@ -3443,3 +3448,100 @@ export type CompleteDeliveryJobResponses = {
 
 export type CompleteDeliveryJobResponse =
   CompleteDeliveryJobResponses[keyof CompleteDeliveryJobResponses];
+
+export type GetProvincesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/locations/provinces';
+};
+
+export type GetProvincesErrors = {
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetProvincesError = GetProvincesErrors[keyof GetProvincesErrors];
+
+export type GetProvincesResponses = {
+  /**
+   * List of provinces
+   */
+  200: Array<LocationItem>;
+};
+
+export type GetProvincesResponse = GetProvincesResponses[keyof GetProvincesResponses];
+
+export type GetCitiesData = {
+  body?: never;
+  path?: never;
+  query: {
+    provinceId: string;
+  };
+  url: '/api/locations/cities';
+};
+
+export type GetCitiesErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetCitiesError = GetCitiesErrors[keyof GetCitiesErrors];
+
+export type GetCitiesResponses = {
+  /**
+   * List of cities
+   */
+  200: Array<LocationItem>;
+};
+
+export type GetCitiesResponse = GetCitiesResponses[keyof GetCitiesResponses];
+
+export type GetDistrictsData = {
+  body?: never;
+  path?: never;
+  query: {
+    cityId: string;
+  };
+  url: '/api/locations/districts';
+};
+
+export type GetDistrictsErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetDistrictsError = GetDistrictsErrors[keyof GetDistrictsErrors];
+
+export type GetDistrictsResponses = {
+  /**
+   * List of districts
+   */
+  200: Array<LocationItem>;
+};
+
+export type GetDistrictsResponse = GetDistrictsResponses[keyof GetDistrictsResponses];
