@@ -4,6 +4,7 @@ import { Clock, Copy, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { PAYMENT_METHODS } from '../constants/wallet-constants';
+import { useTranslation } from 'react-i18next';
 
 interface PendingPayment {
   transactionId: string;
@@ -25,14 +26,16 @@ export function PendingPaymentCard({
   onCancel,
   onSimulateSuccess,
 }: PendingPaymentCardProps) {
+  const { t } = useTranslation();
+
   const copyToClipboard = (text: string) => {
     if (navigator.clipboard) {
       navigator.clipboard
         .writeText(text)
-        .then(() => toast.success('Copied to clipboard!'))
-        .catch(() => toast.error('Failed to copy to clipboard'));
+        .then(() => toast.success(t('buyer.wallet.copied')))
+        .catch(() => toast.error(t('buyer.wallet.copyFailed')));
     } else {
-      toast.error('Clipboard not supported in this browser');
+      toast.error(t('buyer.wallet.clipboardNotSupported'));
     }
   };
 
@@ -45,29 +48,28 @@ export function PendingPaymentCard({
       <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500" />
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
-          <Clock className="h-5 w-5 text-blue-500 animate-spin" /> Menunggu Pembayaran
+          <Clock className="h-5 w-5 text-blue-500 animate-spin" />{' '}
+          {t('buyer.wallet.pendingPayment')}
         </CardTitle>
-        <CardDescription>
-          Please simulate payment below to complete your top-up request.
-        </CardDescription>
+        <CardDescription>{t('buyer.wallet.simulateInstructions')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* VA/Payment Info Card */}
         <div className="bg-card border border-border p-5 rounded-xl space-y-4">
           <div className="flex justify-between items-center text-sm border-b border-border/50 pb-3">
-            <span className="text-muted-foreground">Payment Method</span>
+            <span className="text-muted-foreground">{t('buyer.wallet.paymentMethod')}</span>
             <span className="font-semibold text-foreground">{methodName}</span>
           </div>
 
           <div className="flex justify-between items-center text-sm border-b border-border/50 pb-3">
-            <span className="text-muted-foreground">Total Top-Up</span>
+            <span className="text-muted-foreground">{t('buyer.wallet.totalTopUp')}</span>
             <span className="text-lg font-bold text-foreground">
               {formatCurrency(pendingPayment.amount)}
             </span>
           </div>
 
           <div className="space-y-1.5 pt-1">
-            <span className="text-xs text-muted-foreground block">Virtual Account / Code</span>
+            <span className="text-xs text-muted-foreground block">{t('buyer.wallet.vaCode')}</span>
             <div className="flex items-center justify-between bg-slate-50 border border-border p-3 rounded-lg">
               <span className="font-mono text-lg font-extrabold text-foreground tracking-wider">
                 {pendingPayment.virtualAccount}
@@ -86,9 +88,8 @@ export function PendingPaymentCard({
         <div className="bg-blue-500/5 border border-blue-500/10 p-4 rounded-xl flex gap-3 text-xs text-blue-600 leading-relaxed">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <div>
-            <span className="font-bold block mb-0.5">Instructions:</span>
-            Since this is a simulated sandbox flow, use the button below to simulate successfully
-            paying the generated Virtual Account code.
+            <span className="font-bold block mb-0.5">{t('buyer.wallet.instructionTitle')}</span>
+            {t('buyer.wallet.instructionBody')}
           </div>
         </div>
 
@@ -100,7 +101,7 @@ export function PendingPaymentCard({
             onClick={onCancel}
             disabled={isSimulating}
           >
-            Cancel
+            {t('buyer.wallet.cancel')}
           </Button>
           <Button
             type="button"
@@ -108,7 +109,7 @@ export function PendingPaymentCard({
             onClick={onSimulateSuccess}
             disabled={isSimulating}
           >
-            {isSimulating ? 'Simulating...' : 'Simulate Payment Success'}
+            {isSimulating ? t('buyer.wallet.simulating') : t('buyer.wallet.simulateSuccess')}
           </Button>
         </div>
       </CardContent>

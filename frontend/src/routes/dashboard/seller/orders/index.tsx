@@ -3,12 +3,14 @@ import { useSellerOrders } from '@/features/seller/hooks/use-seller-orders';
 import { SellerOrderTable } from '@/features/seller/components/seller-order-table';
 import { ProcessOrderModal } from '@/features/seller/components/process-order-modal';
 import { ClipboardList } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/seller/orders/')({
   component: SellerIncomingOrdersPage,
 });
 
 function SellerIncomingOrdersPage() {
+  const { t } = useTranslation();
   const {
     orders,
     isLoading,
@@ -35,7 +37,7 @@ function SellerIncomingOrdersPage() {
   if (error || !orders) {
     return (
       <div className="container mx-auto px-6 py-8 max-w-5xl text-center text-sm text-destructive">
-        Error loading incoming orders. Please check if your store is created properly.
+        {t('seller.orders.errorLoading')}
       </div>
     );
   }
@@ -44,10 +46,10 @@ function SellerIncomingOrdersPage() {
     <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Incoming Orders</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage and process orders placed at your store
-        </p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+          {t('seller.layout.nav.orders')}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t('seller.orders.manageDesc')}</p>
       </div>
 
       {orders.length === 0 ? (
@@ -55,10 +57,9 @@ function SellerIncomingOrdersPage() {
           <div className="rounded-full bg-primary/10 p-6 text-primary mb-6">
             <ClipboardList className="h-12 w-12" />
           </div>
-          <h3 className="text-xl font-bold text-foreground">No incoming orders yet</h3>
+          <h3 className="text-xl font-bold text-foreground">{t('seller.orders.noOrders')}</h3>
           <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-            When buyers purchase products from your store, their orders will appear here. Keep up
-            the good work!
+            {t('seller.orders.noOrdersDesc')}
           </p>
         </div>
       ) : (

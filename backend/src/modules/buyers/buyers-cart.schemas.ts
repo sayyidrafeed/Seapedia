@@ -1,15 +1,24 @@
 import { z } from 'zod';
+import { customMsg } from '@/lib/schemas';
 
 export const cartItemRequestSchema = z
   .object({
-    productId: z.string().uuid('Invalid product ID format'),
-    quantity: z.number().int().min(1, 'Quantity must be at least 1'),
+    productId: z
+      .string(customMsg('ID produk wajib diisi', 'ID produk harus berupa teks'))
+      .uuid('Format ID produk tidak valid'),
+    quantity: z
+      .number(customMsg('Jumlah wajib diisi', 'Jumlah harus berupa angka'))
+      .int('Jumlah harus berupa bilangan bulat')
+      .min(1, 'Jumlah minimal 1'),
   })
   .meta({ id: 'CartItemRequest' });
 
 export const updateCartItemRequestSchema = z
   .object({
-    quantity: z.number().int().min(1, 'Quantity must be at least 1'),
+    quantity: z
+      .number(customMsg('Jumlah wajib diisi', 'Jumlah harus berupa angka'))
+      .int('Jumlah harus berupa bilangan bulat')
+      .min(1, 'Jumlah minimal 1'),
   })
   .meta({ id: 'UpdateCartItemRequest' });
 

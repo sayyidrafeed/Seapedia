@@ -26,12 +26,15 @@
     "@tanstack/zod-form-adapter": "^0.42.1",
     "class-variance-authority": "latest",
     "clsx": "latest",
+    "i18next": "^26.3.4",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-i18next": "^17.0.8",
     "recharts": "2.15.4",
     "sonner": "latest",
     "tailwind-merge": "latest",
+    "vaul": "^1.1.2",
     "zod": "latest"
   },
   "devDependencies": {

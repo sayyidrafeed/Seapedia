@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Ticket, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface CreateVoucherFormProps {
   vCode: string;
@@ -32,6 +33,8 @@ export function CreateVoucherForm({
   onExpiryChange,
   onSubmit,
 }: CreateVoucherFormProps) {
+  const { t } = useTranslation();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -41,14 +44,14 @@ export function CreateVoucherForm({
     <Card className="border border-border/80 shadow-sm animate-in slide-in-from-right duration-300">
       <CardHeader className="bg-muted/30 border-b border-border/80">
         <CardTitle className="text-base font-extrabold flex items-center gap-2">
-          <Ticket className="h-4 w-4 text-primary" /> Create New Voucher
+          <Ticket className="h-4 w-4 text-primary" /> {t('admin.discounts.createVoucherTitle')}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Voucher Code *
+              {t('admin.discounts.voucherCodeLabel')}
             </label>
             <Input
               type="text"
@@ -62,7 +65,7 @@ export function CreateVoucherForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Discount Value (IDR) *
+              {t('admin.discounts.discountValueLabel')}
             </label>
             <Input
               type="number"
@@ -76,7 +79,7 @@ export function CreateVoucherForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Min Order Value (IDR)
+              {t('admin.discounts.minOrderLabel')}
             </label>
             <Input
               type="number"
@@ -89,7 +92,7 @@ export function CreateVoucherForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Max Remaining Usage *
+              {t('admin.discounts.maxUsageLabel')}
             </label>
             <Input
               type="number"
@@ -103,7 +106,7 @@ export function CreateVoucherForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Expiry Date & Time *
+              {t('admin.discounts.expiryLabel')}
             </label>
             <Input
               type="datetime-local"
@@ -120,7 +123,7 @@ export function CreateVoucherForm({
             disabled={isPending}
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Create Voucher
+            {t('admin.discounts.newVoucher')}
           </Button>
         </form>
       </CardContent>

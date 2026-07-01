@@ -9,6 +9,7 @@ import {
 import { ProductForm } from '@/components/products/product-form';
 import type { ProductFormValues } from '@/components/products/product-form';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/seller/products/$productId/edit')({
   component: EditProductPage,
@@ -18,6 +19,7 @@ function EditProductPage() {
   const { productId } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const {
     data: product,
@@ -41,12 +43,12 @@ function EditProductPage() {
         },
       });
       if (error) {
-        throw new Error((error as { error?: string }).error || 'Failed to update product');
+        throw new Error((error as { error?: string }).error || t('seller.products.editFailed'));
       }
       return data;
     },
     onSuccess: () => {
-      toast.success('Product updated successfully!');
+      toast.success(t('seller.products.editSuccess'));
       queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() });
       queryClient.invalidateQueries({
         queryKey: getSellerProductByIdQueryKey({ path: { id: productId } }),
@@ -62,7 +64,7 @@ function EditProductPage() {
     return (
       <div className="flex min-h-[30vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Loading product details...
+          {t('seller.products.editLoading')}
         </span>
       </div>
     );
@@ -71,7 +73,7 @@ function EditProductPage() {
   if (error || !product) {
     return (
       <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-4">
-        Product not found or failed to load.
+        {t('seller.products.editNotFound')}
       </div>
     );
   }
@@ -79,8 +81,8 @@ function EditProductPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Edit Product</h2>
-        <p className="text-sm text-muted-foreground">Modify the details of your product.</p>
+        <h2 className="text-xl font-bold text-foreground">{t('seller.products.editTitle')}</h2>
+        <p className="text-sm text-muted-foreground">{t('seller.products.editDesc')}</p>
       </div>
 
       <ProductForm
@@ -94,7 +96,7 @@ function EditProductPage() {
           await updateMutation.mutateAsync(values);
         }}
         isLoading={updateMutation.isPending}
-        submitLabel="Save Changes"
+        submitLabel={t('seller.store.saveButton')}
       />
     </div>
   );

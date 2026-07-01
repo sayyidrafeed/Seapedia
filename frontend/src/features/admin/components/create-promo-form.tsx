@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Percent, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface CreatePromoFormProps {
   pCode: string;
@@ -32,6 +33,8 @@ export function CreatePromoForm({
   onExpiryChange,
   onSubmit,
 }: CreatePromoFormProps) {
+  const { t } = useTranslation();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -41,14 +44,14 @@ export function CreatePromoForm({
     <Card className="border border-border/80 shadow-sm animate-in slide-in-from-right duration-300">
       <CardHeader className="bg-muted/30 border-b border-border/80">
         <CardTitle className="text-base font-extrabold flex items-center gap-2">
-          <Percent className="h-4 w-4 text-primary" /> Create New Promo
+          <Percent className="h-4 w-4 text-primary" /> {t('admin.discounts.createPromoTitle')}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Promo Code *
+              {t('admin.discounts.promoCodeLabel')}
             </label>
             <Input
               type="text"
@@ -62,7 +65,7 @@ export function CreatePromoForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Discount Percentage (1-100) *
+              {t('admin.discounts.discountPercentLabel')}
             </label>
             <Input
               type="number"
@@ -78,7 +81,7 @@ export function CreatePromoForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Max Discount Cap (IDR)
+              {t('admin.discounts.maxDiscountLabel')}
             </label>
             <Input
               type="number"
@@ -91,7 +94,7 @@ export function CreatePromoForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Min Order Value (IDR)
+              {t('admin.discounts.minOrderLabel')}
             </label>
             <Input
               type="number"
@@ -104,7 +107,7 @@ export function CreatePromoForm({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-              Expiry Date & Time *
+              {t('admin.discounts.expiryLabel')}
             </label>
             <Input
               type="datetime-local"
@@ -121,7 +124,7 @@ export function CreatePromoForm({
             disabled={isPending}
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Create Promo
+            {t('admin.discounts.newPromo')}
           </Button>
         </form>
       </CardContent>

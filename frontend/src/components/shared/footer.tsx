@@ -1,8 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { Logo } from './logo';
-import { ShieldCheck, HelpCircle } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './language-switcher';
 
 export function Footer() {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -15,8 +18,7 @@ export function Footer() {
               <Logo variant="wordmark" size="md" />
             </div>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-              A trusted and transparent decentralized marketplace where buyers, sellers, and drivers
-              connect seamlessly. Evolved from edge-native to a self-hosted monorepo structure.
+              {t('footer.tagline')}
             </p>
             <div className="flex space-x-4 pt-2">
               <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
@@ -56,7 +58,7 @@ export function Footer() {
           {/* Marketplace Navigation */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
-              Marketplace
+              {t('footer.marketplace')}
             </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
@@ -64,7 +66,7 @@ export function Footer() {
                   to="/"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Home Catalog
+                  {t('footer.homeCatalog')}
                 </Link>
               </li>
               <li>
@@ -72,7 +74,7 @@ export function Footer() {
                   to="/profile"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  My Profile
+                  {t('footer.myProfile')}
                 </Link>
               </li>
               <li>
@@ -80,7 +82,7 @@ export function Footer() {
                   to="/dashboard/buyer/cart"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Shopping Cart
+                  {t('footer.shoppingCart')}
                 </Link>
               </li>
             </ul>
@@ -89,16 +91,15 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border/60 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
-            <span>&copy; {currentYear} Seapedia Marketplace. All rights reserved.</span>
+            <span>
+              &copy; {currentYear} Seapedia. {t('footer.copyright')}
+            </span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-              <ShieldCheck className="h-4 w-4" />
-              <span>SLA Secured Transactions</span>
-            </div>
+            <LanguageSwitcher />
             <div className="flex items-center gap-1 font-medium">
               <HelpCircle className="h-4 w-4" />
-              <span>Help & Support</span>
+              <span>{t('footer.helpSupport')}</span>
             </div>
           </div>
         </div>

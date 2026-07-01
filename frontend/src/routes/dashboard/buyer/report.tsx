@@ -4,12 +4,14 @@ import { ReportKpiGrid } from '@/components/orders/report-kpi-grid';
 import { OrderReportList } from '@/components/orders/order-report-list';
 import type { ReportOrder } from '@/components/orders/order-report-list';
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/buyer/report')({
   component: BuyerSpendingReportPage,
 });
 
 function BuyerSpendingReportPage() {
+  const { t } = useTranslation();
   const { report, isLoading, error } = useBuyerReport();
 
   if (isLoading) {
@@ -29,28 +31,28 @@ function BuyerSpendingReportPage() {
   if (error || !report) {
     return (
       <div className="text-center py-12 space-y-4">
-        <p className="text-destructive font-semibold">Error loading spending report.</p>
-        <p className="text-sm text-muted-foreground">Please try again later.</p>
+        <p className="text-destructive font-semibold">{t('buyer.report.errorLoading')}</p>
+        <p className="text-sm text-muted-foreground">{t('buyer.report.tryAgainLater')}</p>
       </div>
     );
   }
 
   const card1 = {
-    label: 'Total Expenses',
+    label: t('buyer.report.totalExpenses'),
     value: formatCurrency(report.totalSpending),
-    subtext: 'Sum of all completed orders',
+    subtext: t('buyer.report.totalExpensesDesc'),
   };
 
   const card2 = {
-    label: 'Completed Orders',
+    label: t('buyer.report.completedOrders'),
     value: report.totalOrders,
-    subtext: 'Successfully delivered transactions',
+    subtext: t('buyer.report.completedOrdersDesc'),
   };
 
   const card3 = {
-    label: 'Average Order Value',
+    label: t('buyer.report.avgOrderValue'),
     value: formatCurrency(report.averageOrderValue),
-    subtext: 'Average spending per completed order',
+    subtext: t('buyer.report.avgOrderValueDesc'),
   };
 
   const mappedOrders: ReportOrder[] = report.orders.map((o) => ({
@@ -76,10 +78,10 @@ function BuyerSpendingReportPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Spending Report</h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          A comprehensive breakdown of your completed expenses on Seapedia.
-        </p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          {t('buyer.report.title')}
+        </h2>
+        <p className="text-muted-foreground text-sm mt-1">{t('buyer.report.desc')}</p>
       </div>
 
       {/* Summary Metrics */}
@@ -88,8 +90,8 @@ function BuyerSpendingReportPage() {
       {/* Detailed Transactions */}
       <OrderReportList
         orders={mappedOrders}
-        title="Transaction History"
-        description="All your transactions. Only completed transactions contribute to the financial summary metrics above."
+        title={t('buyer.report.historyTitle')}
+        description={t('buyer.report.historyDesc')}
         detailLinkPrefix="buyer"
         showStoreName={true}
       />

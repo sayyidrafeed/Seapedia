@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/auth/context';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBuyerCartOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import { useTranslation } from 'react-i18next';
 import {
   Menu,
   X,
@@ -20,6 +21,7 @@ import { NavbarMobile } from './navbar-mobile';
 import { Logo } from './logo';
 
 export function Navbar() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -73,14 +75,14 @@ export function Navbar() {
           </Link>
           <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
             <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground">
-              Home
+              {t('navbar.home')}
             </Link>
             {auth.user && (
               <Link
                 to="/profile"
                 className="transition-colors hover:text-foreground/80 text-foreground"
               >
-                Profile
+                {t('navbar.profile')}
               </Link>
             )}
           </nav>
@@ -89,17 +91,20 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-4">
           {auth.isLoading ? (
-            <span className="text-xs text-muted-foreground animate-pulse">Loading...</span>
+            <span className="text-xs text-muted-foreground animate-pulse">
+              {t('navbar.loading')}
+            </span>
           ) : auth.user ? (
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-muted-foreground">
-                Logged in as <strong className="text-foreground">{auth.user.username}</strong>
+                {t('navbar.loggedInAs')}{' '}
+                <strong className="text-foreground">{auth.user.username}</strong>
               </span>
 
               {auth.activeRole && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary capitalize">
                   {getRoleIcon(auth.activeRole)}
-                  {auth.activeRole}
+                  {t(`role.${auth.activeRole}`)}
                 </span>
               )}
 
@@ -108,7 +113,7 @@ export function Navbar() {
                   to="/select-role"
                   className="text-xs font-medium text-primary hover:underline"
                 >
-                  Switch Role
+                  {t('navbar.switchRole')}
                 </Link>
               )}
 
@@ -116,7 +121,7 @@ export function Navbar() {
                 <Link
                   to="/dashboard/buyer/cart"
                   className="relative p-2 text-foreground hover:bg-muted rounded-md transition-colors"
-                  title="Cart"
+                  title={t('navbar.cart')}
                 >
                   <ShoppingCart className="h-4 w-4" />
                   {cart && cart.totalItems > 0 && (
@@ -135,7 +140,7 @@ export function Navbar() {
                     onClick={() => setDesktopDropdownOpen(!desktopDropdownOpen)}
                     className="h-8 gap-1 text-xs cursor-pointer"
                   >
-                    <span>Dashboard</span>
+                    <span>{t('navbar.dashboard')}</span>
                     <ChevronDown className="h-3 w-3" />
                   </Button>
 
@@ -152,7 +157,7 @@ export function Navbar() {
                           }`}
                         >
                           {getRoleIcon(role)}
-                          <span>{role} Dashboard</span>
+                          <span>{t('navbar.dashboardWithRole', { context: role })}</span>
                         </button>
                       ))}
                     </div>
@@ -167,19 +172,19 @@ export function Navbar() {
                 className="h-8 text-xs cursor-pointer"
               >
                 <LogOut className="h-3 w-3 mr-1" />
-                Logout
+                {t('navbar.logout')}
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
               <Link to="/login">
                 <Button variant="ghost" size="sm" className="text-xs cursor-pointer">
-                  Sign In
+                  {t('navbar.signIn')}
                 </Button>
               </Link>
               <Link to="/register">
                 <Button size="sm" className="text-xs cursor-pointer">
-                  Register
+                  {t('navbar.register')}
                 </Button>
               </Link>
             </div>
@@ -192,7 +197,7 @@ export function Navbar() {
             <Link
               to="/dashboard/buyer/cart"
               className="relative p-2 text-foreground hover:bg-muted rounded-md transition-colors mr-1"
-              title="Cart"
+              title={t('navbar.cart')}
               onClick={() => setMobileMenuOpen(false)}
             >
               <ShoppingCart className="h-5 w-5" />
@@ -204,7 +209,9 @@ export function Navbar() {
             </Link>
           )}
           {auth.isLoading ? (
-            <span className="text-xs text-muted-foreground animate-pulse">Loading...</span>
+            <span className="text-xs text-muted-foreground animate-pulse">
+              {t('navbar.loading')}
+            </span>
           ) : (
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

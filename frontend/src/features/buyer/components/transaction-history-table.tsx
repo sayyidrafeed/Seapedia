@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ArrowUpRight, TrendingDown, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { PAYMENT_METHODS } from '../constants/wallet-constants';
+import { useTranslation } from 'react-i18next';
 
 interface Transaction {
   id: string;
@@ -19,13 +20,13 @@ interface TransactionHistoryTableProps {
 }
 
 export function TransactionHistoryTable({ transactions, isLoading }: TransactionHistoryTableProps) {
+  const { t } = useTranslation();
+
   return (
     <Card className="border border-border shadow-sm">
       <CardHeader>
-        <CardTitle>Riwayat Transaksi (Transaction History)</CardTitle>
-        <CardDescription>
-          List of all incoming and outgoing transaction logs for your wallet.
-        </CardDescription>
+        <CardTitle>{t('buyer.wallet.historyTitle')}</CardTitle>
+        <CardDescription>{t('buyer.wallet.historyDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -36,18 +37,18 @@ export function TransactionHistoryTable({ transactions, isLoading }: Transaction
           </div>
         ) : !transactions || transactions.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No transactions recorded yet.
+            {t('buyer.wallet.noTransactions')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left border-collapse">
               <thead>
                 <tr className="border-b border-border/80 text-muted-foreground text-xs uppercase tracking-wider font-semibold">
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4">Type</th>
-                  <th className="py-3.5 px-4">Method / Ref</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Amount</th>
+                  <th className="py-3.5 px-4">{t('buyer.wallet.date')}</th>
+                  <th className="py-3.5 px-4">{t('buyer.wallet.type')}</th>
+                  <th className="py-3.5 px-4">{t('buyer.wallet.methodRef')}</th>
+                  <th className="py-3.5 px-4">{t('buyer.wallet.statusHeader')}</th>
+                  <th className="py-3.5 px-4 text-right">{t('buyer.wallet.amount')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">

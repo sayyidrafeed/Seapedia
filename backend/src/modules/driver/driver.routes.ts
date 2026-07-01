@@ -11,7 +11,7 @@ import {
   driverJobHistoryResponseSchema,
 } from './driver.schemas';
 import { DriverService } from './driver.service';
-import { paginationQuerySchema } from '@/lib/schemas';
+import { paginationQuerySchema, customMsg } from '@/lib/schemas';
 
 export const driverRouter = factory.createApp();
 
@@ -97,7 +97,14 @@ driverRouter.get(
   }),
   requireSession,
   requireRole('driver'),
-  validator('param', z.object({ id: z.string().uuid() })),
+  validator(
+    'param',
+    z.object({
+      id: z
+        .string(customMsg('ID wajib diisi', 'ID harus berupa teks'))
+        .uuid('Format ID tidak valid'),
+    }),
+  ),
   async (c) => {
     const { id } = c.req.valid('param');
     const detail = await DriverService.getJobDetail(id);
@@ -120,7 +127,14 @@ driverRouter.post(
   }),
   requireSession,
   requireRole('driver'),
-  validator('param', z.object({ id: z.string().uuid() })),
+  validator(
+    'param',
+    z.object({
+      id: z
+        .string(customMsg('ID wajib diisi', 'ID harus berupa teks'))
+        .uuid('Format ID tidak valid'),
+    }),
+  ),
   async (c) => {
     const { id } = c.req.valid('param');
     const userId = c.get('userId') as string;
@@ -144,7 +158,14 @@ driverRouter.post(
   }),
   requireSession,
   requireRole('driver'),
-  validator('param', z.object({ id: z.string().uuid() })),
+  validator(
+    'param',
+    z.object({
+      id: z
+        .string(customMsg('ID wajib diisi', 'ID harus berupa teks'))
+        .uuid('Format ID tidak valid'),
+    }),
+  ),
   async (c) => {
     const { id } = c.req.valid('param');
     const userId = c.get('userId') as string;

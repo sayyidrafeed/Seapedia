@@ -1,5 +1,6 @@
 import { OrderItemsList } from '@/components/orders/order-items-list';
 import type { UnifiedOrderItem } from '@/components/orders/order-items-list';
+import { useTranslation } from 'react-i18next';
 
 interface CartItem {
   id: string;
@@ -15,6 +16,7 @@ interface CheckoutItemsSectionProps {
 }
 
 export function CheckoutItemsSection({ items }: CheckoutItemsSectionProps) {
+  const { t } = useTranslation();
   const unifiedItems: UnifiedOrderItem[] = items.map((item) => ({
     id: item.id,
     name: item.product.name,
@@ -25,7 +27,7 @@ export function CheckoutItemsSection({ items }: CheckoutItemsSectionProps) {
   return (
     <OrderItemsList
       items={unifiedItems}
-      headerTitle={`Order Items (${items.length})`}
+      headerTitle={t('buyer.checkout.orderItems', { count: items.length })}
       className="hover:border-primary/20 transition duration-200"
     />
   );

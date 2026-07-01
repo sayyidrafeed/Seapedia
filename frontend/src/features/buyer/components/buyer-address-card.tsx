@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { MapPin, ArrowRight, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Address {
   id: string;
@@ -23,12 +24,14 @@ export function BuyerAddressCard({
   totalAddressesCount,
   isLoading,
 }: BuyerAddressCardProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-card border border-border p-6 rounded-xl shadow-sm flex flex-col justify-between group hover:border-purple-500/20 transition-all duration-300">
       <div className="flex items-start justify-between">
         <div className="space-y-1 w-full max-w-[80%]">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Default Address
+            {t('buyer.address.defaultLabel')}
           </span>
           {isLoading ? (
             <div className="space-y-2 mt-2">
@@ -49,9 +52,7 @@ export function BuyerAddressCard({
               </p>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground mt-2">
-              No default delivery address set yet.
-            </p>
+            <p className="text-sm text-muted-foreground mt-2">{t('buyer.address.noDefault')}</p>
           )}
         </div>
         <div className="p-3 bg-purple-500/10 text-purple-500 rounded-xl">
@@ -59,20 +60,22 @@ export function BuyerAddressCard({
         </div>
       </div>
       <div className="mt-8 border-t border-border/50 pt-4 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{totalAddressesCount} saved addresses</span>
+        <span className="text-xs text-muted-foreground">
+          {t('buyer.address.savedCount', { count: totalAddressesCount })}
+        </span>
         {totalAddressesCount > 0 ? (
           <Link
             to="/dashboard/buyer/addresses"
             className="text-sm font-semibold text-purple-500 hover:text-purple-600 flex items-center gap-1 group-hover:gap-2 transition-all"
           >
-            Manage Addresses <ArrowRight className="h-4 w-4" />
+            {t('buyer.address.manageAddresses')} <ArrowRight className="h-4 w-4" />
           </Link>
         ) : (
           <Link
             to="/dashboard/buyer/addresses"
             className="text-sm font-semibold text-purple-500 hover:text-purple-600 flex items-center gap-1 group"
           >
-            Add Address <Plus className="h-4 w-4" />
+            {t('buyer.address.addAddress')} <Plus className="h-4 w-4" />
           </Link>
         )}
       </div>

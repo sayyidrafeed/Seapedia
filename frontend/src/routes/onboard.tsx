@@ -3,12 +3,14 @@ import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 import { useOnboarding } from '@/features/authentication/hooks/use-onboarding';
 import { OnboardingForm } from '@/features/authentication/components/onboarding-form';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/onboard')({
   component: OnboardPage,
 });
 
 function OnboardPage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
   const onboarding = useOnboarding();
@@ -28,7 +30,7 @@ function OnboardPage() {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Loading onboarding...
+          {t('onboard.loading')}
         </span>
       </div>
     );
@@ -41,11 +43,9 @@ function OnboardPage() {
       <div className="w-full max-w-lg space-y-6 bg-card p-8 rounded-xl border border-border shadow-surface">
         <div className="text-center">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
-            Welcome to Seapedia, {welcomeName}!
+            {t('onboard.welcome', { name: welcomeName })}
           </h2>
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            Let's customize your profile. Select what roles you want to have in this application.
-          </p>
+          <p className="mt-1.5 text-xs text-muted-foreground">{t('onboard.instruction')}</p>
         </div>
 
         <OnboardingForm

@@ -19,3 +19,13 @@ export const paginationQuerySchema = z.object({
   sortBy: z.string().optional(),
   order: z.enum(['asc', 'desc']).default('desc'),
 });
+
+export const customMsg = (required: string, invalidType: string) => ({
+  error: (issue: { code: string; received?: string; input?: unknown }) => {
+    const isRequired =
+      issue.received === 'undefined' ||
+      issue.input === undefined ||
+      (issue.code === 'invalid_type' && issue.received === 'undefined');
+    return { message: isRequired ? required : invalidType };
+  },
+});

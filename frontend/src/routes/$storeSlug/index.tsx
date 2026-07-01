@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { StoreHeader } from '@/features/marketplace/components/store-header';
 import { MarketplaceProductCard } from '@/features/marketplace/components/marketplace-product-card';
 import { PaginationControls } from '@/components/shared/pagination-controls';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/$storeSlug/')({
   component: PublicStorePage,
@@ -15,6 +16,7 @@ function PublicStorePage() {
   const { storeSlug } = Route.useParams();
   const [page, setPage] = useState(1);
   const limit = 20;
+  const { t } = useTranslation();
 
   const {
     data: store,
@@ -48,7 +50,7 @@ function PublicStorePage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Loading store information...
+          {t('catalog.loadingStoreInfo')}
         </span>
       </div>
     );
@@ -57,8 +59,8 @@ function PublicStorePage() {
   if (storeError || !store) {
     return (
       <div className="container mx-auto px-6 py-12 text-center">
-        <h1 className="text-3xl font-bold mb-4">Store Not Found</h1>
-        <p className="text-muted-foreground">The store you are looking for does not exist.</p>
+        <h1 className="text-3xl font-bold mb-4">{t('catalog.storeNotFound')}</h1>
+        <p className="text-muted-foreground">{t('catalog.storeNotFoundDesc')}</p>
       </div>
     );
   }
@@ -73,7 +75,7 @@ function PublicStorePage() {
 
       {/* Store Products */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold tracking-tight">Products</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('catalog.productsTitle')}</h2>
         {isProductsLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {[1, 2, 3].map((n) => (
@@ -89,11 +91,11 @@ function PublicStorePage() {
           </div>
         ) : productsError ? (
           <div className="text-center py-12 text-sm text-destructive">
-            Error loading products for this store.
+            {t('catalog.errorLoadingProducts')}
           </div>
         ) : productsData?.products.length === 0 ? (
           <div className="bg-muted/30 border border-border p-12 rounded-xl text-center">
-            <p className="text-muted-foreground text-sm">No products listed by this store yet.</p>
+            <p className="text-muted-foreground text-sm">{t('catalog.noProductsListed')}</p>
           </div>
         ) : (
           <div className="space-y-8">

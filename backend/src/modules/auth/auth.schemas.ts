@@ -1,24 +1,42 @@
 import { z } from 'zod';
+import { customMsg } from '@/lib/schemas';
 
 export const registerSchema = z
   .object({
-    username: z.string().min(3).max(50),
-    email: z.string().email(),
-    password: z.string().min(8),
-    name: z.string().optional(),
+    username: z
+      .string(customMsg('Username wajib diisi', 'Username harus berupa teks'))
+      .min(3, 'Username minimal 3 karakter')
+      .max(50, 'Username maksimal 50 karakter'),
+    email: z
+      .string(customMsg('Email wajib diisi', 'Email harus berupa teks'))
+      .email('Format email tidak valid'),
+    password: z
+      .string(customMsg('Password wajib diisi', 'Password harus berupa teks'))
+      .min(8, 'Password minimal 8 karakter'),
+    name: z
+      .string({
+        message: 'Nama harus berupa teks',
+      })
+      .optional(),
   })
   .meta({ id: 'RegisterInput' });
 
 export const loginSchema = z
   .object({
-    username: z.string().min(1),
-    password: z.string().min(1),
+    username: z
+      .string(customMsg('Username wajib diisi', 'Username harus berupa teks'))
+      .min(1, 'Username tidak boleh kosong'),
+    password: z
+      .string(customMsg('Password wajib diisi', 'Password harus berupa teks'))
+      .min(1, 'Password tidak boleh kosong'),
   })
   .meta({ id: 'LoginInput' });
 
 export const selectRoleSchema = z
   .object({
-    role: z.enum(['admin', 'seller', 'buyer', 'driver']),
+    role: z.enum(['admin', 'seller', 'buyer', 'driver'], {
+      message: 'Role tidak valid',
+    }),
   })
   .meta({ id: 'SelectRoleInput' });
 
@@ -35,7 +53,12 @@ export const userResponseSchema = z
 
 export const onboardSchema = z
   .object({
-    roles: z.array(z.enum(['buyer', 'seller', 'driver'])),
+    roles: z.array(
+      z.enum(['buyer', 'seller', 'driver'], {
+        message: 'Role tidak valid',
+      }),
+      customMsg('Pilih minimal satu role', 'Role harus berupa list'),
+    ),
   })
   .meta({ id: 'OnboardInput' });
 

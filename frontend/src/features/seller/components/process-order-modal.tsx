@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface ProcessOrderModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export function ProcessOrderModal({
   onClose,
   onConfirm,
 }: ProcessOrderModalProps) {
+  const { t } = useTranslation();
+
   if (!isOpen) return null;
 
   return (
@@ -29,11 +32,8 @@ export function ProcessOrderModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="space-y-1">
-          <h3 className="text-lg font-bold text-foreground">Process Order</h3>
-          <p className="text-xs text-muted-foreground">
-            Move this order to <strong className="text-foreground">Menunggu Pengirim</strong> status
-            so drivers can pick it up.
-          </p>
+          <h3 className="text-lg font-bold text-foreground">{t('seller.modal.processTitle')}</h3>
+          <p className="text-xs text-muted-foreground">{t('seller.modal.processDesc')}</p>
         </div>
 
         <div className="space-y-2">
@@ -41,19 +41,19 @@ export function ProcessOrderModal({
             htmlFor="note-input"
             className="text-xs font-bold text-foreground uppercase tracking-wider block"
           >
-            Optional Processing Note
+            {t('seller.modal.noteLabel')}
           </label>
           <textarea
             id="note-input"
             className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-            placeholder="e.g. Package packed and ready in front of the store..."
+            placeholder={t('seller.modal.notePlaceholder')}
             value={note}
             onChange={(e) => onNoteChange(e.target.value)}
             maxLength={1000}
             disabled={isPending}
           />
           <p className="text-[10px] text-muted-foreground text-right">
-            {note.length} / 1000 characters
+            {t('seller.modal.charCount', { count: note.length })}
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export function ProcessOrderModal({
             disabled={isPending}
             className="cursor-pointer"
           >
-            Cancel
+            {t('buyer.wallet.cancel')}
           </Button>
           <Button
             size="sm"
@@ -73,7 +73,7 @@ export function ProcessOrderModal({
             disabled={isPending}
             className="cursor-pointer font-bold"
           >
-            {isPending ? 'Processing...' : 'Confirm Process'}
+            {isPending ? t('seller.orders.processing') : t('seller.modal.confirmButton')}
           </Button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { ReportKpiGrid } from '@/components/orders/report-kpi-grid';
 import { OrderReportList } from '@/components/orders/order-report-list';
 import type { ReportOrder } from '@/components/orders/order-report-list';
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/seller/report')({
   component: SellerIncomeReportPage,
@@ -11,6 +12,7 @@ export const Route = createFileRoute('/dashboard/seller/report')({
 
 function SellerIncomeReportPage() {
   const { report, isLoading, error } = useSellerReport();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -29,28 +31,28 @@ function SellerIncomeReportPage() {
   if (error || !report) {
     return (
       <div className="text-center py-12 space-y-4">
-        <p className="text-destructive font-semibold">Error loading income report.</p>
-        <p className="text-sm text-muted-foreground">Please try again later.</p>
+        <p className="text-destructive font-semibold">{t('seller.report.errorLoading')}</p>
+        <p className="text-sm text-muted-foreground">{t('buyer.report.tryAgainLater')}</p>
       </div>
     );
   }
 
   const card1 = {
-    label: 'Total Revenue',
+    label: t('seller.report.totalRevenue'),
     value: formatCurrency(report.totalIncome),
-    subtext: "Sum of subtotal from completed store's orders",
+    subtext: t('seller.report.totalRevenueDesc'),
   };
 
   const card2 = {
-    label: 'Completed Orders',
+    label: t('buyer.report.completedOrders'),
     value: report.totalOrders,
-    subtext: 'Successfully delivered transactions',
+    subtext: t('buyer.report.completedOrdersDesc'),
   };
 
   const card3 = {
-    label: 'Average Revenue',
+    label: t('seller.report.averageRevenue'),
     value: formatCurrency(report.averageRevenue),
-    subtext: 'Average earnings per completed order',
+    subtext: t('seller.report.averageRevenueDesc'),
   };
 
   const mappedOrders: ReportOrder[] = report.orders.map((o) => ({
@@ -75,10 +77,10 @@ function SellerIncomeReportPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Income Report</h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          A comprehensive breakdown of your store's completed revenue on Seapedia.
-        </p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          {t('seller.report.title')}
+        </h2>
+        <p className="text-muted-foreground text-sm mt-1">{t('seller.report.desc')}</p>
       </div>
 
       {/* Summary Metrics */}
@@ -87,12 +89,12 @@ function SellerIncomeReportPage() {
       {/* Detailed Transactions */}
       <OrderReportList
         orders={mappedOrders}
-        title="Revenue Breakdown"
-        description="All store orders. Only completed transactions contribute to your store's revenue metrics above."
+        title={t('seller.report.historyTitle')}
+        description={t('seller.report.historyDesc')}
         detailLinkPrefix="seller"
-        subtotalLabel="Subtotal (Revenue)"
-        totalLabel="Buyer Paid (Total)"
-        itemsLabel="Items sold:"
+        subtotalLabel={t('seller.report.subtotalLabel')}
+        totalLabel={t('seller.report.totalLabel')}
+        itemsLabel={t('seller.report.itemsLabel')}
         showStoreName={false}
       />
     </div>

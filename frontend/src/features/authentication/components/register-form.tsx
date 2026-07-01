@@ -3,8 +3,10 @@ import { useAuth } from '@/lib/auth/context';
 import { useNavigate } from '@tanstack/react-router';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export function RegisterForm() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
@@ -28,9 +30,7 @@ export function RegisterForm() {
       navigate({ to: '/select-role' });
     } catch (err) {
       const error = err as { body?: { error?: string } };
-      setError(
-        error.body?.error || 'Registration failed. Try checking username/email availability.',
-      );
+      setError(error.body?.error || t('auth.registrationFailed'));
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export function RegisterForm() {
               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1"
               htmlFor="username"
             >
-              Username
+              {t('auth.username')}
             </label>
             <Input
               id="username"
@@ -60,7 +60,7 @@ export function RegisterForm() {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Choose a username"
+              placeholder={t('auth.chooseUsername')}
             />
           </div>
           <div>
@@ -68,7 +68,7 @@ export function RegisterForm() {
               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1"
               htmlFor="email"
             >
-              Email address
+              {t('auth.emailAddress')}
             </label>
             <Input
               id="email"
@@ -85,7 +85,7 @@ export function RegisterForm() {
               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1"
               htmlFor="name"
             >
-              Full Name (Optional)
+              {t('auth.fullNameOptional')}
             </label>
             <Input
               id="name"
@@ -93,7 +93,7 @@ export function RegisterForm() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
+              placeholder={t('auth.yourName')}
             />
           </div>
           <div>
@@ -101,7 +101,7 @@ export function RegisterForm() {
               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1"
               htmlFor="password"
             >
-              Password
+              {t('auth.password')}
             </label>
             <Input
               id="password"
@@ -110,14 +110,14 @@ export function RegisterForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Choose a password (min 8 chars)"
+              placeholder={t('auth.choosePassword')}
             />
           </div>
         </div>
 
         <div className="pt-2">
           <Button type="submit" disabled={loading} className="w-full cursor-pointer font-semibold">
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? t('auth.registering') : t('auth.register')}
           </Button>
         </div>
       </form>

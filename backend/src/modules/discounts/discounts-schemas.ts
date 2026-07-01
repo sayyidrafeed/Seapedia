@@ -1,39 +1,64 @@
 import { z } from 'zod';
+import { customMsg } from '@/lib/schemas';
 
 export const createVoucherRequestSchema = z
   .object({
-    code: z.string().min(1, 'Code is required').trim(),
-    discountAmount: z.number().int().positive('Discount amount must be positive'),
+    code: z
+      .string(customMsg('Kode wajib diisi', 'Kode harus berupa teks'))
+      .min(1, 'Kode wajib diisi')
+      .trim(),
+    discountAmount: z
+      .number(customMsg('Jumlah diskon wajib diisi', 'Jumlah diskon harus berupa angka'))
+      .int('Jumlah diskon harus berupa bilangan bulat')
+      .positive('Jumlah diskon harus bernilai positif'),
     minOrderAmount: z
-      .number()
-      .int()
-      .nonnegative('Minimum order amount must be non-negative')
+      .number({
+        message: 'Minimal pembelian harus berupa angka',
+      })
+      .int('Minimal pembelian harus berupa bilangan bulat')
+      .nonnegative('Minimal pembelian tidak boleh negatif')
       .default(0),
-    expiresAt: z.string().datetime({ message: 'Invalid expiry date format' }),
-    remainingUsage: z.number().int().nonnegative('Remaining usage must be non-negative'),
+    expiresAt: z
+      .string(customMsg('Tanggal kedaluwarsa wajib diisi', 'Tanggal kedaluwarsa harus berupa teks'))
+      .datetime({ message: 'Format tanggal kedaluwarsa tidak valid' }),
+    remainingUsage: z
+      .number(
+        customMsg('Sisa kuota penggunaan wajib diisi', 'Sisa kuota penggunaan harus berupa angka'),
+      )
+      .int('Sisa kuota penggunaan harus berupa bilangan bulat')
+      .nonnegative('Sisa kuota penggunaan tidak boleh negatif'),
   })
   .meta({ id: 'CreateVoucherRequest' });
 
 export const createPromoRequestSchema = z
   .object({
-    code: z.string().min(1, 'Code is required').trim(),
+    code: z
+      .string(customMsg('Kode wajib diisi', 'Kode harus berupa teks'))
+      .min(1, 'Kode wajib diisi')
+      .trim(),
     discountPercent: z
-      .number()
-      .int()
-      .min(1)
-      .max(100, 'Discount percentage must be between 1 and 100'),
+      .number(customMsg('Persentase diskon wajib diisi', 'Persentase diskon harus berupa angka'))
+      .int('Persentase diskon harus berupa bilangan bulat')
+      .min(1, 'Persentase diskon minimal 1')
+      .max(100, 'Persentase diskon maksimal 100'),
     maxDiscountAmount: z
-      .number()
-      .int()
-      .positive('Max discount amount must be positive')
+      .number({
+        message: 'Maksimal diskon harus berupa angka',
+      })
+      .int('Maksimal diskon harus berupa bilangan bulat')
+      .positive('Maksimal jumlah diskon harus bernilai positif')
       .nullable()
       .optional(),
     minOrderAmount: z
-      .number()
-      .int()
-      .nonnegative('Minimum order amount must be non-negative')
+      .number({
+        message: 'Minimal pembelian harus berupa angka',
+      })
+      .int('Minimal pembelian harus berupa bilangan bulat')
+      .nonnegative('Minimal pembelian tidak boleh negatif')
       .default(0),
-    expiresAt: z.string().datetime({ message: 'Invalid expiry date format' }),
+    expiresAt: z
+      .string(customMsg('Tanggal kedaluwarsa wajib diisi', 'Tanggal kedaluwarsa harus berupa teks'))
+      .datetime({ message: 'Format tanggal kedaluwarsa tidak valid' }),
   })
   .meta({ id: 'CreatePromoRequest' });
 
@@ -72,8 +97,14 @@ export const promoListResponseSchema = z
 
 export const validateDiscountRequestSchema = z
   .object({
-    code: z.string().min(1, 'Discount code is required').trim(),
-    subtotal: z.number().int().positive('Subtotal must be positive'),
+    code: z
+      .string(customMsg('Kode diskon wajib diisi', 'Kode diskon harus berupa teks'))
+      .min(1, 'Kode diskon wajib diisi')
+      .trim(),
+    subtotal: z
+      .number(customMsg('Subtotal wajib diisi', 'Subtotal harus berupa angka'))
+      .int('Subtotal harus berupa bilangan bulat')
+      .positive('Subtotal harus bernilai positif'),
   })
   .meta({ id: 'ValidateDiscountRequest' });
 

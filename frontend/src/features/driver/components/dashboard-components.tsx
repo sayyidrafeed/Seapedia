@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Truck, History, Landmark, MapPin, Navigation, HelpCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface Address {
   recipientName: string;
@@ -32,18 +33,24 @@ interface Stats {
 }
 
 export function StatsCards({ stats }: { stats: Stats }) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card className="flex flex-col justify-between p-4">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-muted-foreground">Active Deliveries</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            {t('driver.stats.activeDeliveries')}
+          </span>
           <Truck className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="text-2xl font-bold mt-2">{stats.activeJobs.length}</div>
       </Card>
       <Card className="flex flex-col justify-between p-4">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-muted-foreground">Completed Jobs</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            {t('driver.stats.completedJobs')}
+          </span>
           <History className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="text-2xl font-bold mt-2">{stats.completedJobsCount}</div>
@@ -51,11 +58,11 @@ export function StatsCards({ stats }: { stats: Stats }) {
       <Card className="flex flex-col justify-between p-4 relative group">
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-            Total Earnings
+            {t('driver.stats.totalEarnings')}
             <div className="relative inline-block cursor-help text-muted-foreground/60 hover:text-foreground">
               <HelpCircle className="h-3.5 w-3.5" />
               <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 hidden group-hover:block bg-popover text-popover-foreground border text-[10px] p-2 rounded shadow-md z-50 leading-relaxed font-normal">
-                Earning is calculated as 100% of the delivery fee for completed jobs.
+                {t('driver.stats.earningTooltip')}
               </span>
             </div>
           </span>
@@ -78,17 +85,19 @@ export function ActiveDeliveriesCard({
   isPending: boolean;
   onComplete: (jobId: string) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Active Jobs ({activeJobs.length})</CardTitle>
+        <CardTitle>{t('driver.stats.activeJobsCount', { count: activeJobs.length })}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {activeJobs.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
-            <p>No active jobs. Claim some available jobs!</p>
+            <p>{t('driver.stats.noActiveJobs')}</p>
             <Button asChild className="mt-4" variant="outline">
-              <Link to="/dashboard/driver/jobs">Find Jobs</Link>
+              <Link to="/dashboard/driver/jobs">{t('driver.stats.findJobs')}</Link>
             </Button>
           </div>
         ) : (
@@ -106,16 +115,17 @@ export function ActiveDeliveriesCard({
                   <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                   <div>
                     <span className="text-xs text-muted-foreground block font-semibold">
-                      PICKUP
+                      {t('driver.stats.pickup')}
                     </span>
-                    {job.storeName} Store
+                    {job.storeName}
+                    {t('driver.stats.storeSuffix')}
                   </div>
                 </div>
                 <div className="flex items-start gap-2 text-sm">
                   <Navigation className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                   <div>
                     <span className="text-xs text-muted-foreground block font-semibold">
-                      DROPOFF
+                      {t('driver.stats.dropoff')}
                     </span>
                     {job.addressSnapshot.recipientName}
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -128,7 +138,7 @@ export function ActiveDeliveriesCard({
                   disabled={isPending}
                   onClick={() => onComplete(job.id)}
                 >
-                  {isPending ? 'Completing...' : 'Complete Delivery'}
+                  {isPending ? t('driver.stats.completing') : t('driver.stats.completeButton')}
                 </Button>
               </Card>
             ))}

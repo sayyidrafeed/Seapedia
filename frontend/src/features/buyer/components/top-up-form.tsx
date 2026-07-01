@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowDownToLine } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { PRESET_AMOUNTS, PAYMENT_METHODS } from '../constants/wallet-constants';
+import { useTranslation } from 'react-i18next';
 
 interface TopUpFormProps {
   topUpAmount: number;
@@ -26,6 +27,8 @@ export function TopUpForm({
   onMethodSelect,
   onSubmit,
 }: TopUpFormProps) {
+  const { t } = useTranslation();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -35,18 +38,16 @@ export function TopUpForm({
     <Card className="border border-border shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <ArrowDownToLine className="h-5 w-5 text-blue-500" /> Isi Saldo (Top Up)
+          <ArrowDownToLine className="h-5 w-5 text-blue-500" /> {t('buyer.wallet.topUpTitle')}
         </CardTitle>
-        <CardDescription>
-          Choose amount and payment method to generate instructions.
-        </CardDescription>
+        <CardDescription>{t('buyer.wallet.topUpDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Amount Presets */}
           <div className="space-y-2.5">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Select Amount
+              {t('buyer.wallet.selectAmount')}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {PRESET_AMOUNTS.map((amt) => (
@@ -69,7 +70,7 @@ export function TopUpForm({
           {/* Custom Amount */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Or Enter Custom Amount
+              {t('buyer.wallet.orCustomAmount')}
             </label>
             <div className="relative">
               <span className="absolute left-3.5 top-2.5 text-sm font-semibold text-muted-foreground">
@@ -77,7 +78,7 @@ export function TopUpForm({
               </span>
               <Input
                 type="number"
-                placeholder="Min. 10.000"
+                placeholder={t('buyer.wallet.minCustomAmount')}
                 value={customAmount}
                 onChange={(e) => onCustomAmountChange(e.target.value)}
                 className="pl-10"
@@ -89,7 +90,7 @@ export function TopUpForm({
           {/* Payment Method */}
           <div className="space-y-2.5">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Select Payment Channel
+              {t('buyer.wallet.selectPaymentChannel')}
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {PAYMENT_METHODS.map((method) => (
@@ -130,7 +131,7 @@ export function TopUpForm({
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 rounded-xl"
             disabled={isPending}
           >
-            {isPending ? 'Generating Instructions...' : 'Request Top-Up'}
+            {isPending ? t('buyer.wallet.generatingInstructions') : t('buyer.wallet.requestTopUp')}
           </Button>
         </form>
       </CardContent>

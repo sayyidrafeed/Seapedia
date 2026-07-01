@@ -1,4 +1,5 @@
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface FinancialMetric {
   balance?: number;
@@ -18,35 +19,37 @@ interface FinancialOverviewProps {
 }
 
 export function FinancialOverview({ financialSummary, isLoading }: FinancialOverviewProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Financial Overview</h2>
+      <h2 className="text-xl font-bold">{t('profile.financialOverview')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {/* Buyer Card */}
         <FinancialCard
-          title="Buyer Wallet Balance"
+          title={t('profile.buyerWallet')}
           value={financialSummary?.buyer?.balance}
           isActive={financialSummary?.buyer !== undefined}
           isLoading={isLoading}
-          subtext="Simulated transaction wallet"
+          subtext={t('profile.buyerWalletDesc')}
         />
 
         {/* Seller Card */}
         <FinancialCard
-          title="Seller Earnings"
+          title={t('profile.sellerEarnings')}
           value={financialSummary?.seller?.income}
           isActive={financialSummary?.seller !== undefined}
           isLoading={isLoading}
-          subtext="Accumulated store sales revenue"
+          subtext={t('profile.sellerEarningsDesc')}
         />
 
         {/* Driver Card */}
         <FinancialCard
-          title="Driver Payouts"
+          title={t('profile.driverPayouts')}
           value={financialSummary?.driver?.earnings}
           isActive={financialSummary?.driver !== undefined}
           isLoading={isLoading}
-          subtext="Completed shipping job payouts"
+          subtext={t('profile.driverPayoutsDesc')}
         />
       </div>
     </div>
@@ -62,6 +65,8 @@ interface FinancialCardProps {
 }
 
 function FinancialCard({ title, value, isActive, isLoading, subtext }: FinancialCardProps) {
+  const { t } = useTranslation();
+
   return (
     <div
       className={`bg-card border p-6 rounded-lg shadow-sm transition-opacity duration-200 ${
@@ -72,7 +77,7 @@ function FinancialCard({ title, value, isActive, isLoading, subtext }: Financial
         <span className="text-xs font-semibold text-muted-foreground uppercase">{title}</span>
         {!isActive && (
           <span className="text-[10px] font-semibold text-muted-foreground/80 bg-secondary px-1.5 py-0.5 rounded">
-            Not Owned
+            {t('profile.notOwned')}
           </span>
         )}
       </div>
@@ -81,7 +86,9 @@ function FinancialCard({ title, value, isActive, isLoading, subtext }: Financial
       ) : isActive && value !== undefined ? (
         <p className="text-2xl font-bold text-foreground mt-2">{formatCurrency(value)}</p>
       ) : (
-        <p className="text-sm font-medium text-muted-foreground mt-2.5 italic">Role not active</p>
+        <p className="text-sm font-medium text-muted-foreground mt-2.5 italic">
+          {t('profile.roleNotActive')}
+        </p>
       )}
       <p className="text-xs text-muted-foreground mt-1">{subtext}</p>
     </div>

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { LayoutDashboard, Ticket } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/admin')({
   component: AdminLayout,
@@ -11,6 +12,7 @@ export const Route = createFileRoute('/dashboard/admin')({
 function AdminLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!auth.isLoading && auth.activeRole !== 'admin') {
@@ -22,7 +24,7 @@ function AdminLayout() {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
         <span className="animate-pulse text-muted-foreground text-sm font-medium">
-          Checking authorization...
+          {t('admin.layout.checkingAuth')}
         </span>
       </div>
     );
@@ -30,13 +32,13 @@ function AdminLayout() {
 
   const navItems = [
     {
-      label: 'Dashboard',
+      label: t('admin.layout.nav.dashboard'),
       to: '/dashboard/admin',
       icon: <LayoutDashboard className="h-4 w-4" />,
       exact: true,
     },
     {
-      label: 'Discounts Management',
+      label: t('admin.layout.nav.discounts'),
       to: '/dashboard/admin/discounts',
       icon: <Ticket className="h-4 w-4" />,
     },
@@ -44,8 +46,8 @@ function AdminLayout() {
 
   return (
     <DashboardLayout
-      title="Admin Portal"
-      description="System configuration, promotions, and marketplace monitoring."
+      title={t('admin.layout.title')}
+      description={t('admin.layout.desc')}
       navItems={navItems}
     >
       <Outlet />

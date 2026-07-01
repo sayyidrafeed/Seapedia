@@ -20,6 +20,7 @@ import {
   PackageContentsCard,
   OrderSummaryCard,
 } from '@/features/driver/components/job-cards';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/driver/jobs/$jobId')({
   component: JobDetail,
@@ -29,6 +30,7 @@ function JobDetail() {
   const { jobId } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const {
     data: job,
@@ -39,14 +41,14 @@ function JobDetail() {
   const takeJob = useMutation({
     ...takeDeliveryJobMutation(),
     onSuccess: (data) => {
-      toast.success(data.message || 'Job claimed successfully!');
+      toast.success(data.message || t('driver.jobs.claimSuccess'));
       queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
       queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
       navigate({ to: '/dashboard/driver' });
     },
     onError: (err: TakeDeliveryJobError) => {
       const apiErr = err as { body?: { error?: string }; status?: number };
-      toast.error(apiErr.body?.error || 'Failed to claim delivery job');
+      toast.error(apiErr.body?.error || t('driver.jobs.claimFailed'));
       // Refresh queries on error (especially for 409 conflicts) to ensure UI is up-to-date
       queryClient.invalidateQueries({ queryKey: getDriverStatsQueryKey() });
       queryClient.invalidateQueries({ queryKey: listAvailableJobsQueryKey() });
@@ -74,10 +76,12 @@ function JobDetail() {
           className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground gap-1"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Jobs
+          {t('driver.jobs.backToJobs')}
         </Link>
         <Card className="p-6 text-center text-red-500">
-          Error loading job details: {error instanceof Error ? error.message : 'Job not found'}
+          {t('driver.jobs.errorLoading', {
+            message: error instanceof Error ? error.message : 'Job not found',
+          })}
         </Card>
       </div>
     );
@@ -93,7 +97,7 @@ function JobDetail() {
           className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground gap-1"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Jobs
+          {t('driver.jobs.backToJobs')}
         </Link>
         <Badge className="px-3 py-1 font-semibold uppercase">{job.status}</Badge>
       </div>
@@ -112,7 +116,7 @@ function JobDetail() {
             <CardHeader>
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-primary" />
-                Job Earnings
+                {t('driver.jobs.earningsTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -120,9 +124,7 @@ function JobDetail() {
                 <div className="text-3xl font-extrabold text-primary">
                   {formatCurrency(job.deliveryFee)}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  You will earn 100% of the delivery fee upon successful delivery
-                </p>
+                <p className="text-xs text-muted-foreground">{t('driver.jobs.earningsSubtext')}</p>
               </div>
 
               <Button
@@ -132,10 +134,10 @@ function JobDetail() {
                 onClick={() => takeJob.mutate({ path: { id: job.id } })}
               >
                 {takeJob.isPending
-                  ? 'Taking job...'
+                  ? t('driver.jobs.takingJob')
                   : isJobClaimedOrDone
-                    ? `Job already ${job.status}`
-                    : 'Take Delivery Job'}
+                    ? t('driver.jobs.alreadyStatus', { status: job.status })
+                    : t('driver.jobs.takeJobButton')}
               </Button>
             </CardContent>
           </Card>

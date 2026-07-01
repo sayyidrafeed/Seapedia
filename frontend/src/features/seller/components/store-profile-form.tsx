@@ -6,6 +6,7 @@ import { zUpdateCurrentSellerStoreBody } from '@/lib/api/generated/zod.gen';
 import { useState } from 'react';
 import { z } from 'zod';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslation } from 'react-i18next';
 
 interface StoreProfileFormProps {
   store: {
@@ -17,6 +18,7 @@ interface StoreProfileFormProps {
 export function StoreProfileForm({ store }: StoreProfileFormProps) {
   const queryClient = useQueryClient();
   const [errorMap, setErrorMap] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const form = useForm({
     defaultValues: {
@@ -35,21 +37,21 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
       if (error) {
         const err = error as { error?: string };
         if (err.error === 'Store name is already used') {
-          setErrorMap('This store name is already taken. Please choose another.');
+          setErrorMap(t('seller.store.nameTaken'));
         } else {
-          toast.error(err.error || 'Failed to update store');
+          toast.error(t('seller.store.updateFailed'));
         }
         return;
       }
 
-      toast.success('Store updated successfully!');
+      toast.success(t('seller.store.updateSuccess'));
       await queryClient.invalidateQueries({ queryKey: ['getCurrentSellerStore'] });
     },
   });
 
   return (
     <div className="max-w-2xl bg-card border border-border p-8 rounded-xl shadow-sm">
-      <h2 className="text-xl font-bold mb-6">Store Profile</h2>
+      <h2 className="text-xl font-bold mb-6">{t('seller.store.profileTitle')}</h2>
 
       <form
         onSubmit={(e) => {
@@ -64,7 +66,7 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
           children={(field) => (
             <div className="space-y-2">
               <label htmlFor={field.name} className="text-sm font-medium">
-                Store Name *
+                {t('seller.store.nameLabel')}
               </label>
               <input
                 id={field.name}
@@ -95,7 +97,7 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
           children={(field) => (
             <div className="space-y-2">
               <label htmlFor={field.name} className="text-sm font-medium">
-                Store Description
+                {t('seller.store.descLabel')}
               </label>
               <Textarea
                 id={field.name}
@@ -127,7 +129,7 @@ export function StoreProfileForm({ store }: StoreProfileFormProps) {
               disabled={!isDirty || !canSubmit || isSubmitting}
               className="bg-primary text-primary-foreground h-10 px-4 py-2 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors disabled:opacity-50 hover:bg-primary/90"
             >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('seller.store.saving') : t('seller.store.saveButton')}
             </button>
           )}
         />

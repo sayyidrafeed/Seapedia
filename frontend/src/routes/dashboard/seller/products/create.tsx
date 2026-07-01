@@ -5,6 +5,7 @@ import { createSellerProduct } from '@/lib/api/generated';
 import { ProductForm } from '@/components/products/product-form';
 import type { ProductFormValues } from '@/components/products/product-form';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/seller/products/create')({
   component: CreateProductPage,
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/dashboard/seller/products/create')({
 function CreateProductPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const createMutation = useMutation({
     mutationFn: async (values: ProductFormValues) => {
@@ -25,12 +27,12 @@ function CreateProductPage() {
         },
       });
       if (error) {
-        throw new Error((error as { error?: string }).error || 'Failed to create product');
+        throw new Error((error as { error?: string }).error || t('seller.products.createFailed'));
       }
       return data;
     },
     onSuccess: () => {
-      toast.success('Product created successfully!');
+      toast.success(t('seller.products.createSuccess'));
       queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() });
       navigate({ to: '/dashboard/seller/products' });
     },
@@ -42,8 +44,8 @@ function CreateProductPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Add New Product</h2>
-        <p className="text-sm text-muted-foreground">List a new product under your store.</p>
+        <h2 className="text-xl font-bold text-foreground">{t('seller.products.createTitle')}</h2>
+        <p className="text-sm text-muted-foreground">{t('seller.products.createDesc')}</p>
       </div>
 
       <ProductForm
@@ -51,7 +53,7 @@ function CreateProductPage() {
           await createMutation.mutateAsync(values);
         }}
         isLoading={createMutation.isPending}
-        submitLabel="Create Product"
+        submitLabel={t('seller.products.createSubmitButton')}
       />
     </div>
   );

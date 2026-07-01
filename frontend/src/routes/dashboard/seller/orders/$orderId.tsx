@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, User, Calendar } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/seller/orders/$orderId')({
   component: SellerOrderDetailPage,
@@ -20,6 +21,7 @@ export const Route = createFileRoute('/dashboard/seller/orders/$orderId')({
 
 function SellerOrderDetailPage() {
   const { orderId } = Route.useParams();
+  const { t } = useTranslation();
 
   const {
     order,
@@ -40,9 +42,11 @@ function SellerOrderDetailPage() {
   if (error || !order) {
     return (
       <div className="container mx-auto px-6 py-8 max-w-5xl text-center space-y-4">
-        <p className="text-sm text-destructive font-semibold">Error loading order details.</p>
+        <p className="text-sm text-destructive font-semibold">
+          {t('buyer.orders.errorLoadingDetails')}
+        </p>
         <Link to="/dashboard/seller/orders">
-          <Button size="sm">Back to Incoming Orders</Button>
+          <Button size="sm">{t('seller.orders.backToOrders')}</Button>
         </Link>
       </div>
     );
@@ -71,7 +75,7 @@ function SellerOrderDetailPage() {
         to="/dashboard/seller/orders"
         className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors gap-2"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Incoming Orders
+        <ArrowLeft className="h-4 w-4" /> {t('seller.orders.backToOrders')}
       </Link>
 
       {/* Title block */}
@@ -79,7 +83,7 @@ function SellerOrderDetailPage() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
-              Incoming Order Detail
+              {t('seller.orders.detailTitle')}
             </h1>
             <span className="text-xs font-mono font-bold bg-muted px-2.5 py-1 rounded border border-border/80 text-muted-foreground">
               #{order.id.toUpperCase()}
@@ -87,7 +91,7 @@ function SellerOrderDetailPage() {
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Calendar className="h-3.5 w-3.5" />
-            <span>Placed on {dateStr}</span>
+            <span>{t('buyer.orders.placedOn', { date: dateStr })}</span>
           </div>
         </div>
         <div>
@@ -99,12 +103,12 @@ function SellerOrderDetailPage() {
         {/* Left Columns */}
         <div className="lg:col-span-2 space-y-6">
           {/* Buyer shipping address */}
-          <OrderAddressCard address={address} title="Recipient & Shipping Address" />
+          <OrderAddressCard address={address} title={t('seller.orders.shippingAddressCard')} />
 
           {/* Purchased products list */}
           <OrderItemsList
             items={unifiedItems}
-            headerTitle="Ordered Products"
+            headerTitle={t('seller.orders.orderedProducts')}
             headerIcon={userIconHeader}
           />
 

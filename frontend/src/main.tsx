@@ -6,6 +6,7 @@ import { queryClient } from '@/lib/query/client';
 import { routeTree } from './routeTree.gen';
 import { AuthProvider, useAuth } from '@/lib/auth/context';
 import './index.css';
+import '@/lib/i18n/config';
 
 const router = createRouter({
   routeTree,

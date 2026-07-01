@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface OnboardingFormProps {
   selectedRoles: string[];
@@ -15,6 +16,7 @@ export function OnboardingForm({
   onToggleRole,
   onSubmit,
 }: OnboardingFormProps) {
+  const { t } = useTranslation();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -39,10 +41,11 @@ export function OnboardingForm({
               className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary"
             />
             <label htmlFor="role-buyer" className="select-none">
-              <span className="block text-sm font-semibold text-foreground">Buyer (Mandatory)</span>
+              <span className="block text-sm font-semibold text-foreground">
+                {t('onboard.buyerMandatory')}
+              </span>
               <span className="block text-xs text-muted-foreground">
-                You are automatically registered as a Buyer. Shop products, add items to cart, top
-                up your wallet, and manage checkout.
+                {t('onboard.buyerDescription')}
               </span>
             </label>
           </div>
@@ -63,10 +66,11 @@ export function OnboardingForm({
               className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary"
             />
             <label htmlFor="role-seller" className="select-none cursor-pointer">
-              <span className="block text-sm font-semibold text-foreground">Seller</span>
+              <span className="block text-sm font-semibold text-foreground">
+                {t('onboard.seller')}
+              </span>
               <span className="block text-xs text-muted-foreground">
-                Do you want to sell products? Build your unique store, manage inventory, and process
-                incoming orders.
+                {t('onboard.sellerDescription')}
               </span>
             </label>
           </div>
@@ -87,10 +91,11 @@ export function OnboardingForm({
               className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary"
             />
             <label htmlFor="role-driver" className="select-none cursor-pointer">
-              <span className="block text-sm font-semibold text-foreground">Driver</span>
+              <span className="block text-sm font-semibold text-foreground">
+                {t('onboard.driver')}
+              </span>
               <span className="block text-xs text-muted-foreground">
-                Want to deliver orders? Receive notifications of deliveries, handle shipping routes,
-                and get driver fees.
+                {t('onboard.driverDescription')}
               </span>
             </label>
           </div>
@@ -101,7 +106,7 @@ export function OnboardingForm({
           disabled={isSubmitting}
           className="w-full cursor-pointer font-semibold"
         >
-          {isSubmitting ? 'Registering roles...' : 'Complete & Continue'}
+          {isSubmitting ? t('onboard.submitting') : t('onboard.submitButton')}
         </Button>
       </form>
     </div>

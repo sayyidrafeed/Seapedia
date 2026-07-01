@@ -1,5 +1,6 @@
 import { Ticket, Percent } from 'lucide-react';
 import type { ActiveTab } from '../hooks/use-discounts';
+import { useTranslation } from 'react-i18next';
 
 interface DiscountsTabBarProps {
   activeTab: ActiveTab;
@@ -7,6 +8,8 @@ interface DiscountsTabBarProps {
 }
 
 export function DiscountsTabBar({ activeTab, onTabChange }: DiscountsTabBarProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex bg-muted p-1 rounded-xl w-fit">
       <button
@@ -18,7 +21,7 @@ export function DiscountsTabBar({ activeTab, onTabChange }: DiscountsTabBarProps
         }`}
       >
         <Ticket className="h-4 w-4" />
-        Vouchers
+        {t('admin.discounts.vouchersTab')}
       </button>
       <button
         onClick={() => onTabChange('promos')}
@@ -29,7 +32,7 @@ export function DiscountsTabBar({ activeTab, onTabChange }: DiscountsTabBarProps
         }`}
       >
         <Percent className="h-4 w-4" />
-        Promos
+        {t('admin.discounts.promosTab')}
       </button>
     </div>
   );

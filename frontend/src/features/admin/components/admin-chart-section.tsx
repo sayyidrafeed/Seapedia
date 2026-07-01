@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { roleChartConfig, orderChartConfig, deliveryChartConfig } from '../constants/chart-configs';
+import { useTranslation } from 'react-i18next';
 
 interface DashboardStats {
   users: {
@@ -29,6 +30,8 @@ interface AdminChartSectionProps {
 }
 
 export function AdminChartSection({ stats }: AdminChartSectionProps) {
+  const { t } = useTranslation();
+
   // Transform User Roles for Pie Chart
   const userRolesData = [
     { role: 'admin', value: stats.users.roles.admin, fill: 'var(--color-admin)' },
@@ -40,31 +43,31 @@ export function AdminChartSection({ stats }: AdminChartSectionProps) {
   // Transform Order Statuses for Bar Chart
   const orderStatusesData = [
     {
-      name: 'Sedang Dikemas',
+      name: t('orderStatus.sedang_dikemas'),
       status: 'sedang_dikemas',
       count: stats.orders.statuses.sedang_dikemas,
       fill: 'var(--color-sedang_dikemas)',
     },
     {
-      name: 'Menunggu Pengirim',
+      name: t('orderStatus.menunggu_pengirim'),
       status: 'menunggu_pengirim',
       count: stats.orders.statuses.menunggu_pengirim,
       fill: 'var(--color-menunggu_pengirim)',
     },
     {
-      name: 'Sedang Dikirim',
+      name: t('orderStatus.sedang_dikirim'),
       status: 'sedang_dikirim',
       count: stats.orders.statuses.sedang_dikirim,
       fill: 'var(--color-sedang_dikirim)',
     },
     {
-      name: 'Pesanan Selesai',
+      name: t('orderStatus.pesanan_selesai'),
       status: 'pesanan_selesai',
       count: stats.orders.statuses.pesanan_selesai,
       fill: 'var(--color-pesanan_selesai)',
     },
     {
-      name: 'Dikembalikan',
+      name: t('orderStatus.dikembalikan'),
       status: 'dikembalikan',
       count: stats.orders.statuses.dikembalikan,
       fill: 'var(--color-dikembalikan)',
@@ -74,19 +77,19 @@ export function AdminChartSection({ stats }: AdminChartSectionProps) {
   // Transform Delivery Job Statuses for Bar Chart
   const deliveryStatusesData = [
     {
-      name: 'Pending',
+      name: t('deliveryStatus.pending'),
       status: 'pending',
       count: stats.deliveries.statuses.pending,
       fill: 'var(--color-pending)',
     },
     {
-      name: 'Taken',
+      name: t('deliveryStatus.taken'),
       status: 'taken',
       count: stats.deliveries.statuses.taken,
       fill: 'var(--color-taken)',
     },
     {
-      name: 'Completed',
+      name: t('deliveryStatus.completed'),
       status: 'completed',
       count: stats.deliveries.statuses.completed,
       fill: 'var(--color-completed)',
@@ -98,15 +101,17 @@ export function AdminChartSection({ stats }: AdminChartSectionProps) {
       {/* User Role Distribution */}
       <Card className="col-span-1 shadow-sm border-border">
         <CardHeader>
-          <CardTitle className="text-base font-bold text-foreground">User Roles</CardTitle>
+          <CardTitle className="text-base font-bold text-foreground">
+            {t('admin.charts.userRolesTitle')}
+          </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Breakdown of registered accounts
+            {t('admin.charts.userRolesDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {userRolesData.length === 0 ? (
             <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
-              No user data found
+              {t('admin.charts.noUserData')}
             </div>
           ) : (
             <div className="h-[240px] w-full flex flex-col justify-between">
@@ -155,15 +160,17 @@ export function AdminChartSection({ stats }: AdminChartSectionProps) {
       {/* Order Lifecycle Distribution */}
       <Card className="col-span-1 lg:col-span-2 shadow-sm border-border">
         <CardHeader>
-          <CardTitle className="text-base font-bold text-foreground">Order Lifecycle</CardTitle>
+          <CardTitle className="text-base font-bold text-foreground">
+            {t('admin.charts.orderLifecycleTitle')}
+          </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Order status distribution
+            {t('admin.charts.orderLifecycleDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {stats.orders.total === 0 ? (
             <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
-              No orders made yet
+              {t('admin.charts.noOrders')}
             </div>
           ) : (
             <div className="h-[240px] w-full">
@@ -201,16 +208,16 @@ export function AdminChartSection({ stats }: AdminChartSectionProps) {
       <Card className="col-span-1 md:col-span-2 lg:col-span-3 shadow-sm border-border">
         <CardHeader>
           <CardTitle className="text-base font-bold text-foreground">
-            Logistics / Delivery Status
+            {t('admin.charts.logisticsTitle')}
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Distribution of delivery jobs in the marketplace
+            {t('admin.charts.logisticsDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {stats.deliveries.total === 0 ? (
             <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
-              No delivery jobs generated yet
+              {t('admin.charts.noDeliveries')}
             </div>
           ) : (
             <div className="h-[200px] w-full">

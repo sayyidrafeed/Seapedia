@@ -7,12 +7,15 @@ import { CreateVoucherForm } from '@/features/admin/components/create-voucher-fo
 import { CreatePromoForm } from '@/features/admin/components/create-promo-form';
 import { Button } from '@/components/ui/button';
 import { Ticket, Percent, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/admin/discounts')({
   component: AdminDiscountsPage,
 });
 
 function AdminDiscountsPage() {
+  const { t } = useTranslation();
+
   const {
     activeTab,
     showVoucherForm,
@@ -71,7 +74,7 @@ function AdminDiscountsPage() {
               className="flex items-center gap-2 rounded-xl font-bold cursor-pointer"
             >
               <Plus className="h-4 w-4" />
-              {showVoucherForm ? 'Hide Form' : 'New Voucher'}
+              {showVoucherForm ? t('admin.discounts.hideForm') : t('admin.discounts.newVoucher')}
             </Button>
           ) : (
             <Button
@@ -79,7 +82,7 @@ function AdminDiscountsPage() {
               className="flex items-center gap-2 rounded-xl font-bold cursor-pointer"
             >
               <Plus className="h-4 w-4" />
-              {showPromoForm ? 'Hide Form' : 'New Promo'}
+              {showPromoForm ? t('admin.discounts.hideForm') : t('admin.discounts.newPromo')}
             </Button>
           )}
         </div>
@@ -134,18 +137,14 @@ function AdminDiscountsPage() {
           {!showVoucherForm && activeTab === 'vouchers' && (
             <div className="p-6 border border-dashed rounded-xl flex flex-col items-center justify-center text-center space-y-3 text-muted-foreground">
               <Ticket className="h-8 w-8 text-muted-foreground/60" />
-              <p className="text-xs">
-                To create a new flat discount voucher, click the button in the top right.
-              </p>
+              <p className="text-xs">{t('admin.discounts.voucherPlaceholder')}</p>
             </div>
           )}
 
           {!showPromoForm && activeTab === 'promos' && (
             <div className="p-6 border border-dashed rounded-xl flex flex-col items-center justify-center text-center space-y-3 text-muted-foreground">
               <Percent className="h-8 w-8 text-muted-foreground/60" />
-              <p className="text-xs">
-                To launch a new percentage promo campaign, click the button in the top right.
-              </p>
+              <p className="text-xs">{t('admin.discounts.promoPlaceholder')}</p>
             </div>
           )}
         </div>
