@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getProductById } from '@/lib/api/generated/sdk.gen';
 import { formatCurrency } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { ProductReviews } from '@/components/products/product-reviews';
 
 export const Route = createFileRoute('/products/$productId')({
   component: ProductDetailPage,
@@ -88,6 +89,8 @@ function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      <ProductReviews productId={product.id} />
     </div>
   );
 }
