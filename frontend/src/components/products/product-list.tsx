@@ -26,67 +26,144 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
   }
 
   return (
-    <div className="overflow-x-auto bg-card border border-border rounded-xl shadow-sm">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead className="bg-muted/50 border-b border-border">
-          <tr>
-            <th className="p-4 font-medium text-muted-foreground">Product</th>
-            <th className="p-4 font-medium text-muted-foreground">Price</th>
-            <th className="p-4 font-medium text-muted-foreground">Stock</th>
-            <th className="p-4 font-medium text-muted-foreground text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {products.map((product) => (
-            <tr key={product.id} className="hover:bg-muted/20 transition-colors">
-              <td className="p-4">
-                <div className="font-semibold text-foreground">{product.name}</div>
-                {product.description ? (
-                  <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+    <div className="space-y-4">
+      {/* Desktop & Tablet Layout (Semantic Table) */}
+      <div className="hidden md:block overflow-x-auto bg-card border border-border rounded-xl shadow-sm">
+        <table className="w-full border-collapse text-left text-sm">
+          <thead className="bg-muted/50 border-b border-border">
+            <tr>
+              <th className="p-4 font-medium text-muted-foreground">Product</th>
+              <th className="p-4 font-medium text-muted-foreground">Price</th>
+              <th className="p-4 font-medium text-muted-foreground">Stock</th>
+              <th className="p-4 font-medium text-muted-foreground text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {products.map((product) => (
+              <tr key={product.id} className="hover:bg-muted/20 transition-colors">
+                <td className="p-4">
+                  <div className="font-semibold text-foreground">{product.name}</div>
+                  {product.description ? (
+                    <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                      {product.description}
+                    </div>
+                  ) : null}
+                </td>
+                <td className="p-4 font-medium text-foreground">
+                  Rp {product.price.toLocaleString('id-ID')}
+                </td>
+                <td className="p-4">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      product.stock > 0
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}
+                  >
+                    {product.stock} available
+                  </span>
+                </td>
+                <td className="p-4 text-right space-x-2">
+                  <Link
+                    to="/dashboard/seller/products/$productId/edit"
+                    params={{ productId: product.id }}
+                    className={isDeleting ? 'pointer-events-none' : undefined}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      disabled={isDeleting}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    onClick={() => onDelete(product.id)}
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card Layout (Touch-optimized Card Grid) */}
+      <div className="md:hidden flex flex-col gap-3">
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className="bg-card border border-border rounded-xl p-4 shadow-sm flex flex-col gap-3"
+          >
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-0.5 min-w-0">
+                <div className="font-semibold text-foreground text-sm truncate">{product.name}</div>
+                {product.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">
                     {product.description}
-                  </div>
-                ) : null}
-              </td>
-              <td className="p-4 font-medium text-foreground">
-                Rp {product.price.toLocaleString('id-ID')}
-              </td>
-              <td className="p-4">
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                    product.stock > 0
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                  }`}
-                >
-                  {product.stock} available
+                  </p>
+                )}
+              </div>
+              <span
+                className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
+                  product.stock > 0
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                }`}
+              >
+                {product.stock} available
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-border/60 pt-3 mt-1">
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase block font-semibold tracking-wide">
+                  Price
                 </span>
-              </td>
-              <td className="p-4 text-right space-x-2">
+                <span className="font-bold text-foreground text-sm">
+                  Rp {product.price.toLocaleString('id-ID')}
+                </span>
+              </div>
+
+              <div className="flex gap-2">
                 <Link
                   to="/dashboard/seller/products/$productId/edit"
                   params={{ productId: product.id }}
                   className={isDeleting ? 'pointer-events-none' : undefined}
                 >
-                  <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={isDeleting}>
-                    <Edit2 className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 px-3"
+                    disabled={isDeleting}
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                    <span className="text-xs">Edit</span>
                   </Button>
                 </Link>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  className="h-8 gap-1.5 px-3 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
                   onClick={() => onDelete(product.id)}
                   disabled={isDeleting}
                 >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span className="text-xs">Delete</span>
                 </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
