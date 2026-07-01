@@ -1,5 +1,17 @@
 import { describe, expect, test, mock, beforeEach } from 'bun:test';
 
+mock.module('@/env', () => {
+  return {
+    env: {
+      R2_ACCOUNT_ID: 'test-account-id',
+      R2_ACCESS_KEY_ID: 'test-access-key-id',
+      R2_SECRET_ACCESS_KEY: 'test-secret-access-key',
+      R2_BUCKET_NAME: 'seapedia',
+      R2_PUBLIC_DOMAIN: 'object-seapedia.sayyidrafee.com',
+    },
+  };
+});
+
 const s3State = {
   sendCalls: [] as { params: { Bucket: string; Key: string } }[],
   reset() {

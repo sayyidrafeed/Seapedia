@@ -36,6 +36,8 @@ function CreateProductPage() {
         });
         if (key) {
           imageKey = key;
+        } else {
+          throw new Error('Gagal mengunggah gambar produk');
         }
       }
 

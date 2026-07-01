@@ -101,7 +101,7 @@ export function ImageUploader({
       {preview ? (
         <div
           className={cn(
-            'relative overflow-hidden border border-border group bg-muted transition-all duration-300',
+            'relative overflow-hidden border border-border group bg-muted transition-all duration-300 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
             isAvatar
               ? 'w-28 h-28 rounded-full'
               : isWide
@@ -115,13 +115,13 @@ export function ImageUploader({
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-          {/* Hover Overlay */}
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 gap-3">
+          {/* Hover Overlay - Also visible when children receive keyboard focus */}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 gap-3">
             <button
               type="button"
               onClick={onButtonClick}
               disabled={disabled}
-              className="p-2 bg-white/95 hover:bg-white text-gray-800 rounded-full shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+              className="p-2 bg-white/95 hover:bg-white text-gray-800 rounded-full shadow-lg transition-transform hover:scale-110 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary"
               title="Ganti Gambar"
             >
               <RefreshCw className="h-4 w-4" />
@@ -130,7 +130,7 @@ export function ImageUploader({
               type="button"
               onClick={handleRemove}
               disabled={disabled}
-              className="p-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+              className="p-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-lg transition-transform hover:scale-110 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-destructive"
               title="Hapus Gambar"
             >
               <X className="h-4 w-4" />
@@ -144,8 +144,17 @@ export function ImageUploader({
           onDragLeave={handleDrag}
           onDrop={handleDrop}
           onClick={onButtonClick}
+          tabIndex={disabled ? -1 : 0}
+          role="button"
+          aria-label="Unggah Gambar"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onButtonClick();
+            }
+          }}
           className={cn(
-            'flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 bg-card hover:bg-accent/10 transition-all duration-300 cursor-pointer text-center p-6',
+            'flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 bg-card hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-300 cursor-pointer text-center p-6',
             isDragActive ? 'border-primary bg-primary/5' : '',
             disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
             isAvatar
