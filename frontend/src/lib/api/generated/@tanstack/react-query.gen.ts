@@ -1399,6 +1399,51 @@ export const getMyProductReviewsOptions = (options?: Options<GetMyProductReviews
     queryKey: getMyProductReviewsQueryKey(options),
   });
 
+export const getMyProductReviewsInfiniteQueryKey = (
+  options?: Options<GetMyProductReviewsData>,
+): QueryKey<Options<GetMyProductReviewsData>> =>
+  createQueryKey('getMyProductReviews', options, true);
+
+/**
+ * Get all product reviews submitted by current user
+ */
+export const getMyProductReviewsInfiniteOptions = (options?: Options<GetMyProductReviewsData>) =>
+  infiniteQueryOptions<
+    GetMyProductReviewsResponse,
+    GetMyProductReviewsError,
+    InfiniteData<GetMyProductReviewsResponse>,
+    QueryKey<Options<GetMyProductReviewsData>>,
+    | number
+    | Pick<QueryKey<Options<GetMyProductReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetMyProductReviewsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getMyProductReviews({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getMyProductReviewsInfiniteQueryKey(options),
+    },
+  );
+
 export const getBuyerWalletQueryKey = (options?: Options<GetBuyerWalletData>) =>
   createQueryKey('getBuyerWallet', options);
 

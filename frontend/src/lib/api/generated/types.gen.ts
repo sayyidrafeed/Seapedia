@@ -1717,7 +1717,13 @@ export type UpdateUserProfileResponse =
 export type GetMyProductReviewsData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  };
   url: '/api/users/me/product-reviews';
 };
 

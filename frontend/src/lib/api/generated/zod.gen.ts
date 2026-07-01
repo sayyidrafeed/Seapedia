@@ -700,6 +700,14 @@ export const zUpdateUserProfileResponse = z.object({
   createdAt: z.string(),
 });
 
+export const zGetMyProductReviewsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
 /**
  * User product reviews list
  */
