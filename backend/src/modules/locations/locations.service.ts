@@ -17,9 +17,14 @@ export class LocationsProvider {
     }
 
     try {
-      const res = await fetch('https://wilayah.id/api/provinces.json');
+      const res = await fetch('https://wilayah.id/api/provinces.json', {
+        signal: AbortSignal.timeout(10000),
+      });
       if (!res.ok) throw new Error(`Wilayah API error: ${res.statusText}`);
       const json = (await res.json()) as WilayahResponse;
+      if (!json || !Array.isArray(json.data)) {
+        throw new Error('Invalid response format from Wilayah API');
+      }
       const data = json.data.map((item) => ({
         id: item.code,
         name: item.name,
@@ -39,9 +44,14 @@ export class LocationsProvider {
     }
 
     try {
-      const res = await fetch(`https://wilayah.id/api/regencies/${provinceId}.json`);
+      const res = await fetch(`https://wilayah.id/api/regencies/${provinceId}.json`, {
+        signal: AbortSignal.timeout(10000),
+      });
       if (!res.ok) throw new Error(`Wilayah API error: ${res.statusText}`);
       const json = (await res.json()) as WilayahResponse;
+      if (!json || !Array.isArray(json.data)) {
+        throw new Error('Invalid response format from Wilayah API');
+      }
       const data = json.data.map((item) => ({
         id: item.code,
         name: item.name,
@@ -61,9 +71,14 @@ export class LocationsProvider {
     }
 
     try {
-      const res = await fetch(`https://wilayah.id/api/districts/${cityId}.json`);
+      const res = await fetch(`https://wilayah.id/api/districts/${cityId}.json`, {
+        signal: AbortSignal.timeout(10000),
+      });
       if (!res.ok) throw new Error(`Wilayah API error: ${res.statusText}`);
       const json = (await res.json()) as WilayahResponse;
+      if (!json || !Array.isArray(json.data)) {
+        throw new Error('Invalid response format from Wilayah API');
+      }
       const data = json.data.map((item) => ({
         id: item.code,
         name: item.name,
@@ -81,6 +96,10 @@ export class LocationsProvider {
     cityName: string,
     districtName: string,
   ): Promise<boolean> {
+    if (!provinceName || !cityName || !districtName) {
+      return false;
+    }
+
     try {
       const provinces = await this.getProvinces();
       const province = provinces.find((p) => p.name.toLowerCase() === provinceName.toLowerCase());
