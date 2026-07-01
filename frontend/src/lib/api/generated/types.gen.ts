@@ -4,6 +4,71 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
+export type Product = {
+  id: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  currency?: string;
+  stock: number;
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  slug: string;
+  imageKey: string | unknown;
+  imageUrl: string | unknown;
+  rating?: string;
+  reviewCount?: number;
+  soldCount?: number;
+  storeRating?: string;
+  storeReviewCount?: number;
+  storeLogoKey?: string | unknown;
+  storeLogoUrl?: string | unknown;
+  storeTotalProducts?: number;
+};
+
+export type ProductReviewResponse = {
+  id: string;
+  productId: string;
+  buyerId: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | unknown;
+  price: number;
+  stock: number;
+  imageKey: string | unknown;
+  imageUrl: string | unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Review = {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  paymentMethod: string | unknown;
+  status: string;
+  reference: string;
+  createdAt: string;
+};
+
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -50,65 +115,6 @@ export type OrderResponse = {
     note: string | unknown;
     createdAt: string;
   }>;
-};
-
-export type Product = {
-  id: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  currency?: string;
-  stock: number;
-  storeId: string;
-  storeName: string;
-  storeSlug: string;
-  slug: string;
-  imageKey: string | unknown;
-  imageUrl: string | unknown;
-  rating?: string;
-  reviewCount?: number;
-};
-
-export type ProductReviewResponse = {
-  id: string;
-  productId: string;
-  buyerId: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-};
-
-export type SellerProductResponse = {
-  id: string;
-  storeId: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  stock: number;
-  imageKey: string | unknown;
-  imageUrl: string | unknown;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Review = {
-  id: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-};
-
-export type WalletTransactionResponse = {
-  id: string;
-  walletId: string;
-  amount: number;
-  type: string;
-  paymentMethod: string | unknown;
-  status: string;
-  reference: string;
-  createdAt: string;
 };
 
 export type VoucherResponse = {
@@ -601,6 +607,12 @@ export type GetProductByIdResponses = {
     imageUrl: string | unknown;
     rating?: string;
     reviewCount?: number;
+    soldCount?: number;
+    storeRating?: string;
+    storeReviewCount?: number;
+    storeLogoKey?: string | unknown;
+    storeLogoUrl?: string | unknown;
+    storeTotalProducts?: number;
   };
 };
 
@@ -652,6 +664,12 @@ export type GetProductBySlugResponses = {
     imageUrl: string | unknown;
     rating?: string;
     reviewCount?: number;
+    soldCount?: number;
+    storeRating?: string;
+    storeReviewCount?: number;
+    storeLogoKey?: string | unknown;
+    storeLogoUrl?: string | unknown;
+    storeTotalProducts?: number;
   };
 };
 
