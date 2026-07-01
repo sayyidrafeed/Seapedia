@@ -19,6 +19,7 @@ SEAPEDIA is a multi-role e-commerce platform connecting Buyers, Sellers, Drivers
 | Routing | Hono routes | [TanStack Router](https://tanstack.com/router) |
 | Server State | — | [TanStack Query](https://tanstack.com/query) |
 | Styling | — | [Tailwind CSS v4](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) |
+| Object Storage | [Cloudflare R2](https://www.cloudflare.com/en-gb/developer-platform/products/r2/) (S3-compatible, presigned URLs) | — |
 | Package Manager | [Bun](https://bun.sh) | Bun |
 
 ## Prerequisites
@@ -88,17 +89,19 @@ seapedia/
 │   ├── src/
 │   │   ├── routes/        # TanStack Router file routes
 │   │   ├── components/    # Reusable UI components
+│   │   ├── components/ui/ # shadcn/ui primitives + custom (ImageUploader, etc.)
 │   │   ├── hooks/         # Custom React hooks
 │   │   ├── lib/api/       # hey-api generated SDK (do not edit)
 │   │   ├── lib/query/     # TanStack Query client
+│   │   ├── lib/upload.ts  # Client-side R2 presigned upload utility
 │   │   └── config/        # Environment validation
 │   └── README.md
-├── backend/           # Hono API on Cloudflare Workers
+├── backend/           # Hono API on Bun
 │   ├── src/
-│   │   ├── modules/       # Feature slices (health, auth, products, orders, ...)
+│   │   ├── modules/       # Feature slices (health, auth, products, orders, users, ...)
 │   │   ├── db/schema/     # Drizzle table definitions
 │   │   ├── middleware/    # Auth middleware
-│   │   └── lib/           # Shared utilities
+│   │   └── lib/           # Shared utilities (storage, errors, jwt, schemas)
 │   └── README.md
 ├── docker-compose.yml
 └── README.md

@@ -48,13 +48,18 @@ bun run db:studio      # (Optional) Open Drizzle Studio
 
 ## Environment Variables
 
-| Variable       | Required | Description                                            |
-| -------------- | -------- | ------------------------------------------------------ |
-| `DATABASE_URL` | Yes      | PostgreSQL connection string                           |
-| `JWT_SECRET`   | Yes      | Secret key for signing JWTs (min 8 chars)              |
-| `NODE_ENV`     | No       | `development`, `production`, or `test`                 |
-| `PORT`         | No       | Server port (default: 3001)                            |
-| `FRONTEND_URL` | No       | Allowed CORS origin (default: `http://localhost:5173`) |
+| Variable               | Required | Description                                                     |
+| ---------------------- | -------- | --------------------------------------------------------------- |
+| `DATABASE_URL`         | Yes      | PostgreSQL connection string                                    |
+| `JWT_SECRET`           | Yes      | Secret key for signing JWTs (min 8 chars)                       |
+| `NODE_ENV`             | No       | `development`, `production`, or `test`                          |
+| `PORT`                 | No       | Server port (default: 3001)                                     |
+| `FRONTEND_URL`         | No       | Allowed CORS origin (default: `http://localhost:5173`)          |
+| `R2_ACCOUNT_ID`        | Yes      | Cloudflare R2 account ID for S3-compatible API endpoint         |
+| `R2_ACCESS_KEY_ID`     | Yes      | Cloudflare R2 access key ID                                     |
+| `R2_SECRET_ACCESS_KEY` | Yes      | Cloudflare R2 secret access key                                 |
+| `R2_BUCKET_NAME`       | Yes      | Cloudflare R2 bucket name (e.g. `seapedia`)                     |
+| `R2_PUBLIC_DOMAIN`     | Yes      | Public CDN domain (e.g. `cdn.seapedia.com`) — protocol optional |
 
 ## Available Scripts
 
@@ -92,7 +97,10 @@ src/
 │   ├── factory.ts        # Typed Hono factory
 │   ├── jwt.ts            # JWT sign/verify (HS256, 2h expiry)
 │   ├── openapi.ts        # OpenAPI response helpers
-│   └── schemas.ts        # Shared Zod schemas
+│   ├── schemas.ts        # Shared Zod schemas
+│   ├── storage.ts        # Cloudflare R2 StorageService (presigned URLs, delete, public URL)
+│   ├── storage.test.ts   # StorageService unit tests
+│   └── upload.schemas.ts # Presigned upload request/response Zod schemas
 ├── middleware/
 │   ├── auth.ts           # requireSession (JWT verification) and requireRole
 │   └── types.ts          # Middleware type declarations
@@ -100,7 +108,8 @@ src/
     ├── health/           # GET /api/health
     ├── auth/             # Registration, login, logout, session, role selection
     ├── reviews/          # Public application reviews
-    ├── stores/           # Seller store management
+    ├── stores/           # Seller store management (incl. logo presign)
+    ├── users/            # Profile update + avatar presign endpoints
     ├── products/         # Product CRUD + public catalog
     ├── wallet/           # Buyer wallet and top-up
     ├── cart/             # Cart management with single-store checkout
@@ -178,6 +187,26 @@ Every route defines OpenAPI metadata:
 - **Drizzle ORM** with the `drizzle-orm/postgres-js` driver provides type-safe queries.
 - Schema files in `src/db/schema/` define Drizzle table objects.
 - Migrations are generated with Drizzle Kit and applied with `drizzle-kit migrate`.
+
+### Cloudflare R2 Object Storage
+
+Product images, store logos, and user avatars are stored in **Cloudflare R2**, an S3-compatible object store. Uploads use a **presigned URL** pattern to avoid exposing R2 credentials to the frontend:
+
+1. **Frontend** requests a presigned URL by calling `POST /api/{resource}/presign` with the desired `mimeType`.
+2. **Backend** generates a time-limited (5-minute) presigned PUT URL via `StorageService.generatePresignedUpload()` and returns it with the object key and public URL.
+3. **Frontend** uploads the file directly to R2 using the presigned URL.
+4. **Frontend** saves the returned `objectKey` on the entity (product, store, user).
+5. **Backend** resolves the public URL on read via `StorageService.getPublicUrl()` using `R2_PUBLIC_DOMAIN`.
+
+**Cleanup** — when an entity is updated with a new image or deleted, the old object is removed from R2 via `StorageService.deleteObject()`. Old images are only deleted after the database update succeeds.
+
+| Method | Endpoint                             | Access             | Purpose              |
+| ------ | ------------------------------------ | ------------------ | -------------------- |
+| `POST` | `/api/products/image/presign`        | Seller             | Product image upload |
+| `POST` | `/api/stores/{storeId}/logo/presign` | Seller (owner)     | Store logo upload    |
+| `POST` | `/api/users/me/avatar/presign`       | Authenticated user | Avatar upload        |
+
+Supported formats: `image/jpeg`, `image/png`, `image/webp`. Max file size: 5 MB (client-side enforced).
 
 ## Demo Accounts (Seed Data)
 
