@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { createStore } from '@/lib/api/generated';
+import { createStore, presignStoreLogo, updateCurrentSellerStore } from '@/lib/api/generated';
 import { useQueryClient } from '@tanstack/react-query';
 import { getCurrentSellerStoreQueryKey } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { toast } from 'sonner';
@@ -8,6 +8,8 @@ import { zCreateStoreBody } from '@/lib/api/generated/zod.gen';
 import { useState, useRef } from 'react';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
+import { ImageUploader } from '@/components/ui/image-uploader';
+import { uploadImageToR2, type AllowedMime, type PresignResponse } from '@/lib/upload';
 
 export const Route = createFileRoute('/dashboard/seller/onboarding')({
   component: SellerOnboarding,
@@ -17,6 +19,8 @@ function SellerOnboarding() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [errorMap, setErrorMap] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isSubmittingManual, setIsSubmittingManual] = useState(false);
   const submitLock = useRef(false);
   const { t } = useTranslation();
 
@@ -31,9 +35,13 @@ function SellerOnboarding() {
     onSubmit: async ({ value }) => {
       if (submitLock.current) return;
       submitLock.current = true;
+      setIsSubmittingManual(true);
       setErrorMap(null);
+
+      const loadingToast = toast.loading('Membuat toko...');
+
       try {
-        const { error } = await createStore({
+        const { data: store, error } = await createStore({
           body: value,
         });
 
@@ -44,13 +52,39 @@ function SellerOnboarding() {
           } else {
             toast.error(t('seller.store.createStoreFailed'));
           }
+          toast.dismiss(loadingToast);
           return;
+        }
+
+        // If a logo was selected, upload it now
+        if (logoFile && store?.id) {
+          toast.loading('Mengunggah logo toko...', { id: loadingToast });
+          const key = await uploadImageToR2(logoFile, async (mimeType: AllowedMime) => {
+            const res = await presignStoreLogo({
+              path: { storeId: store.id },
+              body: { mimeType },
+            });
+            return res as { data?: PresignResponse; error?: unknown };
+          });
+
+          if (key) {
+            const { error: updateError } = await updateCurrentSellerStore({
+              body: { logoKey: key },
+            });
+            if (updateError) {
+              toast.error('Gagal menyimpan logo toko, silakan unggah kembali nanti di pengaturan.');
+            }
+          }
         }
 
         toast.success(t('seller.store.createStoreSuccess'));
         await queryClient.invalidateQueries({ queryKey: getCurrentSellerStoreQueryKey() });
         navigate({ to: '/dashboard/seller' });
+      } catch {
+        toast.error('Terjadi kesalahan saat membuat toko');
       } finally {
+        toast.dismiss(loadingToast);
+        setIsSubmittingManual(false);
         submitLock.current = false;
       }
     },
@@ -71,6 +105,17 @@ function SellerOnboarding() {
         }}
         className="space-y-6"
       >
+        <div className="flex flex-col items-center gap-2 mb-4">
+          <label className="text-sm font-medium self-start">Logo Toko</label>
+          <ImageUploader
+            value={logoFile}
+            onChange={setLogoFile}
+            disabled={isSubmittingManual}
+            aspectRatio="square"
+            className="w-full max-w-[200px]"
+          />
+        </div>
+
         <form.Field
           name="name"
           children={(field) => (
@@ -139,10 +184,12 @@ function SellerOnboarding() {
           children={([canSubmit, isSubmitting]) => (
             <button
               type="submit"
-              disabled={!canSubmit || isSubmitting}
+              disabled={!canSubmit || isSubmitting || isSubmittingManual}
               className="w-full bg-primary text-primary-foreground h-10 px-4 py-2 inline-flex items-center justify-center rounded-md text-sm font-medium disabled:opacity-50 hover:bg-primary/90"
             >
-              {isSubmitting ? t('seller.store.creating') : t('seller.store.createButton')}
+              {isSubmitting || isSubmittingManual
+                ? t('seller.store.creating')
+                : t('seller.store.createButton')}
             </button>
           )}
         />
