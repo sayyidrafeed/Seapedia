@@ -6,6 +6,8 @@ import { createStoreSchema, storeResponseSchema, updateStoreSchema } from './sto
 import { StoreService } from './stores.service';
 import { z } from 'zod';
 import { HTTPException } from 'hono/http-exception';
+import { StorageService } from '@/lib/storage';
+import { presignRequestSchema, presignResponseSchema } from '@/lib/upload.schemas';
 
 export const storesRouter = factory.createApp();
 
@@ -38,6 +40,8 @@ storesRouter.post(
       name: store.name,
       slug: store.slug,
       description: store.description,
+      logoKey: store.logoKey,
+      logoUrl: store.logoKey ? StorageService.getPublicUrl(store.logoKey) : null,
       createdAt: store.createdAt.toISOString(),
       updatedAt: store.updatedAt.toISOString(),
     });
@@ -71,6 +75,8 @@ storesRouter.get(
       name: store.name,
       slug: store.slug,
       description: store.description,
+      logoKey: store.logoKey,
+      logoUrl: store.logoKey ? StorageService.getPublicUrl(store.logoKey) : null,
       createdAt: store.createdAt.toISOString(),
       updatedAt: store.updatedAt.toISOString(),
     });
@@ -106,6 +112,8 @@ storesRouter.put(
       name: store.name,
       slug: store.slug,
       description: store.description,
+      logoKey: store.logoKey,
+      logoUrl: store.logoKey ? StorageService.getPublicUrl(store.logoKey) : null,
       createdAt: store.createdAt.toISOString(),
       updatedAt: store.updatedAt.toISOString(),
     });
@@ -135,8 +143,41 @@ storesRouter.get(
       name: store.name,
       slug: store.slug,
       description: store.description,
+      logoKey: store.logoKey,
+      logoUrl: store.logoKey ? StorageService.getPublicUrl(store.logoKey) : null,
       createdAt: store.createdAt.toISOString(),
       updatedAt: store.updatedAt.toISOString(),
     });
+  },
+);
+
+storesRouter.post(
+  '/:storeId/logo/presign',
+  describeRoute({
+    operationId: 'presignStoreLogo',
+    tags: ['Stores'],
+    summary: 'Generate pre-signed URL for store logo upload',
+    description:
+      'Generates an expiring pre-signed URL for direct upload of a store logo to Cloudflare R2.',
+    security: [{ cookieAuth: [] }],
+    responses: {
+      200: jsonContent(presignResponseSchema, 'Presigned URL generated successfully'),
+      ...errorResponses(400, 401, 403, 404, 500),
+    },
+  }),
+  requireSession,
+  requireRole('seller'),
+  validator('param', z.object({ storeId: z.string().uuid() })),
+  validator('json', presignRequestSchema),
+  async (c) => {
+    const userId = c.get('userId');
+    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
+
+    const { storeId } = c.req.valid('param');
+    const { mimeType } = c.req.valid('json');
+
+    const result = await StoreService.presignLogo(userId, storeId, mimeType);
+
+    return c.json(result);
   },
 );
