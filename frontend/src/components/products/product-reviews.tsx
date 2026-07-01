@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Star, MessageSquare, AlertCircle, CheckCircle } from 'lucide-react';
@@ -17,13 +17,18 @@ interface ProductReviewsProps {
 }
 
 export function ProductReviews({ productId }: ProductReviewsProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const auth = useAuth();
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+
+  // Reset page when product ID changes
+  useEffect(() => {
+    setPage(1);
+  }, [productId]);
 
   // Fetch reviews
   const { data, isLoading } = useQuery({
@@ -120,7 +125,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {new Date(review.createdAt).toLocaleDateString('id-ID', {
+                          {new Date(review.createdAt).toLocaleDateString(i18n.language, {
                             day: 'numeric',
                             month: 'long',
                             year: 'numeric',
@@ -154,10 +159,13 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                     disabled={page === 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                   >
-                    &larr; Prev
+                    &larr; {t('reviews.prev', 'Prev')}
                   </Button>
                   <span className="text-xs text-muted-foreground">
-                    Page {page} of {Math.ceil(total / 5)}
+                    {t('reviews.pageOf', 'Page {{page}} of {{totalPages}}', {
+                      page,
+                      totalPages: Math.ceil(total / 5),
+                    })}
                   </span>
                   <Button
                     variant="outline"
@@ -165,7 +173,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                     disabled={page * 5 >= total}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next &rarr;
+                    {t('reviews.next', 'Next')} &rarr;
                   </Button>
                 </div>
               )}
@@ -224,6 +232,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                         'reviews.placeholder',
                         'Bagikan pengalaman Anda menggunakan produk ini...',
                       )}
+                      maxLength={1000}
                       className="min-h-[100px] text-sm resize-none"
                     />
                   </div>
