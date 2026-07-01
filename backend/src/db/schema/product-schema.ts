@@ -14,6 +14,7 @@ export const products = pgTable('products', {
   imageKey: varchar('image_key', { length: 512 }),
   rating: numeric('rating', { precision: 3, scale: 2 }).default('0.00').notNull(),
   reviewCount: integer('review_count').default(0).notNull(),
+  soldCount: integer('sold_count').default(0).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
