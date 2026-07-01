@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Store, ArrowRight, Tag } from 'lucide-react';
+import { Calendar, Store, ArrowRight, Tag, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { formatCurrency } from '@/lib/utils';
@@ -99,8 +99,8 @@ export function OrderReportList({
                     </div>
 
                     {/* Right Block */}
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
+                    <div className="flex items-center gap-4 justify-between sm:justify-end">
+                      <div className="text-left sm:text-right">
                         <span className="text-xs text-muted-foreground block">
                           {showStoreName
                             ? t('buyer.checkout.totalAmount')
@@ -132,8 +132,8 @@ export function OrderReportList({
                     </div>
                   </div>
 
-                  {/* Financial Breakdown Table */}
-                  <div className="bg-muted/40 rounded-lg p-4 grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
+                  {/* Financial Breakdown Table - Responsive Grid */}
+                  <div className="bg-muted/40 rounded-lg p-4 grid grid-cols-2 md:grid-cols-5 gap-4 text-xs">
                     <div>
                       <span className="text-muted-foreground block mb-0.5">{subtotalLabelVal}</span>
                       <span className="font-bold text-foreground">
@@ -171,7 +171,7 @@ export function OrderReportList({
                       <span className="text-muted-foreground block mb-0.5">PPN 12%</span>
                       <span className="font-bold text-foreground">{formatCurrency(order.ppn)}</span>
                     </div>
-                    <div className="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-border/80 pt-2 sm:pt-0 sm:pl-4">
+                    <div className="col-span-2 md:col-span-1 border-t md:border-t-0 md:border-l border-border/80 pt-2 md:pt-0 md:pl-4">
                       <span className="text-muted-foreground block mb-0.5">{totalLabelVal}</span>
                       <span className="font-black text-primary text-sm">
                         {formatCurrency(order.totalAmount)}
@@ -179,22 +179,28 @@ export function OrderReportList({
                     </div>
                   </div>
 
-                  {/* Ordered Items List */}
-                  <div className="text-xs text-muted-foreground pl-1 space-y-1">
-                    <span className="font-semibold block text-foreground/80 mb-1">
-                      {itemsLabelVal}
-                    </span>
-                    {order.items.map((item) => (
-                      <div key={item.id} className="flex justify-between max-w-md">
-                        <span>
-                          • {item.productName} (x{item.quantity})
-                        </span>
-                        <span className="font-medium text-foreground/75">
-                          {formatCurrency(item.productPrice * item.quantity)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Ordered Items List - Collapsible Details for mobile/density optimization */}
+                  <details className="text-xs text-muted-foreground pl-1 group">
+                    <summary className="font-semibold text-foreground/80 cursor-pointer hover:text-primary transition-colors flex items-center gap-1.5 list-none focus:outline-none select-none">
+                      <span>{itemsLabelVal}</span>
+                      <span className="text-[10px] text-muted-foreground font-normal">
+                        ({order.items.reduce((sum, item) => sum + item.quantity, 0)} items)
+                      </span>
+                      <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-180 text-muted-foreground" />
+                    </summary>
+                    <div className="mt-2 space-y-1.5 pl-3 border-l border-border/85 animate-in fade-in duration-200">
+                      {order.items.map((item) => (
+                        <div key={item.id} className="flex justify-between max-w-md">
+                          <span>
+                            • {item.productName} (x{item.quantity})
+                          </span>
+                          <span className="font-medium text-foreground/75">
+                            {formatCurrency(item.productPrice * item.quantity)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
                 </div>
               );
             })}
