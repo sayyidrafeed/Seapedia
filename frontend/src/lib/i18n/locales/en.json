@@ -218,6 +218,12 @@
     "checkout": {
       "title": "Checkout",
       "desc": "Complete your order summary and confirm payment",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "deliveryFee": "Delivery Fee",
+      "total": "Total",
+      "totalAmount": "Total Amount",
+      "items": "Items List",
       "deliveryMethod": "Delivery Method",
       "deliveryMethod_instant": "Instant Delivery",
       "deliveryMethod_instant_time": "Sameday delivery",

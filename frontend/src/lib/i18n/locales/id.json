@@ -108,7 +108,7 @@
       "title": "Portal Pembeli",
       "description": "Kelola dompet, alamat pengiriman, dan pesanan Anda.",
       "nav": {
-        "overview": "Ikhtisar",
+        "overview": "Overview",
         "wallet": "Dompet & Top-up",
         "addresses": "Kelola Alamat",
         "orders": "Pesanan Saya",
@@ -218,6 +218,12 @@
     "checkout": {
       "title": "Checkout",
       "desc": "Lengkapi ringkasan pesanan Anda dan konfirmasikan pembayaran",
+      "subtotal": "Subtotal",
+      "discount": "Diskon",
+      "deliveryFee": "Biaya Pengiriman",
+      "total": "Total",
+      "totalAmount": "Total Transaksi",
+      "items": "Daftar Barang",
       "deliveryMethod": "Metode Pengiriman",
       "deliveryMethod_instant": "Pengiriman Instan",
       "deliveryMethod_instant_time": "Pengiriman hari yang sama",
@@ -457,7 +463,7 @@
       "title": "Dasbor Pengemudi",
       "desc": "Kelola pekerjaan pengiriman Anda, lacak kemajuan, dan lihat pendapatan.",
       "nav": {
-        "overview": "Ikhtisar",
+        "overview": "Overview",
         "jobs": "Pekerjaan Tersedia"
       },
       "failedToLoad": "Gagal memuat"
@@ -572,7 +578,7 @@
     "activeRole": "Peran Aktif",
     "none": "Tidak ada",
     "rolesOwned": "Peran yang Dimiliki",
-    "financialOverview": "Ikhtisar Keuangan",
+    "financialOverview": "Financial Overview",
     "buyerWallet": "Saldo Dompet Pembeli",
     "buyerWalletDesc": "Dompet transaksi simulasi",
     "sellerEarnings": "Pendapatan Penjual",
