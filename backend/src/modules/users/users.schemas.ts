@@ -21,4 +21,4 @@ export const updateProfileSchema = z
   })
   .meta({ id: 'UpdateProfileInput' });
 
-export const userProfileResponseSchema = userResponseSchema.meta({ id: 'UserProfileResponse' });
+export const userProfileResponseSchema = userResponseSchema;
