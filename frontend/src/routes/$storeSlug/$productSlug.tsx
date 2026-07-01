@@ -9,11 +9,16 @@ import {
 import { getBuyerCartOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/context';
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { toast } from 'sonner';
-import { CartConflictDialog } from '@/components/cart/CartConflictDialog';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+
+const CartConflictDialog = lazy(() =>
+  import('@/components/cart/CartConflictDialog').then((m) => ({
+    default: m.CartConflictDialog,
+  })),
+);
 
 export const Route = createFileRoute('/$storeSlug/$productSlug')({
   component: StoreProductPage,
@@ -210,13 +215,15 @@ function StoreProductPage() {
         </div>
       </div>
 
-      <CartConflictDialog
-        isOpen={conflictOpen}
-        onClose={() => setConflictOpen(false)}
-        onConfirm={() => clearAndAddMutation.mutate()}
-        currentStoreName={currentStoreName}
-        newStoreName={product.storeName}
-      />
+      <Suspense fallback={null}>
+        <CartConflictDialog
+          isOpen={conflictOpen}
+          onClose={() => setConflictOpen(false)}
+          onConfirm={() => clearAndAddMutation.mutate()}
+          currentStoreName={currentStoreName}
+          newStoreName={product.storeName}
+        />
+      </Suspense>
     </div>
   );
 }

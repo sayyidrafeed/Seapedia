@@ -154,6 +154,11 @@ export const zDeliveryJobResponse = z.object({
     .optional(),
 });
 
+export const zLocationItem = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
 /**
  * Service is healthy
  */
@@ -1216,3 +1221,26 @@ export const zCompleteDeliveryJobResponse = z.object({
   success: z.boolean(),
   message: z.string(),
 });
+
+/**
+ * List of provinces
+ */
+export const zGetProvincesResponse = z.array(zLocationItem);
+
+export const zGetCitiesQuery = z.object({
+  provinceId: z.string(),
+});
+
+/**
+ * List of cities
+ */
+export const zGetCitiesResponse = z.array(zLocationItem);
+
+export const zGetDistrictsQuery = z.object({
+  cityId: z.string(),
+});
+
+/**
+ * List of districts
+ */
+export const zGetDistrictsResponse = z.array(zLocationItem);

@@ -34,6 +34,7 @@
     "recharts": "2.15.4",
     "sonner": "latest",
     "tailwind-merge": "latest",
+    "use-debounce": "^10.1.1",
     "vaul": "^1.1.2",
     "zod": "latest"
   },

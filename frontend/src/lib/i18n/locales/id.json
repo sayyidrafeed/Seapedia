@@ -108,7 +108,7 @@
       "title": "Portal Pembeli",
       "description": "Kelola dompet, alamat pengiriman, dan pesanan Anda.",
       "nav": {
-        "overview": "Ikhtisar",
+        "overview": "Overview",
         "wallet": "Dompet & Top-up",
         "addresses": "Kelola Alamat",
         "orders": "Pesanan Saya",
@@ -198,7 +198,13 @@
       "prov": "Prov.",
       "makeDefaultButton": "Jadikan Utama",
       "editAddressButton": "Ubah",
-      "deleteAddressButton": "Hapus"
+      "deleteAddressButton": "Hapus",
+      "loadingProvinces": "Memuat provinsi...",
+      "errorProvinces": "Gagal memuat provinsi",
+      "loadingCities": "Memuat kota...",
+      "errorCities": "Gagal memuat kota",
+      "loadingDistricts": "Memuat kecamatan...",
+      "errorDistricts": "Gagal memuat kecamatan"
     },
     "cart": {
       "activeTitle": "Keranjang Aktif",
@@ -218,6 +224,12 @@
     "checkout": {
       "title": "Checkout",
       "desc": "Lengkapi ringkasan pesanan Anda dan konfirmasikan pembayaran",
+      "subtotal": "Subtotal",
+      "discount": "Diskon",
+      "deliveryFee": "Biaya Pengiriman",
+      "total": "Total",
+      "totalAmount": "Total Transaksi",
+      "items": "Daftar Barang",
       "deliveryMethod": "Metode Pengiriman",
       "deliveryMethod_instant": "Pengiriman Instan",
       "deliveryMethod_instant_time": "Pengiriman hari yang sama",
@@ -371,7 +383,15 @@
       "editLoading": "Memuat detail produk...",
       "editNotFound": "Produk tidak ditemukan atau gagal dimuat.",
       "editTitle": "Edit Produk",
-      "editDesc": "Ubah detail produk Anda."
+      "editDesc": "Ubah detail produk Anda.",
+      "noProducts": "Produk tidak ditemukan. Mulailah dengan menambahkan produk baru!",
+      "productHeader": "Produk",
+      "priceHeader": "Harga",
+      "stockHeader": "Stok",
+      "actionsHeader": "Aksi",
+      "available": "{{count}} tersedia",
+      "edit": "Ubah",
+      "delete": "Hapus"
     },
     "report": {
       "errorLoading": "Gagal memuat laporan pendapatan.",
@@ -457,7 +477,7 @@
       "title": "Dasbor Pengemudi",
       "desc": "Kelola pekerjaan pengiriman Anda, lacak kemajuan, dan lihat pendapatan.",
       "nav": {
-        "overview": "Ikhtisar",
+        "overview": "Overview",
         "jobs": "Pekerjaan Tersedia"
       },
       "failedToLoad": "Gagal memuat"
@@ -572,7 +592,7 @@
     "activeRole": "Peran Aktif",
     "none": "Tidak ada",
     "rolesOwned": "Peran yang Dimiliki",
-    "financialOverview": "Ikhtisar Keuangan",
+    "financialOverview": "Financial Overview",
     "buyerWallet": "Saldo Dompet Pembeli",
     "buyerWalletDesc": "Dompet transaksi simulasi",
     "sellerEarnings": "Pendapatan Penjual",

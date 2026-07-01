@@ -57,6 +57,9 @@ import type {
   GetBuyerWalletData,
   GetBuyerWalletErrors,
   GetBuyerWalletResponses,
+  GetCitiesData,
+  GetCitiesErrors,
+  GetCitiesResponses,
   GetCurrentSellerStoreData,
   GetCurrentSellerStoreErrors,
   GetCurrentSellerStoreResponses,
@@ -72,6 +75,9 @@ import type {
   GetDashboardStatsData,
   GetDashboardStatsErrors,
   GetDashboardStatsResponses,
+  GetDistrictsData,
+  GetDistrictsErrors,
+  GetDistrictsResponses,
   GetDriverJobDetailData,
   GetDriverJobDetailErrors,
   GetDriverJobDetailResponses,
@@ -90,6 +96,9 @@ import type {
   GetPromoData,
   GetPromoErrors,
   GetPromoResponses,
+  GetProvincesData,
+  GetProvincesErrors,
+  GetProvincesResponses,
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
@@ -1545,5 +1554,38 @@ export const completeDeliveryJob = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/driver/jobs/{id}/complete',
+    ...options,
+  });
+
+/**
+ * Get all provinces
+ */
+export const getProvinces = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProvincesData, ThrowOnError>,
+): RequestResult<GetProvincesResponses, GetProvincesErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetProvincesResponses, GetProvincesErrors, ThrowOnError>({
+    url: '/api/locations/provinces',
+    ...options,
+  });
+
+/**
+ * Get cities by province ID
+ */
+export const getCities = <ThrowOnError extends boolean = false>(
+  options: Options<GetCitiesData, ThrowOnError>,
+): RequestResult<GetCitiesResponses, GetCitiesErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetCitiesResponses, GetCitiesErrors, ThrowOnError>({
+    url: '/api/locations/cities',
+    ...options,
+  });
+
+/**
+ * Get districts by city ID
+ */
+export const getDistricts = <ThrowOnError extends boolean = false>(
+  options: Options<GetDistrictsData, ThrowOnError>,
+): RequestResult<GetDistrictsResponses, GetDistrictsErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetDistrictsResponses, GetDistrictsErrors, ThrowOnError>({
+    url: '/api/locations/districts',
     ...options,
   });

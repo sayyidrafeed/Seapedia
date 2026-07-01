@@ -2,7 +2,7 @@ import { createRootRoute, Outlet, useNavigate, useLocation } from '@tanstack/rea
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useAuth } from '@/lib/auth/context';
 import { useEffect } from 'react';
-import { Navbar } from '@/components/shared/navbar';
+import { GlobalNavbar } from '@/components/shared/global-navbar';
 import { Footer } from '@/components/shared/footer';
 
 function RootComponent() {
@@ -23,7 +23,7 @@ function RootComponent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
-      <Navbar />
+      <GlobalNavbar />
 
       <main className="flex-1 flex flex-col">
         <Outlet />

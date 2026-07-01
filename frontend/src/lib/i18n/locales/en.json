@@ -198,7 +198,13 @@
       "prov": "Prov.",
       "makeDefaultButton": "Set as Default",
       "editAddressButton": "Edit",
-      "deleteAddressButton": "Delete"
+      "deleteAddressButton": "Delete",
+      "loadingProvinces": "Loading provinces...",
+      "errorProvinces": "Error loading provinces",
+      "loadingCities": "Loading cities...",
+      "errorCities": "Error loading cities",
+      "loadingDistricts": "Loading districts...",
+      "errorDistricts": "Error loading districts"
     },
     "cart": {
       "activeTitle": "Active Cart",
@@ -218,6 +224,12 @@
     "checkout": {
       "title": "Checkout",
       "desc": "Complete your order summary and confirm payment",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "deliveryFee": "Delivery Fee",
+      "total": "Total",
+      "totalAmount": "Total Amount",
+      "items": "Items List",
       "deliveryMethod": "Delivery Method",
       "deliveryMethod_instant": "Instant Delivery",
       "deliveryMethod_instant_time": "Sameday delivery",
@@ -371,7 +383,15 @@
       "editLoading": "Loading product details...",
       "editNotFound": "Product not found or failed to load.",
       "editTitle": "Edit Product",
-      "editDesc": "Modify the details of your product."
+      "editDesc": "Modify the details of your product.",
+      "noProducts": "No products found. Start by adding one!",
+      "productHeader": "Product",
+      "priceHeader": "Price",
+      "stockHeader": "Stock",
+      "actionsHeader": "Actions",
+      "available": "{{count}} available",
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "report": {
       "errorLoading": "Error loading income report.",

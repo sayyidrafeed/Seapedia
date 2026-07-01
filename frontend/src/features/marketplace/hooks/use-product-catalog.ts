@@ -1,22 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useDebounce } from 'use-debounce';
 import { listProducts } from '@/lib/api/generated/sdk.gen';
 
 export function useProductCatalog() {
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 300);
   const [page, setPage] = useState(1);
   const limit = 12;
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 300);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [search]);
+    setPage(1);
+  }, [debouncedSearch]);
 
   const {
     data: productsData,
