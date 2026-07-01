@@ -25,8 +25,8 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <div className="flex min-h-[calc(100vh-var(--header-height))] bg-background-subtle">
-      {/* Sidebar (Desktop) */}
-      <aside className="w-[var(--sidebar-width)] border-r border-border bg-card hidden md:block shrink-0">
+      {/* Sidebar (Desktop lg+) */}
+      <aside className="w-[var(--sidebar-width)] border-r border-border bg-card hidden lg:block shrink-0">
         <div className="sticky top-[var(--header-height)] h-[calc(100vh-var(--header-height))] p-4 flex flex-col justify-between">
           <div className="space-y-6">
             <div>
@@ -53,8 +53,8 @@ export function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      {/* Main Content Area - Declared as container context for child components */}
+      <div className="flex-1 min-w-0 flex flex-col @container">
         {/* Header */}
         <header className="border-b border-border bg-card px-8 py-6 shrink-0">
           <div className="max-w-[var(--content-max-width)] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -68,21 +68,46 @@ export function DashboardLayout({
           </div>
         </header>
 
-        {/* Mobile Horizontal Navigation Tabs */}
-        <div className="md:hidden border-b border-border bg-card px-8 py-2 overflow-x-auto scrollbar-none flex gap-4 whitespace-nowrap shrink-0">
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              activeOptions={{ exact: item.exact }}
-              className="text-xs font-semibold py-1 border-b-2 border-transparent transition-all"
-              activeProps={{ className: 'border-primary text-primary font-bold' }}
-              inactiveProps={{ className: 'text-muted-foreground' }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
+        {/* Tablet Horizontal Navigation (md to lg) */}
+        {navItems.length > 0 && (
+          <div className="hidden md:flex lg:hidden border-b border-border bg-card px-8 py-2 overflow-x-auto scrollbar-none flex gap-4 whitespace-nowrap shrink-0">
+            <nav className="flex gap-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  activeOptions={{ exact: item.exact }}
+                  className="text-xs font-semibold py-1.5 border-b-2 border-transparent transition-all flex items-center gap-1.5"
+                  activeProps={{ className: 'border-primary text-primary font-bold' }}
+                  inactiveProps={{ className: 'text-muted-foreground hover:text-foreground' }}
+                >
+                  {item.icon && <span className="scale-90">{item.icon}</span>}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        )}
+
+        {/* Mobile Horizontal Navigation Tabs (< md) */}
+        {navItems.length > 0 && (
+          <div className="md:hidden border-b border-border bg-card px-8 py-2 overflow-x-auto scrollbar-none flex gap-4 whitespace-nowrap shrink-0">
+            <nav className="flex gap-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  activeOptions={{ exact: item.exact }}
+                  className="text-xs font-semibold py-1 border-b-2 border-transparent transition-all"
+                  activeProps={{ className: 'border-primary text-primary font-bold' }}
+                  inactiveProps={{ className: 'text-muted-foreground' }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        )}
 
         {/* Inner Content Grid */}
         <main className="px-8 py-8 max-w-[var(--content-max-width)] mx-auto w-full flex-1">
