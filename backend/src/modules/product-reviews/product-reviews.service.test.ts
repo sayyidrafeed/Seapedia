@@ -108,7 +108,7 @@ describe('ProductReviewsService', () => {
       // 2. Mock query duplicate check (returns empty array representing no existing reviews)
       dbState.addSelect([]);
       // 3. Mock query SELECT products FOR UPDATE (within transaction)
-      dbState.addSelect([{ id: 'product-1', rating: '4.00', reviewCount: 2 }]);
+      dbState.addSelect([{ id: 'product-1', rating: '4.00', reviewCount: 2, storeId: 'store-1' }]);
       // 4. Mock INSERT into productReviews
       dbState.addInsert([
         {
@@ -120,6 +120,8 @@ describe('ProductReviewsService', () => {
           createdAt: new Date(),
         },
       ]);
+      // 5. Mock SELECT stores FOR UPDATE
+      dbState.addSelect([{ id: 'store-1', rating: '4.00', reviewCount: 2 }]);
 
       const result = await ProductReviewsService.createReview('buyer-1', 'product-1', {
         rating: 5,
