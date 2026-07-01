@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { orders, orderItems, products, productReviews, users } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { orders, orderItems, products, productReviews, users, stores } from '@/db/schema';
+import { eq, and, desc, sql, count } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 
 export class ProductReviewsService {
@@ -52,6 +52,7 @@ export class ProductReviewsService {
             id: products.id,
             rating: products.rating,
             reviewCount: products.reviewCount,
+            storeId: products.storeId,
           })
           .from(products)
           .where(eq(products.id, productId))
@@ -87,6 +88,33 @@ export class ProductReviewsService {
           })
           .where(eq(products.id, productId));
 
+        // Update the store's rating and reviewCount
+        const [store] = await tx
+          .select({
+            id: stores.id,
+            rating: stores.rating,
+            reviewCount: stores.reviewCount,
+          })
+          .from(stores)
+          .where(eq(stores.id, product.storeId))
+          .for('update');
+
+        if (store) {
+          const oldStoreRating = parseFloat(store.rating || '0.00');
+          const oldStoreCount = store.reviewCount || 0;
+          const newStoreCount = oldStoreCount + 1;
+          const newStoreAvg = (oldStoreRating * oldStoreCount + newRating) / newStoreCount;
+          const newStoreAvgStr = newStoreAvg.toFixed(2);
+
+          await tx
+            .update(stores)
+            .set({
+              rating: newStoreAvgStr,
+              reviewCount: newStoreCount,
+            })
+            .where(eq(stores.id, store.id));
+        }
+
         return {
           ...review,
           reviewerName: '', // Filled in the controller or query resolver if needed
@@ -107,7 +135,7 @@ export class ProductReviewsService {
     const offset = (page - 1) * limit;
 
     const countResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(productReviews)
       .where(eq(productReviews.productId, productId));
 
@@ -149,7 +177,7 @@ export class ProductReviewsService {
     const reviewerName = user?.name ?? 'Saya';
 
     const countResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(productReviews)
       .where(eq(productReviews.buyerId, buyerId));
 

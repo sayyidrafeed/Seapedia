@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { Star } from 'lucide-react';
 import { ProductReviews } from '@/components/products/product-reviews';
+import { StoreInfoCard } from '@/features/marketplace/components/store-info-card';
+import { QuantitySelector } from '@/components/shared/quantity-selector';
 
 const CartConflictDialog = lazy(() =>
   import('@/components/cart/CartConflictDialog').then((m) => ({
@@ -35,6 +37,7 @@ function StoreProductPage() {
 
   const [conflictOpen, setConflictOpen] = useState(false);
   const [currentStoreName, setCurrentStoreName] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   const {
     data: product,
@@ -91,7 +94,7 @@ function StoreProductPage() {
       if (clearErr) throw new Error(clearErr.error || 'Failed to clear cart');
 
       const { data, error: addErr } = await addCartItem({
-        body: { productId: product.id, quantity: 1 },
+        body: { productId: product.id, quantity },
       });
       if (addErr) throw new Error(addErr.error || 'Failed to add item to cart');
 
@@ -121,15 +124,19 @@ function StoreProductPage() {
 
     if (!product) return;
 
-    addToCartMutation.mutate({ productId: product.id, quantity: 1 });
+    addToCartMutation.mutate({ productId: product.id, quantity });
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-6 py-12 max-w-3xl animate-pulse space-y-6">
+      <div className="container mx-auto px-6 py-12 max-w-5xl animate-pulse space-y-6">
         <div className="h-8 bg-muted rounded w-1/3" />
         <div className="h-4 bg-muted rounded w-1/4" />
-        <div className="h-24 bg-muted rounded w-full" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4 h-80 bg-muted rounded-xl" />
+          <div className="lg:col-span-5 h-80 bg-muted rounded-xl" />
+          <div className="lg:col-span-3 h-80 bg-muted rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -145,7 +152,7 @@ function StoreProductPage() {
   const isAdding = addToCartMutation.isPending || clearAndAddMutation.isPending;
 
   return (
-    <div className="container mx-auto px-6 py-12 max-w-3xl space-y-8">
+    <div className="container mx-auto px-6 py-12 max-w-5xl space-y-10 pb-28 lg:pb-12">
       <Link
         to="/"
         className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
@@ -153,89 +160,133 @@ function StoreProductPage() {
         &larr; {t('catalog.backToCatalog')}
       </Link>
 
-      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              to="/$storeSlug"
-              params={{ storeSlug: product.storeSlug }}
-              className="rounded-full bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 capitalize hover:bg-primary/20"
-            >
-              {t('catalog.storeLabel', { name: product.storeName })}
-            </Link>
-            <span className="text-xs text-muted-foreground">
-              {t('catalog.stockLeft', { count: product.stock })}
-            </span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{product.name}</h1>
-          {Number(product.reviewCount) > 0 && (
-            <div className="flex items-center gap-1.5 mt-1">
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i < Math.round(Number(product.rating))
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-muted-foreground/30'
-                    }`}
-                  />
-                ))}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Section - Product Image */}
+        <div className="lg:col-span-4">
+          <div className="aspect-square bg-muted rounded-xl overflow-hidden border border-border">
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl as string}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-primary/5">
+                <span className="text-xs font-semibold">No Image</span>
               </div>
-              <span className="text-sm font-bold text-foreground">
-                {Number(product.rating).toFixed(1)}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                ({product.reviewCount} {t('reviews.countLabel', 'ulasan')})
+            )}
+          </div>
+        </div>
+
+        {/* Center Section - Product Details & Store Info */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="space-y-3">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+              {product.name}
+            </h1>
+
+            <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-bold text-foreground">
+                  {parseFloat((product.rating as string) || '0.00').toFixed(1)}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  ({(product.reviewCount as number) || 0} {t('reviews.countLabel', 'ulasan')})
+                </span>
+              </div>
+              <span className="text-muted-foreground/30">•</span>
+              <span className="text-muted-foreground text-xs">
+                Terjual{' '}
+                <span className="font-semibold text-foreground">
+                  {(product.soldCount as number) || 0}
+                </span>
               </span>
             </div>
-          )}
-        </div>
 
-        <p className="text-sm text-muted-foreground leading-relaxed border-t border-b border-border/50 py-6">
-          {(product.description as string) || ''}
-        </p>
-
-        {/* Store Information Card */}
-        <div className="bg-muted/40 border border-border p-4 rounded-lg flex items-center justify-between gap-4">
-          <div>
-            <h4 className="text-sm font-bold text-foreground">
-              {t('catalog.sellsBy', { name: product.storeName })}
-            </h4>
-            <p className="text-xs text-muted-foreground mt-1">{t('catalog.visitStoreDesc')}</p>
+            <div className="pt-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Harga</span>
+              <p className="text-3xl font-black text-foreground mt-1">
+                {formatCurrency(product.price)}
+              </p>
+            </div>
           </div>
-          <Link
-            to="/$storeSlug"
-            params={{ storeSlug: product.storeSlug }}
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-muted"
-          >
-            {t('catalog.visitStore')}
-          </Link>
-        </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
-          <div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase">
-              {t('catalog.price')}
-            </span>
-            <p className="text-3xl font-black text-foreground mt-1">
-              {formatCurrency(product.price)}
+          <div className="border-t border-border/50 pt-4">
+            <h4 className="font-bold text-sm mb-2">Deskripsi Produk</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {(product.description as string) || 'Tidak ada deskripsi.'}
             </p>
           </div>
 
-          <div>
-            <Button
-              onClick={handleAddToCart}
-              disabled={product.stock <= 0 || isAdding}
-              className="w-full sm:w-auto cursor-pointer"
-            >
-              {product.stock <= 0
-                ? t('catalog.outOfStock')
-                : isAdding
-                  ? t('catalog.adding')
-                  : t('catalog.addToCart')}
-            </Button>
+          {/* Store Info Card */}
+          <div className="border-t border-border/50 pt-6">
+            <StoreInfoCard
+              storeName={product.storeName || ''}
+              storeSlug={product.storeSlug || ''}
+              storeLogoUrl={(product.storeLogoUrl as string) || null}
+              storeRating={(product.storeRating as string) || '0.00'}
+              storeReviewCount={(product.storeReviewCount as number) || 0}
+              storeTotalProducts={(product.storeTotalProducts as number) || 0}
+            />
           </div>
+        </div>
+
+        {/* Right Section - Desktop Checkout Card */}
+        <div className="hidden lg:block lg:col-span-3">
+          <div className="border border-border rounded-xl p-5 bg-card space-y-5 sticky top-6">
+            <h4 className="font-bold text-sm">Atur Jumlah</h4>
+
+            <div className="flex items-center gap-3">
+              <QuantitySelector value={quantity} max={product.stock} onChange={setQuantity} />
+              <span className="text-xs text-muted-foreground">Stok: {product.stock}</span>
+            </div>
+
+            <div className="border-t border-border/50 pt-4 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-bold text-foreground">
+                  {formatCurrency(product.price * quantity)}
+                </span>
+              </div>
+
+              <Button
+                onClick={handleAddToCart}
+                disabled={product.stock <= 0 || isAdding}
+                className="w-full cursor-pointer"
+              >
+                {product.stock <= 0
+                  ? t('catalog.outOfStock')
+                  : isAdding
+                    ? t('catalog.adding')
+                    : t('catalog.addToCart')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Sticky Bottom Bar for Mobile Viewports */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border p-4 z-40 flex items-center justify-between gap-4 shadow-lg">
+        <div className="flex flex-col">
+          <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+            Subtotal
+          </span>
+          <span className="font-black text-primary text-base">
+            {formatCurrency(product.price * quantity)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <QuantitySelector value={quantity} max={product.stock} onChange={setQuantity} />
+
+          <Button
+            onClick={handleAddToCart}
+            disabled={product.stock <= 0 || isAdding}
+            className="cursor-pointer font-bold h-9 text-xs px-3"
+          >
+            {product.stock <= 0 ? 'Habis' : isAdding ? 'Loading...' : '+ Keranjang'}
+          </Button>
         </div>
       </div>
 
@@ -249,7 +300,9 @@ function StoreProductPage() {
         />
       </Suspense>
 
-      <ProductReviews productId={product.id} />
+      <div className="border-t border-border/50 pt-8">
+        <ProductReviews productId={product.id} />
+      </div>
     </div>
   );
 }

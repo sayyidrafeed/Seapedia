@@ -40,6 +40,7 @@ productsRouter.get(
     const formatted = results.map((p) => ({
       ...p,
       imageUrl: p.imageKey ? StorageService.getPublicUrl(p.imageKey) : null,
+      storeLogoUrl: p.storeLogoKey ? StorageService.getPublicUrl(p.storeLogoKey) : null,
     }));
 
     return c.json({
@@ -67,6 +68,7 @@ productsRouter.get(
     return c.json({
       ...product,
       imageUrl: product.imageKey ? StorageService.getPublicUrl(product.imageKey) : null,
+      storeLogoUrl: product.storeLogoKey ? StorageService.getPublicUrl(product.storeLogoKey) : null,
     });
   },
 );
@@ -89,6 +91,7 @@ productsRouter.get(
     return c.json({
       ...product,
       imageUrl: product.imageKey ? StorageService.getPublicUrl(product.imageKey) : null,
+      storeLogoUrl: product.storeLogoKey ? StorageService.getPublicUrl(product.storeLogoKey) : null,
     });
   },
 );
