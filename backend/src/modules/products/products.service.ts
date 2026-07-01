@@ -80,6 +80,11 @@ export class ProductsService {
       })
       .returning();
 
+    await db
+      .update(stores)
+      .set({ totalProducts: sql`${stores.totalProducts} + 1` })
+      .where(eq(stores.id, store.id));
+
     return product;
   }
 
@@ -198,6 +203,11 @@ export class ProductsService {
     }
 
     await db.delete(products).where(eq(products.id, productId));
+    await db
+      .update(stores)
+      .set({ totalProducts: sql`${stores.totalProducts} - 1` })
+      .where(eq(stores.id, store.id));
+
     if (product.imageKey) {
       await StorageService.deleteObject(product.imageKey);
     }
@@ -257,6 +267,11 @@ export class ProductsService {
         imageKey: products.imageKey,
         rating: products.rating,
         reviewCount: products.reviewCount,
+        soldCount: products.soldCount,
+        storeRating: stores.rating,
+        storeReviewCount: stores.reviewCount,
+        storeLogoKey: stores.logoKey,
+        storeTotalProducts: stores.totalProducts,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
@@ -290,6 +305,11 @@ export class ProductsService {
         imageKey: products.imageKey,
         rating: products.rating,
         reviewCount: products.reviewCount,
+        soldCount: products.soldCount,
+        storeRating: stores.rating,
+        storeReviewCount: stores.reviewCount,
+        storeLogoKey: stores.logoKey,
+        storeTotalProducts: stores.totalProducts,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
@@ -318,6 +338,11 @@ export class ProductsService {
         imageKey: products.imageKey,
         rating: products.rating,
         reviewCount: products.reviewCount,
+        soldCount: products.soldCount,
+        storeRating: stores.rating,
+        storeReviewCount: stores.reviewCount,
+        storeLogoKey: stores.logoKey,
+        storeTotalProducts: stores.totalProducts,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
