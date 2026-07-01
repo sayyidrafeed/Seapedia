@@ -4,17 +4,6 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
-export type UserResponse = {
-  id: string;
-  username: string;
-  email: string;
-  name: string | unknown;
-  avatarKey: string | unknown;
-  avatarUrl: string | unknown;
-  isOnboarded: boolean;
-  createdAt: string;
-};
-
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -76,6 +65,18 @@ export type Product = {
   slug: string;
   imageKey: string | unknown;
   imageUrl: string | unknown;
+  rating?: string;
+  reviewCount?: number;
+};
+
+export type ProductReviewResponse = {
+  id: string;
+  productId: string;
+  buyerId: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 };
 
 export type SellerProductResponse = {
@@ -598,6 +599,8 @@ export type GetProductByIdResponses = {
     slug: string;
     imageKey: string | unknown;
     imageUrl: string | unknown;
+    rating?: string;
+    reviewCount?: number;
   };
 };
 
@@ -647,6 +650,8 @@ export type GetProductBySlugResponses = {
     slug: string;
     imageKey: string | unknown;
     imageUrl: string | unknown;
+    rating?: string;
+    reviewCount?: number;
   };
 };
 
@@ -703,6 +708,116 @@ export type PresignProductImageResponses = {
 
 export type PresignProductImageResponse =
   PresignProductImageResponses[keyof PresignProductImageResponses];
+
+export type GetProductReviewsData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  };
+  url: '/api/products/{id}/reviews';
+};
+
+export type GetProductReviewsErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetProductReviewsError = GetProductReviewsErrors[keyof GetProductReviewsErrors];
+
+export type GetProductReviewsResponses = {
+  /**
+   * Product reviews list
+   */
+  200: {
+    reviews: Array<ProductReviewResponse>;
+    total: number;
+  };
+};
+
+export type GetProductReviewsResponse =
+  GetProductReviewsResponses[keyof GetProductReviewsResponses];
+
+export type SubmitProductReviewData = {
+  body: {
+    rating: number;
+    comment: string;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/products/{id}/reviews';
+};
+
+export type SubmitProductReviewErrors = {
+  /**
+   * Bad Request
+   */
+  400: {
+    error: string;
+  };
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Forbidden
+   */
+  403: {
+    error: string;
+  };
+  /**
+   * Not Found
+   */
+  404: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type SubmitProductReviewError = SubmitProductReviewErrors[keyof SubmitProductReviewErrors];
+
+export type SubmitProductReviewResponses = {
+  /**
+   * Review submitted successfully
+   */
+  201: {
+    id: string;
+    productId: string;
+    buyerId: string;
+    reviewerName: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+  };
+};
+
+export type SubmitProductReviewResponse =
+  SubmitProductReviewResponses[keyof SubmitProductReviewResponses];
 
 export type ListSellerProductsData = {
   body?: never;
@@ -1584,11 +1699,57 @@ export type UpdateUserProfileResponses = {
   /**
    * Profile updated successfully
    */
-  200: UserResponse;
+  200: {
+    id: string;
+    username: string;
+    email: string;
+    name: string | unknown;
+    avatarKey: string | unknown;
+    avatarUrl: string | unknown;
+    isOnboarded: boolean;
+    createdAt: string;
+  };
 };
 
 export type UpdateUserProfileResponse =
   UpdateUserProfileResponses[keyof UpdateUserProfileResponses];
+
+export type GetMyProductReviewsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/users/me/product-reviews';
+};
+
+export type GetMyProductReviewsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: {
+    error: string;
+  };
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetMyProductReviewsError = GetMyProductReviewsErrors[keyof GetMyProductReviewsErrors];
+
+export type GetMyProductReviewsResponses = {
+  /**
+   * User product reviews list
+   */
+  200: {
+    reviews: Array<ProductReviewResponse>;
+    total: number;
+  };
+};
+
+export type GetMyProductReviewsResponse =
+  GetMyProductReviewsResponses[keyof GetMyProductReviewsResponses];
 
 export type GetBuyerWalletData = {
   body?: never;

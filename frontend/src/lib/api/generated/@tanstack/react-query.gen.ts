@@ -38,8 +38,10 @@ import {
   getDriverJobDetail,
   getDriverJobHistory,
   getDriverStats,
+  getMyProductReviews,
   getProductById,
   getProductBySlug,
+  getProductReviews,
   getPromo,
   getProvinces,
   getPublicStoreInfo,
@@ -76,6 +78,7 @@ import {
   setDefaultAddress,
   simulateTime,
   simulateTopUp,
+  submitProductReview,
   submitReview,
   takeDeliveryJob,
   updateAddress,
@@ -170,12 +173,18 @@ import type {
   GetDriverStatsData,
   GetDriverStatsError,
   GetDriverStatsResponse,
+  GetMyProductReviewsData,
+  GetMyProductReviewsError,
+  GetMyProductReviewsResponse,
   GetProductByIdData,
   GetProductByIdError,
   GetProductByIdResponse,
   GetProductBySlugData,
   GetProductBySlugError,
   GetProductBySlugResponse,
+  GetProductReviewsData,
+  GetProductReviewsError,
+  GetProductReviewsResponse,
   GetPromoData,
   GetPromoError,
   GetPromoResponse,
@@ -280,6 +289,9 @@ import type {
   SimulateTopUpData,
   SimulateTopUpError,
   SimulateTopUpResponse,
+  SubmitProductReviewData,
+  SubmitProductReviewError,
+  SubmitProductReviewResponse,
   SubmitReviewData,
   SubmitReviewError,
   SubmitReviewResponse,
@@ -738,6 +750,102 @@ export const presignProductImageMutation = (
   > = {
     mutationFn: async (fnOptions) => {
       const { data } = await presignProductImage({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProductReviewsQueryKey = (options: Options<GetProductReviewsData>) =>
+  createQueryKey('getProductReviews', options);
+
+/**
+ * Get product reviews list (Public)
+ */
+export const getProductReviewsOptions = (options: Options<GetProductReviewsData>) =>
+  queryOptions<
+    GetProductReviewsResponse,
+    GetProductReviewsError,
+    GetProductReviewsResponse,
+    ReturnType<typeof getProductReviewsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProductReviews({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProductReviewsQueryKey(options),
+  });
+
+export const getProductReviewsInfiniteQueryKey = (
+  options: Options<GetProductReviewsData>,
+): QueryKey<Options<GetProductReviewsData>> => createQueryKey('getProductReviews', options, true);
+
+/**
+ * Get product reviews list (Public)
+ */
+export const getProductReviewsInfiniteOptions = (options: Options<GetProductReviewsData>) =>
+  infiniteQueryOptions<
+    GetProductReviewsResponse,
+    GetProductReviewsError,
+    InfiniteData<GetProductReviewsResponse>,
+    QueryKey<Options<GetProductReviewsData>>,
+    | number
+    | Pick<QueryKey<Options<GetProductReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetProductReviewsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getProductReviews({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getProductReviewsInfiniteQueryKey(options),
+    },
+  );
+
+/**
+ * Submit a product review (Buyer only)
+ */
+export const submitProductReviewMutation = (
+  options?: Partial<Options<SubmitProductReviewData>>,
+): UseMutationOptions<
+  SubmitProductReviewResponse,
+  SubmitProductReviewError,
+  Options<SubmitProductReviewData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SubmitProductReviewResponse,
+    SubmitProductReviewError,
+    Options<SubmitProductReviewData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await submitProductReview({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -1265,6 +1373,31 @@ export const updateUserProfileMutation = (
   };
   return mutationOptions;
 };
+
+export const getMyProductReviewsQueryKey = (options?: Options<GetMyProductReviewsData>) =>
+  createQueryKey('getMyProductReviews', options);
+
+/**
+ * Get all product reviews submitted by current user
+ */
+export const getMyProductReviewsOptions = (options?: Options<GetMyProductReviewsData>) =>
+  queryOptions<
+    GetMyProductReviewsResponse,
+    GetMyProductReviewsError,
+    GetMyProductReviewsResponse,
+    ReturnType<typeof getMyProductReviewsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMyProductReviews({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getMyProductReviewsQueryKey(options),
+  });
 
 export const getBuyerWalletQueryKey = (options?: Options<GetBuyerWalletData>) =>
   createQueryKey('getBuyerWallet', options);

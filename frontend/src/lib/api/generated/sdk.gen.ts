@@ -87,12 +87,18 @@ import type {
   GetDriverStatsData,
   GetDriverStatsErrors,
   GetDriverStatsResponses,
+  GetMyProductReviewsData,
+  GetMyProductReviewsErrors,
+  GetMyProductReviewsResponses,
   GetProductByIdData,
   GetProductByIdErrors,
   GetProductByIdResponses,
   GetProductBySlugData,
   GetProductBySlugErrors,
   GetProductBySlugResponses,
+  GetProductReviewsData,
+  GetProductReviewsErrors,
+  GetProductReviewsResponses,
   GetPromoData,
   GetPromoErrors,
   GetPromoResponses,
@@ -197,6 +203,9 @@ import type {
   SimulateTopUpData,
   SimulateTopUpErrors,
   SimulateTopUpResponses,
+  SubmitProductReviewData,
+  SubmitProductReviewErrors,
+  SubmitProductReviewResponses,
   SubmitReviewData,
   SubmitReviewErrors,
   SubmitReviewResponses,
@@ -464,6 +473,42 @@ export const presignProductImage = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/products/image/presign',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get product reviews list (Public)
+ */
+export const getProductReviews = <ThrowOnError extends boolean = false>(
+  options: Options<GetProductReviewsData, ThrowOnError>,
+): RequestResult<GetProductReviewsResponses, GetProductReviewsErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetProductReviewsResponses, GetProductReviewsErrors, ThrowOnError>(
+    { url: '/api/products/{id}/reviews', ...options },
+  );
+
+/**
+ * Submit a product review (Buyer only)
+ */
+export const submitProductReview = <ThrowOnError extends boolean = false>(
+  options: Options<SubmitProductReviewData, ThrowOnError>,
+): RequestResult<SubmitProductReviewResponses, SubmitProductReviewErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    SubmitProductReviewResponses,
+    SubmitProductReviewErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/products/{id}/reviews',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -870,6 +915,28 @@ export const updateUserProfile = <ThrowOnError extends boolean = false>(
       },
     },
   );
+
+/**
+ * Get all product reviews submitted by current user
+ */
+export const getMyProductReviews = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyProductReviewsData, ThrowOnError>,
+): RequestResult<GetMyProductReviewsResponses, GetMyProductReviewsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetMyProductReviewsResponses,
+    GetMyProductReviewsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/users/me/product-reviews',
+    ...options,
+  });
 
 /**
  * Get buyer wallet balance

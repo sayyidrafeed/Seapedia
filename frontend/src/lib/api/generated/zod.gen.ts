@@ -2,17 +2,6 @@
 
 import * as z from 'zod';
 
-export const zUserResponse = z.object({
-  id: z.string(),
-  username: z.string(),
-  email: z.string(),
-  name: z.union([z.string(), z.unknown()]),
-  avatarKey: z.union([z.string(), z.unknown()]),
-  avatarUrl: z.union([z.string(), z.unknown()]),
-  isOnboarded: z.boolean(),
-  createdAt: z.string(),
-});
-
 export const zAddressResponse = z.object({
   id: z.string(),
   userId: z.string(),
@@ -80,6 +69,18 @@ export const zProduct = z.object({
   slug: z.string(),
   imageKey: z.union([z.string(), z.unknown()]),
   imageUrl: z.union([z.string(), z.unknown()]),
+  rating: z.string().optional().default('0.00'),
+  reviewCount: z.number().optional().default(0),
+});
+
+export const zProductReviewResponse = z.object({
+  id: z.string(),
+  productId: z.string(),
+  buyerId: z.string(),
+  reviewerName: z.string(),
+  rating: z.number(),
+  comment: z.string(),
+  createdAt: z.string(),
 });
 
 export const zSellerProductResponse = z.object({
@@ -321,6 +322,8 @@ export const zGetProductByIdResponse = z.object({
   slug: z.string(),
   imageKey: z.union([z.string(), z.unknown()]),
   imageUrl: z.union([z.string(), z.unknown()]),
+  rating: z.string().optional().default('0.00'),
+  reviewCount: z.number().optional().default(0),
 });
 
 export const zGetProductBySlugPath = z.object({
@@ -344,6 +347,8 @@ export const zGetProductBySlugResponse = z.object({
   slug: z.string(),
   imageKey: z.union([z.string(), z.unknown()]),
   imageUrl: z.union([z.string(), z.unknown()]),
+  rating: z.string().optional().default('0.00'),
+  reviewCount: z.number().optional().default(0),
 });
 
 export const zPresignProductImageBody = z.object({
@@ -357,6 +362,48 @@ export const zPresignProductImageResponse = z.object({
   uploadUrl: z.string(),
   objectKey: z.string(),
   publicUrl: z.string(),
+});
+
+export const zGetProductReviewsPath = z.object({
+  id: z.string(),
+});
+
+export const zGetProductReviewsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+/**
+ * Product reviews list
+ */
+export const zGetProductReviewsResponse = z.object({
+  reviews: z.array(zProductReviewResponse),
+  total: z.number(),
+});
+
+export const zSubmitProductReviewBody = z.object({
+  rating: z.int().gte(1).lte(5),
+  comment: z.string().min(1).max(1000),
+});
+
+export const zSubmitProductReviewPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Review submitted successfully
+ */
+export const zSubmitProductReviewResponse = z.object({
+  id: z.string(),
+  productId: z.string(),
+  buyerId: z.string(),
+  reviewerName: z.string(),
+  rating: z.number(),
+  comment: z.string(),
+  createdAt: z.string(),
 });
 
 export const zListSellerProductsQuery = z.object({
@@ -642,7 +689,24 @@ export const zUpdateUserProfileBody = z.object({
 /**
  * Profile updated successfully
  */
-export const zUpdateUserProfileResponse = zUserResponse;
+export const zUpdateUserProfileResponse = z.object({
+  id: z.string(),
+  username: z.string(),
+  email: z.string(),
+  name: z.union([z.string(), z.unknown()]),
+  avatarKey: z.union([z.string(), z.unknown()]),
+  avatarUrl: z.union([z.string(), z.unknown()]),
+  isOnboarded: z.boolean(),
+  createdAt: z.string(),
+});
+
+/**
+ * User product reviews list
+ */
+export const zGetMyProductReviewsResponse = z.object({
+  reviews: z.array(zProductReviewResponse),
+  total: z.number(),
+});
 
 /**
  * Wallet details
