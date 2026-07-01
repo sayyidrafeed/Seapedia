@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { products, stores } from '@/db/schema';
-import { eq, and, ilike, or, sql } from 'drizzle-orm';
+import { eq, and, ilike, or, sql, count } from 'drizzle-orm';
 import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/errors';
 import { StoreService } from '@/modules/stores/stores.service';
 import { StorageService } from '@/lib/storage';
@@ -67,25 +67,27 @@ export class ProductsService {
 
     const slug = await ProductsService.getUniqueProductSlug(store.id, input.name);
 
-    const [product] = await db
-      .insert(products)
-      .values({
-        storeId: store.id,
-        name: input.name,
-        slug,
-        description: input.description,
-        price: input.price,
-        stock: input.stock,
-        imageKey: input.imageKey || null,
-      })
-      .returning();
+    return await db.transaction(async (tx) => {
+      const [product] = await tx
+        .insert(products)
+        .values({
+          storeId: store.id,
+          name: input.name,
+          slug,
+          description: input.description,
+          price: input.price,
+          stock: input.stock,
+          imageKey: input.imageKey || null,
+        })
+        .returning();
 
-    await db
-      .update(stores)
-      .set({ totalProducts: sql`${stores.totalProducts} + 1` })
-      .where(eq(stores.id, store.id));
+      await tx
+        .update(stores)
+        .set({ totalProducts: sql`${stores.totalProducts} + 1` })
+        .where(eq(stores.id, store.id));
 
-    return product;
+      return product;
+    });
   }
 
   static async getSellerProducts(sellerId: string, options?: { page?: number; limit?: number }) {
@@ -98,10 +100,10 @@ export class ProductsService {
     }
 
     const countResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(products)
       .where(eq(products.storeId, store.id));
-    const total = Number(countResult[0]?.count ?? 0);
+    const total = countResult[0]?.count ?? 0;
 
     const results = await db.query.products.findMany({
       where: eq(products.storeId, store.id),
@@ -202,11 +204,13 @@ export class ProductsService {
       throw new NotFoundError('Product not found or does not belong to your store');
     }
 
-    await db.delete(products).where(eq(products.id, productId));
-    await db
-      .update(stores)
-      .set({ totalProducts: sql`${stores.totalProducts} - 1` })
-      .where(eq(stores.id, store.id));
+    await db.transaction(async (tx) => {
+      await tx.delete(products).where(eq(products.id, productId));
+      await tx
+        .update(stores)
+        .set({ totalProducts: sql`${stores.totalProducts} - 1` })
+        .where(eq(stores.id, store.id));
+    });
 
     if (product.imageKey) {
       await StorageService.deleteObject(product.imageKey);
@@ -247,11 +251,11 @@ export class ProductsService {
     const whereCond = conditions.length > 0 ? and(...conditions) : undefined;
 
     const countResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
       .where(whereCond);
-    const total = Number(countResult[0]?.count ?? 0);
+    const total = countResult[0]?.count ?? 0;
 
     const results = await db
       .select({

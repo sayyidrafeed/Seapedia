@@ -107,6 +107,9 @@ mock.module('@/db', () => {
     insert: makeInsert(),
     update: makeUpdate(),
     delete: makeDelete(),
+    transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+      return await fn(db);
+    },
   };
 
   return { db };

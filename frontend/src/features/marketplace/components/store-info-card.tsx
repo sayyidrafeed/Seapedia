@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Star, Package } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface StoreInfoCardProps {
   storeName: string;
@@ -18,6 +19,8 @@ export function StoreInfoCard({
   storeReviewCount,
   storeTotalProducts,
 }: StoreInfoCardProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-card border border-border p-5 rounded-xl flex items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-4">
@@ -44,13 +47,13 @@ export function StoreInfoCard({
               <span className="font-semibold text-foreground">
                 {parseFloat(storeRating).toFixed(1)}
               </span>
-              <span>({storeReviewCount} ulasan)</span>
+              <span>({storeReviewCount} {t('reviews.countLabel', 'ulasan')})</span>
             </div>
             <span className="text-muted-foreground/30">•</span>
             <div className="flex items-center gap-1">
               <Package className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="font-semibold text-foreground">{storeTotalProducts}</span>
-              <span>Produk</span>
+              <span>{t('seller.products.productHeader', 'Produk')}</span>
             </div>
           </div>
         </div>
@@ -60,8 +63,9 @@ export function StoreInfoCard({
         params={{ storeSlug }}
         className="rounded-lg border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-muted transition-colors"
       >
-        Kunjungi Toko
+        {t('visitStore', 'Kunjungi Toko')}
       </Link>
     </div>
   );
 }
+

@@ -7,7 +7,7 @@ import {
   orderItems,
   products,
 } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, count } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@/lib/errors';
 
 const jobColumns = {
@@ -130,7 +130,13 @@ export class DriverService {
 
       // Increment soldCount on products in the order
       const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, job.orderId));
-      for (const item of items) {
+      // Sort items by productId to prevent deadlocks during bulk updates
+      const sortedItems = [...items].sort((a, b) => {
+        if (!a.productId) return 1;
+        if (!b.productId) return -1;
+        return a.productId.localeCompare(b.productId);
+      });
+      for (const item of sortedItems) {
         if (item.productId) {
           await tx
             .update(products)
@@ -159,7 +165,7 @@ export class DriverService {
     const [stats] = await db
       .select({
         totalEarnings: sql<number>`CAST(COALESCE(SUM(${deliveryJobs.deliveryFee}), 0) AS INTEGER)`,
-        completedCount: sql<number>`CAST(COUNT(*) AS INTEGER)`,
+        completedCount: count(),
       })
       .from(deliveryJobs)
       .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')));
@@ -198,7 +204,7 @@ export class DriverService {
       .offset(offset);
 
     const [totalCount] = await db
-      .select({ count: sql<number>`CAST(COUNT(*) AS INTEGER)` })
+      .select({ count: count() })
       .from(deliveryJobs)
       .where(and(eq(deliveryJobs.driverId, driverId), eq(deliveryJobs.status, 'completed')));
 

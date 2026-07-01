@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { orders, orderItems, products, productReviews, users, stores } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, count } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 
 export class ProductReviewsService {
@@ -135,7 +135,7 @@ export class ProductReviewsService {
     const offset = (page - 1) * limit;
 
     const countResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(productReviews)
       .where(eq(productReviews.productId, productId));
 
@@ -177,7 +177,7 @@ export class ProductReviewsService {
     const reviewerName = user?.name ?? 'Saya';
 
     const countResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(productReviews)
       .where(eq(productReviews.buyerId, buyerId));
 
