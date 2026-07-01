@@ -2,6 +2,17 @@
 
 import * as z from 'zod';
 
+export const zUserResponse = z.object({
+  id: z.string(),
+  username: z.string(),
+  email: z.string(),
+  name: z.union([z.string(), z.unknown()]),
+  avatarKey: z.union([z.string(), z.unknown()]),
+  avatarUrl: z.union([z.string(), z.unknown()]),
+  isOnboarded: z.boolean(),
+  createdAt: z.string(),
+});
+
 export const zAddressResponse = z.object({
   id: z.string(),
   userId: z.string(),
@@ -67,6 +78,8 @@ export const zProduct = z.object({
   storeName: z.string(),
   storeSlug: z.string(),
   slug: z.string(),
+  imageKey: z.union([z.string(), z.unknown()]),
+  imageUrl: z.union([z.string(), z.unknown()]),
 });
 
 export const zSellerProductResponse = z.object({
@@ -76,6 +89,8 @@ export const zSellerProductResponse = z.object({
   description: z.union([z.string(), z.unknown()]),
   price: z.number(),
   stock: z.number(),
+  imageKey: z.union([z.string(), z.unknown()]),
+  imageUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -211,6 +226,8 @@ export const zGetCurrentUserResponse = z.object({
   username: z.string(),
   email: z.string(),
   name: z.union([z.string(), z.unknown()]),
+  avatarKey: z.union([z.string(), z.unknown()]),
+  avatarUrl: z.union([z.string(), z.unknown()]),
   isOnboarded: z.boolean(),
   createdAt: z.string(),
 });
@@ -302,6 +319,8 @@ export const zGetProductByIdResponse = z.object({
   storeName: z.string(),
   storeSlug: z.string(),
   slug: z.string(),
+  imageKey: z.union([z.string(), z.unknown()]),
+  imageUrl: z.union([z.string(), z.unknown()]),
 });
 
 export const zGetProductBySlugPath = z.object({
@@ -323,6 +342,21 @@ export const zGetProductBySlugResponse = z.object({
   storeName: z.string(),
   storeSlug: z.string(),
   slug: z.string(),
+  imageKey: z.union([z.string(), z.unknown()]),
+  imageUrl: z.union([z.string(), z.unknown()]),
+});
+
+export const zPresignProductImageBody = z.object({
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+});
+
+/**
+ * Presigned URL generated successfully
+ */
+export const zPresignProductImageResponse = z.object({
+  uploadUrl: z.string(),
+  objectKey: z.string(),
+  publicUrl: z.string(),
 });
 
 export const zListSellerProductsQuery = z.object({
@@ -346,6 +380,7 @@ export const zCreateSellerProductBody = z.object({
   description: z.union([z.string(), z.unknown()]).optional(),
   price: z.int().gte(0).lte(9007199254740991),
   stock: z.int().gte(0).lte(9007199254740991),
+  imageKey: z.union([z.string().max(512), z.unknown()]).optional(),
 });
 
 /**
@@ -358,6 +393,8 @@ export const zCreateSellerProductResponse = z.object({
   description: z.union([z.string(), z.unknown()]),
   price: z.number(),
   stock: z.number(),
+  imageKey: z.union([z.string(), z.unknown()]),
+  imageUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -395,6 +432,8 @@ export const zGetSellerProductByIdResponse = z.object({
   description: z.union([z.string(), z.unknown()]),
   price: z.number(),
   stock: z.number(),
+  imageKey: z.union([z.string(), z.unknown()]),
+  imageUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -404,6 +443,7 @@ export const zUpdateSellerProductBody = z.object({
   description: z.union([z.string(), z.unknown()]).optional(),
   price: z.int().gte(0).lte(9007199254740991).optional(),
   stock: z.int().gte(0).lte(9007199254740991).optional(),
+  imageKey: z.union([z.string().max(512), z.unknown()]).optional(),
 });
 
 export const zUpdateSellerProductPath = z.object({
@@ -424,6 +464,8 @@ export const zUpdateSellerProductResponse = z.object({
   description: z.union([z.string(), z.unknown()]),
   price: z.number(),
   stock: z.number(),
+  imageKey: z.union([z.string(), z.unknown()]),
+  imageUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -485,6 +527,7 @@ export const zPrivateDriverEndpointResponse = z.object({
 export const zCreateStoreBody = z.object({
   name: z.string().min(3).max(255),
   description: z.string().optional(),
+  logoKey: z.union([z.string().max(512), z.unknown()]).optional(),
 });
 
 /**
@@ -496,6 +539,8 @@ export const zCreateStoreResponse = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
+  logoKey: z.union([z.string(), z.unknown()]),
+  logoUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -509,6 +554,8 @@ export const zGetCurrentSellerStoreResponse = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
+  logoKey: z.union([z.string(), z.unknown()]),
+  logoUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -516,6 +563,7 @@ export const zGetCurrentSellerStoreResponse = z.object({
 export const zUpdateCurrentSellerStoreBody = z.object({
   name: z.string().min(3).max(255).optional(),
   description: z.string().optional(),
+  logoKey: z.union([z.string().max(512), z.unknown()]).optional(),
 });
 
 /**
@@ -527,6 +575,8 @@ export const zUpdateCurrentSellerStoreResponse = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
+  logoKey: z.union([z.string(), z.unknown()]),
+  logoUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -544,9 +594,55 @@ export const zGetPublicStoreInfoResponse = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.union([z.string(), z.unknown()]),
+  logoKey: z.union([z.string(), z.unknown()]),
+  logoUrl: z.union([z.string(), z.unknown()]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
+
+export const zPresignStoreLogoBody = z.object({
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+});
+
+export const zPresignStoreLogoPath = z.object({
+  storeId: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Presigned URL generated successfully
+ */
+export const zPresignStoreLogoResponse = z.object({
+  uploadUrl: z.string(),
+  objectKey: z.string(),
+  publicUrl: z.string(),
+});
+
+export const zPresignUserAvatarBody = z.object({
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+});
+
+/**
+ * Presigned URL generated successfully
+ */
+export const zPresignUserAvatarResponse = z.object({
+  uploadUrl: z.string(),
+  objectKey: z.string(),
+  publicUrl: z.string(),
+});
+
+export const zUpdateUserProfileBody = z.object({
+  name: z.string().max(255).optional(),
+  avatarKey: z.union([z.string().max(512), z.unknown()]).optional(),
+});
+
+/**
+ * Profile updated successfully
+ */
+export const zUpdateUserProfileResponse = zUserResponse;
 
 /**
  * Wallet details
