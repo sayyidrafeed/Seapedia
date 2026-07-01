@@ -9,6 +9,7 @@ import { StorageService } from '@/lib/storage';
 import { HTTPException } from 'hono/http-exception';
 import { ProductReviewsService } from '@/modules/product-reviews/product-reviews.service';
 import { productReviewListResponseSchema } from '@/modules/product-reviews/product-reviews.schemas';
+import { paginationQuerySchema } from '@/lib/schemas';
 
 export const usersRouter = factory.createApp();
 
@@ -86,11 +87,13 @@ usersRouter.get(
       ...errorResponses(401, 500),
     },
   }),
+  validator('query', paginationQuerySchema),
   async (c) => {
     const userId = c.get('userId');
     if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
 
-    const result = await ProductReviewsService.getMyProductReviews(userId);
+    const { page, limit } = c.req.valid('query');
+    const result = await ProductReviewsService.getMyProductReviews(userId, { page, limit });
 
     return c.json({
       reviews: result.reviews.map((r) => ({
@@ -102,7 +105,7 @@ usersRouter.get(
         comment: r.comment,
         createdAt: r.createdAt.toISOString(),
       })),
-      total: result.reviews.length,
+      total: result.total,
     });
   },
 );

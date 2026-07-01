@@ -196,4 +196,33 @@ describe('ProductReviewsService', () => {
       expect(result.reviews[0].reviewerName).toBe('John');
     });
   });
+
+  describe('getMyProductReviews', () => {
+    test('should fetch and paginate user own reviews list', async () => {
+      // 1. User name query (from coalesce users name/username)
+      dbState.addSelect([{ name: 'John Doe' }]);
+      // 2. Count query for user reviews
+      dbState.addSelect([{ count: 1 }]);
+      // 3. Paginated list query
+      dbState.addSelect([
+        {
+          id: 'r-1',
+          rating: 5,
+          comment: 'Perfect product',
+          productId: 'p1',
+          buyerId: 'b1',
+          createdAt: new Date(),
+        },
+      ]);
+
+      const result = await ProductReviewsService.getMyProductReviews('b1', {
+        page: 1,
+        limit: 5,
+      });
+      expect(result.total).toBe(1);
+      expect(result.reviews).toHaveLength(1);
+      expect(result.reviews[0].reviewerName).toBe('John Doe');
+      expect(result.reviews[0].comment).toBe('Perfect product');
+    });
+  });
 });
