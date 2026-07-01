@@ -112,6 +112,34 @@ mock.module('@/db', () => {
   return { db };
 });
 
+const storageState = {
+  deleteCalls: [] as string[],
+  reset() {
+    this.deleteCalls = [];
+  },
+};
+
+mock.module('@/lib/storage', () => {
+  return {
+    StorageService: {
+      generatePresignedUpload: (prefix: string, _mimeType: string) => {
+        return Promise.resolve({
+          uploadUrl: `https://r2-mock.com/${prefix}/file.png`,
+          objectKey: `${prefix}/file.png`,
+          publicUrl: `https://cdn.mock.com/${prefix}/file.png`,
+        });
+      },
+      deleteObject: (key: string) => {
+        storageState.deleteCalls.push(key);
+        return Promise.resolve();
+      },
+      getPublicUrl: (key: string) => {
+        return `https://cdn.mock.com/${key}`;
+      },
+    },
+  };
+});
+
 import { ProductsService } from './products.service';
 
 const makeStore = (overrides: Record<string, unknown> = {}) => ({
@@ -131,6 +159,7 @@ const makeProduct = (overrides: Record<string, unknown> = {}) => ({
   description: 'Product Desc',
   price: 100000,
   stock: 10,
+  imageKey: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   ...overrides,
@@ -139,6 +168,7 @@ const makeProduct = (overrides: Record<string, unknown> = {}) => ({
 describe('ProductsService', () => {
   beforeEach(() => {
     dbState.reset();
+    storageState.reset();
   });
 
   describe('createSellerProduct', () => {
@@ -242,6 +272,19 @@ describe('ProductsService', () => {
       expect(result.name).toBe('Updated Product Name');
     });
 
+    test('updates imageKey and deletes old product image', async () => {
+      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
+      dbState.addSelect([makeProduct({ imageKey: 'products/images/old.png' })]); // products.findFirst
+      dbState.addUpdate([makeProduct({ imageKey: 'products/images/new.png' })]); // update products
+
+      const result = await ProductsService.updateSellerProduct('seller-1', 'prod-1', {
+        imageKey: 'products/images/new.png',
+      });
+
+      expect(result.imageKey).toBe('products/images/new.png');
+      expect(storageState.deleteCalls).toContain('products/images/old.png');
+    });
+
     test('throws NotFoundError if product is not found or from other store', async () => {
       dbState.addSelect([makeStore()]); // StoreService.getBySellerId
       dbState.addSelect([]); // products.findFirst returns null
@@ -255,13 +298,30 @@ describe('ProductsService', () => {
   });
 
   describe('deleteSellerProduct', () => {
-    test('deletes product successfully', async () => {
+    test('deletes product successfully and deletes its image from R2', async () => {
       dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([makeProduct()]); // products.findFirst
+      dbState.addSelect([makeProduct({ imageKey: 'products/images/to-delete.png' })]); // products.findFirst
 
       const result = await ProductsService.deleteSellerProduct('seller-1', 'prod-1');
 
       expect(result.success).toBe(true);
+      expect(storageState.deleteCalls).toContain('products/images/to-delete.png');
+    });
+  });
+
+  describe('presignImage', () => {
+    test('generates presigned product image URL successfully', async () => {
+      dbState.addSelect([makeStore()]);
+      const result = await ProductsService.presignImage('seller-1', 'image/png');
+      expect(result.uploadUrl).toBe('https://r2-mock.com/products/images/file.png');
+      expect(result.objectKey).toBe('products/images/file.png');
+    });
+
+    test('throws ForbiddenError if seller has no store', async () => {
+      dbState.addSelect([]); // no store
+      await expect(ProductsService.presignImage('seller-1', 'image/png')).rejects.toThrow(
+        'Store not found',
+      );
     });
   });
 });

@@ -13,6 +13,8 @@ export const productSchema = z
     storeName: z.string(),
     storeSlug: z.string(),
     slug: z.string(),
+    imageKey: z.string().nullable(),
+    imageUrl: z.string().nullable(),
   })
   .meta({ id: 'Product' });
 
@@ -43,6 +45,14 @@ export const createProductSchema = z
       .number(customMsg('Stok wajib diisi', 'Stok harus berupa angka'))
       .int('Stok harus berupa bilangan bulat')
       .nonnegative('Stok tidak boleh bernilai negatif'),
+    imageKey: z
+      .string({
+        message: 'Image key harus berupa teks',
+      })
+      .trim()
+      .max(512)
+      .optional()
+      .nullable(),
   })
   .meta({ id: 'CreateProduct' });
 
@@ -75,6 +85,14 @@ export const updateProductSchema = z
       .int('Stok harus berupa bilangan bulat')
       .nonnegative('Stok tidak boleh bernilai negatif')
       .optional(),
+    imageKey: z
+      .string({
+        message: 'Image key harus berupa teks',
+      })
+      .trim()
+      .max(512)
+      .optional()
+      .nullable(),
   })
   .meta({ id: 'UpdateProduct' });
 
@@ -86,6 +104,8 @@ export const sellerProductResponseSchema = z
     description: z.string().nullable(),
     price: z.number(),
     stock: z.number(),
+    imageKey: z.string().nullable(),
+    imageUrl: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })
