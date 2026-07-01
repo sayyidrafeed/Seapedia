@@ -17,6 +17,8 @@
     "db:seed": "bun src/db/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1077.0",
+    "@aws-sdk/s3-request-presigner": "^3.1077.0",
     "@hono/standard-validator": "^0.2.2",
     "@hono/zod-openapi": "latest",
     "@scalar/hono-api-reference": "latest",
