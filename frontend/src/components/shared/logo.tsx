@@ -40,6 +40,7 @@ export function Logo({ variant = 'wordmark', size = 'md', className, ...props }:
         src="/seapedia-transparent.png"
         alt="Seapedia Logo"
         className={cn(currentSize.img, 'object-contain')}
+        loading="lazy"
       />
       {variant === 'wordmark' && (
         <span className={cn('font-bold tracking-tight text-foreground', currentSize.text)}>
