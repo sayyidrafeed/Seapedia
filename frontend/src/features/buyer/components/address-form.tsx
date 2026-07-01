@@ -6,7 +6,7 @@ import { useProvinces, useCities, useDistricts } from '@/hooks/use-locations';
 import { getAddressDefaultValues } from '@/lib/api/locations';
 import type { AddressResponse, CreateAddressData } from '@/lib/api/generated';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface AddressFormProps {
   initialData: AddressResponse | null;
@@ -16,6 +16,7 @@ interface AddressFormProps {
 
 export function AddressForm({ initialData, onSubmit, isPending }: AddressFormProps) {
   const { t } = useTranslation();
+  const initialResolvedRef = useRef({ province: false, city: false, district: false });
 
   const { data: provinces, isLoading: loadingProvinces, isError: errorProvinces } = useProvinces();
 
@@ -37,7 +38,6 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
 
   const provinceId = useStore(form.store, (state) => state.values.province);
   const cityId = useStore(form.store, (state) => state.values.city);
-  const districtId = useStore(form.store, (state) => state.values.district);
 
   const { data: cities, isLoading: loadingCities, isError: errorCities } = useCities(provinceId);
   const {
@@ -46,39 +46,47 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
     isError: errorDistricts,
   } = useDistricts(cityId);
 
+  // Reset resolution tracker if initialData changes
+  useEffect(() => {
+    initialResolvedRef.current = { province: false, city: false, district: false };
+  }, [initialData]);
+
   // Resolve Province Name to ID
   useEffect(() => {
-    if (initialData?.province && provinces && !provinceId) {
+    if (initialData?.province && provinces && !initialResolvedRef.current.province) {
       const match = provinces.find(
         (p) => p.name.toLowerCase() === initialData.province.toLowerCase(),
       );
       if (match) {
         form.setFieldValue('province', match.id);
+        initialResolvedRef.current.province = true;
       }
     }
-  }, [initialData?.province, provinces, provinceId]);
+  }, [initialData?.province, provinces]);
 
   // Resolve City Name to ID
   useEffect(() => {
-    if (initialData?.city && cities && provinceId && !cityId) {
+    if (initialData?.city && cities && provinceId && !initialResolvedRef.current.city) {
       const match = cities.find((c) => c.name.toLowerCase() === initialData.city.toLowerCase());
       if (match) {
         form.setFieldValue('city', match.id);
+        initialResolvedRef.current.city = true;
       }
     }
-  }, [initialData?.city, cities, provinceId, cityId]);
+  }, [initialData?.city, cities, provinceId]);
 
   // Resolve District Name to ID
   useEffect(() => {
-    if (initialData?.district && districts && cityId && !districtId) {
+    if (initialData?.district && districts && cityId && !initialResolvedRef.current.district) {
       const match = districts.find(
         (d) => d.name.toLowerCase() === initialData.district.toLowerCase(),
       );
       if (match) {
         form.setFieldValue('district', match.id);
+        initialResolvedRef.current.district = true;
       }
     }
-  }, [initialData?.district, districts, cityId, districtId]);
+  }, [initialData?.district, districts, cityId]);
 
   return (
     <form
@@ -148,8 +156,8 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
                 form.setFieldValue('district', '');
               }}
               placeholder={t('buyer.address.provincePlaceholder')}
-              loadingPlaceholder="Loading provinces..."
-              errorPlaceholder="Error loading provinces"
+              loadingPlaceholder={t('buyer.address.loadingProvinces')}
+              errorPlaceholder={t('buyer.address.errorProvinces')}
               items={provinces}
               isLoading={loadingProvinces}
               isError={!!errorProvinces}
@@ -170,8 +178,8 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
                 form.setFieldValue('district', '');
               }}
               placeholder={t('buyer.address.cityPlaceholder')}
-              loadingPlaceholder="Loading cities..."
-              errorPlaceholder="Error loading cities"
+              loadingPlaceholder={t('buyer.address.loadingCities')}
+              errorPlaceholder={t('buyer.address.errorCities')}
               items={cities}
               isLoading={loadingCities}
               isError={!!errorCities}
@@ -191,8 +199,8 @@ export function AddressForm({ initialData, onSubmit, isPending }: AddressFormPro
                 f.handleChange(val);
               }}
               placeholder={t('buyer.address.districtPlaceholder')}
-              loadingPlaceholder="Loading districts..."
-              errorPlaceholder="Error loading districts"
+              loadingPlaceholder={t('buyer.address.loadingDistricts')}
+              errorPlaceholder={t('buyer.address.errorDistricts')}
               items={districts}
               isLoading={loadingDistricts}
               isError={!!errorDistricts}
