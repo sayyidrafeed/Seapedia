@@ -15,6 +15,8 @@ export const productSchema = z
     slug: z.string(),
     imageKey: z.string().nullable(),
     imageUrl: z.string().nullable(),
+    rating: z.string().default('0.00'),
+    reviewCount: z.number().default(0),
   })
   .meta({ id: 'Product' });
 
