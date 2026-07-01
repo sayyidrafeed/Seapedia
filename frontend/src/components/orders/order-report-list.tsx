@@ -142,9 +142,7 @@ export function OrderReportList({
                     </div>
                     <div>
                       <span className="text-muted-foreground block mb-0.5">
-                        {showStoreName
-                          ? t('buyer.checkout.discount')
-                          : t('buyer.checkout.discount')}
+                        {t('buyer.checkout.discount')}
                       </span>
                       <span className="font-bold text-destructive flex items-center gap-1 flex-wrap">
                         -{formatCurrency(order.discountAmount)}

@@ -63,7 +63,7 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
         <Input
           id="reviewer-name"
           type="text"
-          value="Your name"
+          value={reviewerName}
           onChange={(e) => setReviewerName(e.target.value)}
           placeholder={auth.user?.username || t('review.reviewerPlaceholder')}
         />
