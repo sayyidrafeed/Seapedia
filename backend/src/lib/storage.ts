@@ -61,7 +61,9 @@ export class StorageService {
     const uuid = crypto.randomUUID();
     // Normalize prefix to not have trailing/leading slashes
     const normalizedPrefix = prefix.replace(/^\/+|\/+$/g, '');
-    const objectKey = normalizedPrefix ? `${normalizedPrefix}/${uuid}${extension}` : `${uuid}${extension}`;
+    const objectKey = normalizedPrefix
+      ? `${normalizedPrefix}/${uuid}${extension}`
+      : `${uuid}${extension}`;
 
     const client = getS3Client();
     const command = new PutObjectCommand({

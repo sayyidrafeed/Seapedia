@@ -1,5 +1,6 @@
 import * as auth from './auth-schema';
 import * as review from './review-schema';
+import * as productReview from './product-review-schema';
 import * as store from './store-schema';
 import * as product from './product-schema';
 import * as buyer from './buyer-schema';
@@ -12,6 +13,7 @@ import * as timeOffset from './system-time-offset-schema';
 export const schema = {
   ...auth,
   ...review,
+  ...productReview,
   ...store,
   ...product,
   ...buyer,
@@ -31,9 +33,11 @@ export const vouchers = discount.vouchers;
 export const promos = discount.promos;
 export const deliveryJobs = delivery.deliveryJobs;
 export const systemTimeOffset = timeOffset.systemTimeOffset;
+export const productReviews = productReview.productReviews;
 
 export * from './auth-schema';
 export * from './review-schema';
+export * from './product-review-schema';
 export * from './store-schema';
 export * from './product-schema';
 export * from './buyer-schema';

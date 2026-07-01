@@ -13,6 +13,8 @@ import { useState, Suspense, lazy } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { Star } from 'lucide-react';
+import { ProductReviews } from '@/components/products/product-reviews';
 
 const CartConflictDialog = lazy(() =>
   import('@/components/cart/CartConflictDialog').then((m) => ({
@@ -166,6 +168,28 @@ function StoreProductPage() {
             </span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{product.name}</h1>
+          {Number(product.reviewCount) > 0 && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < Math.round(Number(product.rating))
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-muted-foreground/30'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-bold text-foreground">
+                {Number(product.rating).toFixed(1)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                ({product.reviewCount} {t('reviews.countLabel', 'ulasan')})
+              </span>
+            </div>
+          )}
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed border-t border-b border-border/50 py-6">
@@ -224,6 +248,8 @@ function StoreProductPage() {
           newStoreName={product.storeName}
         />
       </Suspense>
+
+      <ProductReviews productId={product.id} />
     </div>
   );
 }

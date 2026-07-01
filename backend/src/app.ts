@@ -9,6 +9,7 @@ import { healthRouter } from '@/modules/health/health.index';
 import { authRouter } from '@/modules/auth/auth.index';
 import { productsRouter, sellerProductsRouter } from '@/modules/products/products.index';
 import { reviewsRouter } from '@/modules/reviews/reviews.index';
+import { productReviewsRouter } from '@/modules/product-reviews/product-reviews.index';
 import { privateRouter } from '@/modules/private/private.index';
 import { storesRouter } from '@/modules/stores/stores.index';
 import { usersRouter } from '@/modules/users/users.index';
@@ -49,6 +50,7 @@ app.use(
 app.route('/api/health', healthRouter);
 app.route('/api/auth', authRouter);
 app.route('/api/products', productsRouter);
+app.route('/api/products', productReviewsRouter);
 app.route('/api/seller/products', sellerProductsRouter);
 app.route('/api/reviews', reviewsRouter);
 app.route('/api/private', privateRouter);
@@ -61,6 +63,17 @@ app.route('/api/admin', adminRouter);
 app.route('/api/discounts', discountsBuyerRouter);
 app.route('/api/driver', driverRouter);
 app.route('/api/locations', locationsRouter);
+
+app.get('/', (c) => {
+  return c.json({
+    name: 'Seapedia API',
+    version: '1.0.0',
+    description: 'Seapedia REST API — marketplace for seafood products',
+    docs: '/docs',
+    spec: '/openapi.json',
+    health: '/api/health',
+  });
+});
 
 app.get('/openapi.json', async (c) => {
   const spec = await generateSpecs(app, {

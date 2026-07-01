@@ -255,6 +255,8 @@ export class ProductsService {
         storeSlug: stores.slug,
         slug: products.slug,
         imageKey: products.imageKey,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
@@ -286,6 +288,8 @@ export class ProductsService {
         storeSlug: stores.slug,
         slug: products.slug,
         imageKey: products.imageKey,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
@@ -312,6 +316,8 @@ export class ProductsService {
         storeSlug: stores.slug,
         slug: products.slug,
         imageKey: products.imageKey,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
       })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
