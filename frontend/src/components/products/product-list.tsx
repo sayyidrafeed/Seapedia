@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Edit2, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export interface ProductItem {
   id: string;
@@ -17,10 +18,12 @@ interface ProductListProps {
 }
 
 export function ProductList({ products, onDelete, isDeleting }: ProductListProps) {
+  const { t } = useTranslation();
+
   if (products.length === 0) {
     return (
       <div className="text-center py-12 bg-card border border-dashed border-border rounded-xl">
-        <p className="text-muted-foreground text-sm">No products found. Start by adding one!</p>
+        <p className="text-muted-foreground text-sm">{t('seller.products.noProducts')}</p>
       </div>
     );
   }
@@ -32,10 +35,18 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="p-4 font-medium text-muted-foreground">Product</th>
-              <th className="p-4 font-medium text-muted-foreground">Price</th>
-              <th className="p-4 font-medium text-muted-foreground">Stock</th>
-              <th className="p-4 font-medium text-muted-foreground text-right">Actions</th>
+              <th className="p-4 font-medium text-muted-foreground">
+                {t('seller.products.productHeader')}
+              </th>
+              <th className="p-4 font-medium text-muted-foreground">
+                {t('seller.products.priceHeader')}
+              </th>
+              <th className="p-4 font-medium text-muted-foreground">
+                {t('seller.products.stockHeader')}
+              </th>
+              <th className="p-4 font-medium text-muted-foreground text-right">
+                {t('seller.products.actionsHeader')}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -60,7 +71,7 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
                         : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                     }`}
                   >
-                    {product.stock} available
+                    {t('seller.products.available', { count: product.stock })}
                   </span>
                 </td>
                 <td className="p-4 text-right space-x-2">
@@ -76,7 +87,7 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
                       disabled={isDeleting}
                     >
                       <Edit2 className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
+                      <span className="sr-only">{t('seller.products.edit')}</span>
                     </Button>
                   </Link>
                   <Button
@@ -87,7 +98,7 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
                     disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
+                    <span className="sr-only">{t('seller.products.delete')}</span>
                   </Button>
                 </td>
               </tr>
@@ -119,14 +130,14 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
                     : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                 }`}
               >
-                {product.stock} available
+                {t('seller.products.available', { count: product.stock })}
               </span>
             </div>
 
             <div className="flex items-center justify-between border-t border-border/60 pt-3 mt-1">
               <div>
                 <span className="text-[10px] text-muted-foreground uppercase block font-semibold tracking-wide">
-                  Price
+                  {t('seller.products.priceHeader')}
                 </span>
                 <span className="font-bold text-foreground text-sm">
                   Rp {product.price.toLocaleString('id-ID')}
@@ -146,7 +157,7 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
                     disabled={isDeleting}
                   >
                     <Edit2 className="h-3.5 w-3.5" />
-                    <span className="text-xs">Edit</span>
+                    <span className="text-xs">{t('seller.products.edit')}</span>
                   </Button>
                 </Link>
                 <Button
@@ -157,7 +168,7 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
                   disabled={isDeleting}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  <span className="text-xs">Delete</span>
+                  <span className="text-xs">{t('seller.products.delete')}</span>
                 </Button>
               </div>
             </div>
