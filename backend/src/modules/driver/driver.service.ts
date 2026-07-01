@@ -1,5 +1,12 @@
 import { db } from '@/db';
-import { deliveryJobs, orders, stores, orderStatusHistory, orderItems } from '@/db/schema';
+import {
+  deliveryJobs,
+  orders,
+  stores,
+  orderStatusHistory,
+  orderItems,
+  products,
+} from '@/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@/lib/errors';
 
@@ -120,6 +127,17 @@ export class DriverService {
         .where(and(eq(orders.id, job.orderId), eq(orders.status, 'sedang_dikirim')))
         .returning();
       if (!order) throw new ConflictError('Order is not in delivery status');
+
+      // Increment soldCount on products in the order
+      const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, job.orderId));
+      for (const item of items) {
+        if (item.productId) {
+          await tx
+            .update(products)
+            .set({ soldCount: sql`${products.soldCount} + ${item.quantity}` })
+            .where(eq(products.id, item.productId));
+        }
+      }
 
       await tx.insert(orderStatusHistory).values({
         orderId: job.orderId,
