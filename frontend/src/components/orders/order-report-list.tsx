@@ -181,7 +181,7 @@ export function OrderReportList({
 
                   {/* Ordered Items List - Collapsible Details for mobile/density optimization */}
                   <details className="text-xs text-muted-foreground pl-1 group">
-                    <summary className="font-semibold text-foreground/80 cursor-pointer hover:text-primary transition-colors flex items-center gap-1.5 list-none focus:outline-none select-none">
+                    <summary className="font-semibold text-foreground/80 cursor-pointer hover:text-primary transition-colors flex items-center gap-1.5 list-none [&::-webkit-details-marker]:hidden focus:outline-none select-none">
                       <span>{itemsLabelVal}</span>
                       <span className="text-[10px] text-muted-foreground font-normal">
                         ({order.items.reduce((sum, item) => sum + item.quantity, 0)} items)
