@@ -16,6 +16,7 @@ import { ordersRouter, sellerOrdersRouter } from '@/modules/orders/orders.index'
 import { adminRouter } from '@/modules/admin/admin.index';
 import { discountsBuyerRouter } from '@/modules/discounts/discounts.index';
 import { driverRouter } from '@/modules/driver/driver.index';
+import { locationsRouter } from '@/modules/locations/locations.index';
 import { frontendUrls } from '@/env';
 
 export const app = factory.createApp();
@@ -57,6 +58,7 @@ app.route('/api/seller/orders', sellerOrdersRouter);
 app.route('/api/admin', adminRouter);
 app.route('/api/discounts', discountsBuyerRouter);
 app.route('/api/driver', driverRouter);
+app.route('/api/locations', locationsRouter);
 
 app.get('/openapi.json', async (c) => {
   const spec = await generateSpecs(app, {

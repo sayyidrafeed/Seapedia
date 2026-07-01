@@ -20,6 +20,8 @@ import {
 import { BuyersService } from './buyers.service';
 import { BuyersCartService } from './buyers-cart.service';
 import { z } from 'zod';
+import { LocationsProvider } from '@/modules/locations/locations.service';
+import { ValidationError } from '@/lib/errors';
 
 export const buyersRouter = factory.createApp();
 
@@ -211,6 +213,15 @@ buyersRouter.post(
     const userId = c.get('userId') as string;
     const body = c.req.valid('json');
 
+    const isValid = await LocationsProvider.validateHierarchy(
+      body.province,
+      body.city,
+      body.district,
+    );
+    if (!isValid) {
+      throw new ValidationError('Wilayah administrasi tidak valid');
+    }
+
     const address = await BuyersService.createAddress(userId, body);
 
     c.status(201);
@@ -251,6 +262,15 @@ buyersRouter.put(
     const userId = c.get('userId') as string;
     const addressId = c.req.param('id');
     const body = c.req.valid('json');
+
+    const isValid = await LocationsProvider.validateHierarchy(
+      body.province,
+      body.city,
+      body.district,
+    );
+    if (!isValid) {
+      throw new ValidationError('Wilayah administrasi tidak valid');
+    }
 
     const address = await BuyersService.updateAddress(userId, addressId, body);
 
