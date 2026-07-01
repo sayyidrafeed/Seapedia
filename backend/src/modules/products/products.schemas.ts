@@ -17,6 +17,12 @@ export const productSchema = z
     imageUrl: z.string().nullable(),
     rating: z.string().default('0.00'),
     reviewCount: z.number().default(0),
+    soldCount: z.number().default(0),
+    storeRating: z.string().default('0.00'),
+    storeReviewCount: z.number().default(0),
+    storeLogoKey: z.string().nullable().optional(),
+    storeLogoUrl: z.string().nullable().optional(),
+    storeTotalProducts: z.number().default(0),
   })
   .meta({ id: 'Product' });
 
