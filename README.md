@@ -243,7 +243,7 @@ bun run dev
 ### 4. Buyer Walkthrough
 1. Login with `buyer1` / `buyer123`.
 2. Go to the Catalog, add a product to the cart.
-3. Top up the wallet if the balance is low (go to Wallet tab).
+3. Top up the wallet if the balance is low (go to Wallet tab, select/input amount, and click "Top Up" to add balance immediately).
 4. Complete the checkout using single-store checkout.
 5. Check Order History and verify the status is "Menunggu Konfirmasi" (Pending Confirmation).
 
