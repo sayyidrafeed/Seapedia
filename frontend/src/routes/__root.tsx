@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth/context';
 import { useEffect } from 'react';
 import { GlobalNavbar } from '@/components/shared/global-navbar';
 import { Footer } from '@/components/shared/footer';
+import { Toaster } from 'sonner';
 
 function RootComponent() {
   const auth = useAuth();
@@ -30,6 +31,8 @@ function RootComponent() {
       </main>
 
       <Footer />
+
+      <Toaster richColors position="top-center" closeButton />
 
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
     </div>
