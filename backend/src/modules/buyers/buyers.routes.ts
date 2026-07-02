@@ -6,7 +6,6 @@ import {
   walletResponseSchema,
   walletTransactionsListSchema,
   topUpRequestSchema,
-  topUpResponseSchema,
   walletTransactionResponseSchema,
   addressListResponseSchema,
   addressRequestSchema,
@@ -54,14 +53,14 @@ buyersRouter.get(
 );
 
 buyersRouter.post(
-  '/wallet/topup/request',
+  '/wallet/topup',
   describeRoute({
-    operationId: 'requestTopUp',
+    operationId: 'topUpWallet',
     tags: ['Buyer Wallet'],
-    summary: 'Initiate a simulated top-up request',
+    summary: 'Directly top up the wallet balance',
     security: [{ cookieAuth: [] }],
     responses: {
-      200: jsonContent(topUpResponseSchema, 'Top-up transaction initialized'),
+      200: jsonContent(walletTransactionResponseSchema, 'Wallet topped up successfully'),
       ...errorResponses(400, 401, 403, 500),
     },
   }),
@@ -70,52 +69,15 @@ buyersRouter.post(
   validator('json', topUpRequestSchema),
   async (c) => {
     const userId = c.get('userId') as string;
-    const { amount, paymentMethod } = c.req.valid('json');
+    const { amount } = c.req.valid('json');
 
-    const result = await BuyersService.createTopUpRequest(userId, amount, paymentMethod);
-
-    return c.json({
-      transaction: {
-        id: result.transaction.id,
-        walletId: result.transaction.walletId,
-        amount: result.transaction.amount,
-        type: result.transaction.type,
-        paymentMethod: result.transaction.paymentMethod,
-        status: result.transaction.status,
-        reference: result.transaction.reference,
-        createdAt: result.transaction.createdAt.toISOString(),
-      },
-      paymentInstructions: result.paymentInstructions,
-    });
-  },
-);
-
-buyersRouter.post(
-  '/wallet/topup/:transactionId/simulate',
-  describeRoute({
-    operationId: 'simulateTopUp',
-    tags: ['Buyer Wallet'],
-    summary: 'Simulate successful payment for a top-up transaction',
-    security: [{ cookieAuth: [] }],
-    responses: {
-      200: jsonContent(walletTransactionResponseSchema, 'Payment successful, wallet updated'),
-      ...errorResponses(401, 403, 404, 500),
-    },
-  }),
-  requireSession,
-  requireRole('buyer'),
-  async (c) => {
-    const userId = c.get('userId') as string;
-    const transactionId = c.req.param('transactionId');
-
-    const transaction = await BuyersService.simulateTopUpPayment(userId, transactionId);
+    const transaction = await BuyersService.directTopUp(userId, amount);
 
     return c.json({
       id: transaction.id,
       walletId: transaction.walletId,
       amount: transaction.amount,
       type: transaction.type,
-      paymentMethod: transaction.paymentMethod,
       status: transaction.status,
       reference: transaction.reference,
       createdAt: transaction.createdAt.toISOString(),
@@ -146,7 +108,6 @@ buyersRouter.get(
       walletId: t.walletId,
       amount: t.amount,
       type: t.type,
-      paymentMethod: t.paymentMethod,
       status: t.status,
       reference: t.reference,
       createdAt: t.createdAt.toISOString(),

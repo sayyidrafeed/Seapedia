@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useWallet } from '@/features/buyer/hooks/use-wallet';
 import { WalletBalanceCard } from '@/features/buyer/components/wallet-balance-card';
 import { TopUpForm } from '@/features/buyer/components/top-up-form';
-import { PendingPaymentCard } from '@/features/buyer/components/pending-payment-card';
 import { TransactionHistoryTable } from '@/features/buyer/components/transaction-history-table';
 
 export const Route = createFileRoute('/dashboard/buyer/wallet')({
@@ -17,20 +16,14 @@ function BuyerWalletPage() {
     isTxLoading,
     topUpAmount,
     customAmount,
-    selectedMethod,
-    pendingPayment,
-    isRequesting,
-    isSimulating,
-    setSelectedMethod,
+    isPending,
     handlePresetSelect,
     handleCustomAmountChange,
     handleRequestTopUp,
-    simulatePayment,
-    cancelPending,
   } = useWallet();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* Wallet overview and actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Balance Display */}
@@ -38,27 +31,16 @@ function BuyerWalletPage() {
           <WalletBalanceCard balance={wallet?.balance} isLoading={isWalletLoading} />
         </div>
 
-        {/* Top-up Form / Payment Simulation Area */}
+        {/* Top-up Form Area */}
         <div className="lg:col-span-2">
-          {!pendingPayment ? (
-            <TopUpForm
-              topUpAmount={topUpAmount}
-              customAmount={customAmount}
-              selectedMethod={selectedMethod}
-              isPending={isRequesting}
-              onPresetSelect={handlePresetSelect}
-              onCustomAmountChange={handleCustomAmountChange}
-              onMethodSelect={setSelectedMethod}
-              onSubmit={handleRequestTopUp}
-            />
-          ) : (
-            <PendingPaymentCard
-              pendingPayment={pendingPayment}
-              isSimulating={isSimulating}
-              onCancel={cancelPending}
-              onSimulateSuccess={simulatePayment}
-            />
-          )}
+          <TopUpForm
+            topUpAmount={topUpAmount}
+            customAmount={customAmount}
+            isPending={isPending}
+            onPresetSelect={handlePresetSelect}
+            onCustomAmountChange={handleCustomAmountChange}
+            onSubmit={handleRequestTopUp}
+          />
         </div>
       </div>
 

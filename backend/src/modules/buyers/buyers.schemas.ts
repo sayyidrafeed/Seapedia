@@ -17,7 +17,6 @@ export const walletTransactionResponseSchema = z
     walletId: z.string(),
     amount: z.number().int(),
     type: z.string(),
-    paymentMethod: z.string().nullable(),
     status: z.string(),
     reference: z.string(),
     createdAt: z.string(),
@@ -34,22 +33,8 @@ export const topUpRequestSchema = z
       .number(customMsg('Jumlah top-up wajib diisi', 'Jumlah top-up harus berupa angka'))
       .int('Jumlah top-up harus berupa bilangan bulat')
       .min(10000, 'Jumlah top-up minimal Rp 10.000'),
-    paymentMethod: z
-      .string(customMsg('Metode pembayaran wajib diisi', 'Metode pembayaran harus berupa teks'))
-      .min(1, 'Metode pembayaran wajib diisi'),
   })
   .meta({ id: 'TopUpRequest' });
-
-export const topUpResponseSchema = z
-  .object({
-    transaction: walletTransactionResponseSchema,
-    paymentInstructions: z.object({
-      virtualAccount: z.string().optional(),
-      qrCode: z.string().optional(),
-      expiryTime: z.string(),
-    }),
-  })
-  .meta({ id: 'TopUpResponse' });
 
 export const addressRequestSchema = z
   .object({

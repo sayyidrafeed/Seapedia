@@ -19,9 +19,8 @@ export const walletTransactions = pgTable('wallet_transactions', {
     .references(() => wallets.id, { onDelete: 'cascade' }),
   amount: integer('amount').notNull(),
   type: varchar('type', { length: 50 }).notNull(), // 'topup', 'payment', 'refund'
-  paymentMethod: varchar('payment_method', { length: 100 }), // e.g. 'BCA_VA', 'MANDIRI_VA', 'GOPAY'
   status: varchar('status', { length: 50 }).notNull(), // 'pending', 'success', 'failed'
-  reference: varchar('reference', { length: 100 }).notNull(), // e.g. Virtual Account number or external ref
+  reference: varchar('reference', { length: 100 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 

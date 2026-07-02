@@ -4,6 +4,54 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
+export type AddressResponse = {
+  id: string;
+  userId: string;
+  label: string;
+  recipientName: string;
+  phoneNumber: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  fullAddress: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrderResponse = {
+  id: string;
+  buyerId: string;
+  storeId: string;
+  storeName: string;
+  deliveryMethod: string;
+  subtotal: number;
+  discountAmount: number;
+  discountCode: string | unknown;
+  discountType: string | unknown;
+  deliveryFee: number;
+  ppn: number;
+  totalAmount: number;
+  status: string;
+  addressSnapshot: AddressResponse;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    productId: string | unknown;
+    productName: string;
+    productPrice: number;
+    quantity: number;
+  }>;
+  statusHistory?: Array<{
+    id: string;
+    status: string;
+    note: string | unknown;
+    createdAt: string;
+  }>;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -63,58 +111,9 @@ export type WalletTransactionResponse = {
   walletId: string;
   amount: number;
   type: string;
-  paymentMethod: string | unknown;
   status: string;
   reference: string;
   createdAt: string;
-};
-
-export type AddressResponse = {
-  id: string;
-  userId: string;
-  label: string;
-  recipientName: string;
-  phoneNumber: string;
-  province: string;
-  city: string;
-  district: string;
-  postalCode: string;
-  fullAddress: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type OrderResponse = {
-  id: string;
-  buyerId: string;
-  storeId: string;
-  storeName: string;
-  deliveryMethod: string;
-  subtotal: number;
-  discountAmount: number;
-  discountCode: string | unknown;
-  discountType: string | unknown;
-  deliveryFee: number;
-  ppn: number;
-  totalAmount: number;
-  status: string;
-  addressSnapshot: AddressResponse;
-  createdAt: string;
-  updatedAt: string;
-  items: Array<{
-    id: string;
-    productId: string | unknown;
-    productName: string;
-    productPrice: number;
-    quantity: number;
-  }>;
-  statusHistory?: Array<{
-    id: string;
-    status: string;
-    note: string | unknown;
-    createdAt: string;
-  }>;
 };
 
 export type VoucherResponse = {
@@ -1820,17 +1819,16 @@ export type GetBuyerWalletResponses = {
 
 export type GetBuyerWalletResponse = GetBuyerWalletResponses[keyof GetBuyerWalletResponses];
 
-export type RequestTopUpData = {
+export type TopUpWalletData = {
   body: {
     amount: number;
-    paymentMethod: string;
   };
   path?: never;
   query?: never;
-  url: '/api/buyers/wallet/topup/request';
+  url: '/api/buyers/wallet/topup';
 };
 
-export type RequestTopUpErrors = {
+export type TopUpWalletErrors = {
   /**
    * Bad Request
    */
@@ -1857,79 +1855,24 @@ export type RequestTopUpErrors = {
   };
 };
 
-export type RequestTopUpError = RequestTopUpErrors[keyof RequestTopUpErrors];
+export type TopUpWalletError = TopUpWalletErrors[keyof TopUpWalletErrors];
 
-export type RequestTopUpResponses = {
+export type TopUpWalletResponses = {
   /**
-   * Top-up transaction initialized
-   */
-  200: {
-    transaction: WalletTransactionResponse;
-    paymentInstructions: {
-      virtualAccount?: string;
-      qrCode?: string;
-      expiryTime: string;
-    };
-  };
-};
-
-export type RequestTopUpResponse = RequestTopUpResponses[keyof RequestTopUpResponses];
-
-export type SimulateTopUpData = {
-  body?: never;
-  path: {
-    transactionId: string;
-  };
-  query?: never;
-  url: '/api/buyers/wallet/topup/{transactionId}/simulate';
-};
-
-export type SimulateTopUpErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Not Found
-   */
-  404: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type SimulateTopUpError = SimulateTopUpErrors[keyof SimulateTopUpErrors];
-
-export type SimulateTopUpResponses = {
-  /**
-   * Payment successful, wallet updated
+   * Wallet topped up successfully
    */
   200: {
     id: string;
     walletId: string;
     amount: number;
     type: string;
-    paymentMethod: string | unknown;
     status: string;
     reference: string;
     createdAt: string;
   };
 };
 
-export type SimulateTopUpResponse = SimulateTopUpResponses[keyof SimulateTopUpResponses];
+export type TopUpWalletResponse = TopUpWalletResponses[keyof TopUpWalletResponses];
 
 export type GetWalletTransactionsData = {
   body?: never;

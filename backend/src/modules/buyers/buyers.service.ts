@@ -40,70 +40,31 @@ export class BuyersService {
     return newWallet;
   }
 
-  static async createTopUpRequest(userId: string, amount: number, paymentMethod: string) {
+  static async directTopUp(userId: string, amount: number) {
     const wallet = await this.getOrCreateWallet(userId);
-
     const refNumber = '880' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
-    const [transaction] = await db
-      .insert(walletTransactions)
-      .values({
-        walletId: wallet.id,
-        amount,
-        type: 'topup',
-        paymentMethod,
-        status: 'pending',
-        reference: refNumber,
-      })
-      .returning();
-
-    const expiryTime = new Date();
-    expiryTime.setHours(expiryTime.getHours() + 24); // 24 hours expiry
-
-    return {
-      transaction,
-      paymentInstructions: {
-        virtualAccount: refNumber,
-        expiryTime: expiryTime.toISOString(),
-      },
-    };
-  }
-
-  static async simulateTopUpPayment(userId: string, transactionId: string) {
-    const wallet = await this.getOrCreateWallet(userId);
-
-    const [transaction] = await db
-      .select()
-      .from(walletTransactions)
-      .where(
-        and(eq(walletTransactions.id, transactionId), eq(walletTransactions.walletId, wallet.id)),
-      )
-      .limit(1);
-
-    if (!transaction) {
-      throw new NotFoundError('Transaction not found or does not belong to user');
-    }
-
-    if (transaction.status === 'success') {
-      return transaction;
-    }
-
     const [updatedTransaction] = await db.transaction(async (tx) => {
-      const [updatedTx] = await tx
-        .update(walletTransactions)
-        .set({ status: 'success' })
-        .where(eq(walletTransactions.id, transactionId))
+      const [transaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          walletId: wallet.id,
+          amount,
+          type: 'topup',
+          status: 'success',
+          reference: refNumber,
+        })
         .returning();
 
       await tx
         .update(wallets)
         .set({
-          balance: sql`${wallets.balance} + ${transaction.amount}`,
+          balance: sql`${wallets.balance} + ${amount}`,
           updatedAt: new Date(),
         })
         .where(eq(wallets.id, wallet.id));
 
-      return [updatedTx];
+      return [transaction];
     });
 
     return updatedTransaction;

@@ -2,6 +2,60 @@
 
 import * as z from 'zod';
 
+export const zAddressResponse = z.object({
+  id: z.string(),
+  userId: z.string(),
+  label: z.string(),
+  recipientName: z.string(),
+  phoneNumber: z.string(),
+  province: z.string(),
+  city: z.string(),
+  district: z.string(),
+  postalCode: z.string(),
+  fullAddress: z.string(),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zOrderResponse = z.object({
+  id: z.string(),
+  buyerId: z.string(),
+  storeId: z.string(),
+  storeName: z.string(),
+  deliveryMethod: z.string(),
+  subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
+  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  discountCode: z.union([z.string(), z.unknown()]),
+  discountType: z.union([z.string(), z.unknown()]),
+  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
+  ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
+  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  status: z.string(),
+  addressSnapshot: zAddressResponse,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      productId: z.union([z.string(), z.unknown()]),
+      productName: z.string(),
+      productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
+      quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+    }),
+  ),
+  statusHistory: z
+    .array(
+      z.object({
+        id: z.string(),
+        status: z.string(),
+        note: z.union([z.string(), z.unknown()]),
+        createdAt: z.string(),
+      }),
+    )
+    .optional(),
+});
+
 export const zProduct = z.object({
   id: z.string(),
   name: z.string(),
@@ -61,64 +115,9 @@ export const zWalletTransactionResponse = z.object({
   walletId: z.string(),
   amount: z.int().gte(-9007199254740991).lte(9007199254740991),
   type: z.string(),
-  paymentMethod: z.union([z.string(), z.unknown()]),
   status: z.string(),
   reference: z.string(),
   createdAt: z.string(),
-});
-
-export const zAddressResponse = z.object({
-  id: z.string(),
-  userId: z.string(),
-  label: z.string(),
-  recipientName: z.string(),
-  phoneNumber: z.string(),
-  province: z.string(),
-  city: z.string(),
-  district: z.string(),
-  postalCode: z.string(),
-  fullAddress: z.string(),
-  isDefault: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zOrderResponse = z.object({
-  id: z.string(),
-  buyerId: z.string(),
-  storeId: z.string(),
-  storeName: z.string(),
-  deliveryMethod: z.string(),
-  subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
-  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  discountCode: z.union([z.string(), z.unknown()]),
-  discountType: z.union([z.string(), z.unknown()]),
-  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
-  ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
-  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  status: z.string(),
-  addressSnapshot: zAddressResponse,
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  items: z.array(
-    z.object({
-      id: z.string(),
-      productId: z.union([z.string(), z.unknown()]),
-      productName: z.string(),
-      productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
-      quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
-    }),
-  ),
-  statusHistory: z
-    .array(
-      z.object({
-        id: z.string(),
-        status: z.string(),
-        note: z.union([z.string(), z.unknown()]),
-        createdAt: z.string(),
-      }),
-    )
-    .optional(),
 });
 
 export const zVoucherResponse = z.object({
@@ -745,36 +744,18 @@ export const zGetBuyerWalletResponse = z.object({
   updatedAt: z.string(),
 });
 
-export const zRequestTopUpBody = z.object({
+export const zTopUpWalletBody = z.object({
   amount: z.int().gte(10000).lte(9007199254740991),
-  paymentMethod: z.string().min(1),
 });
 
 /**
- * Top-up transaction initialized
+ * Wallet topped up successfully
  */
-export const zRequestTopUpResponse = z.object({
-  transaction: zWalletTransactionResponse,
-  paymentInstructions: z.object({
-    virtualAccount: z.string().optional(),
-    qrCode: z.string().optional(),
-    expiryTime: z.string(),
-  }),
-});
-
-export const zSimulateTopUpPath = z.object({
-  transactionId: z.string(),
-});
-
-/**
- * Payment successful, wallet updated
- */
-export const zSimulateTopUpResponse = z.object({
+export const zTopUpWalletResponse = z.object({
   id: z.string(),
   walletId: z.string(),
   amount: z.int().gte(-9007199254740991).lte(9007199254740991),
   type: z.string(),
-  paymentMethod: z.union([z.string(), z.unknown()]),
   status: z.string(),
   reference: z.string(),
   createdAt: z.string(),

@@ -73,14 +73,13 @@ import {
   processOverdueOrders,
   processSellerOrder,
   registerUser,
-  requestTopUp,
   selectActiveRole,
   setDefaultAddress,
   simulateTime,
-  simulateTopUp,
   submitProductReview,
   submitReview,
   takeDeliveryJob,
+  topUpWallet,
   updateAddress,
   updateCartItem,
   updateCurrentSellerStore,
@@ -274,9 +273,6 @@ import type {
   RegisterUserData,
   RegisterUserError,
   RegisterUserResponse,
-  RequestTopUpData,
-  RequestTopUpError,
-  RequestTopUpResponse,
   SelectActiveRoleData,
   SelectActiveRoleError,
   SelectActiveRoleResponse,
@@ -286,9 +282,6 @@ import type {
   SimulateTimeData,
   SimulateTimeError,
   SimulateTimeResponse,
-  SimulateTopUpData,
-  SimulateTopUpError,
-  SimulateTopUpResponse,
   SubmitProductReviewData,
   SubmitProductReviewError,
   SubmitProductReviewResponse,
@@ -298,6 +291,9 @@ import type {
   TakeDeliveryJobData,
   TakeDeliveryJobError,
   TakeDeliveryJobResponse,
+  TopUpWalletData,
+  TopUpWalletError,
+  TopUpWalletResponse,
   UpdateAddressData,
   UpdateAddressError,
   UpdateAddressResponse,
@@ -1470,41 +1466,18 @@ export const getBuyerWalletOptions = (options?: Options<GetBuyerWalletData>) =>
   });
 
 /**
- * Initiate a simulated top-up request
+ * Directly top up the wallet balance
  */
-export const requestTopUpMutation = (
-  options?: Partial<Options<RequestTopUpData>>,
-): UseMutationOptions<RequestTopUpResponse, RequestTopUpError, Options<RequestTopUpData>> => {
+export const topUpWalletMutation = (
+  options?: Partial<Options<TopUpWalletData>>,
+): UseMutationOptions<TopUpWalletResponse, TopUpWalletError, Options<TopUpWalletData>> => {
   const mutationOptions: UseMutationOptions<
-    RequestTopUpResponse,
-    RequestTopUpError,
-    Options<RequestTopUpData>
+    TopUpWalletResponse,
+    TopUpWalletError,
+    Options<TopUpWalletData>
   > = {
     mutationFn: async (fnOptions) => {
-      const { data } = await requestTopUp({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Simulate successful payment for a top-up transaction
- */
-export const simulateTopUpMutation = (
-  options?: Partial<Options<SimulateTopUpData>>,
-): UseMutationOptions<SimulateTopUpResponse, SimulateTopUpError, Options<SimulateTopUpData>> => {
-  const mutationOptions: UseMutationOptions<
-    SimulateTopUpResponse,
-    SimulateTopUpError,
-    Options<SimulateTopUpData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await simulateTopUp({
+      const { data } = await topUpWallet({
         ...options,
         ...fnOptions,
         throwOnError: true,
