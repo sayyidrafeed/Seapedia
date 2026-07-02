@@ -49,7 +49,7 @@ function AvailableJobs() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-in fade-in duration-300">
       <div className="flex items-center justify-between pb-2">
         <h2 className="text-xl font-semibold tracking-tight">{t('driver.jobs.availableTitle')}</h2>
         <Badge variant="secondary" className="px-3 py-1 font-semibold">

@@ -12,7 +12,7 @@ function BuyerDashboardIndex() {
   const { wallet, defaultAddress, addresses, cart, isLoading } = useBuyerOverview();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Welcome Card */}
       <div className="bg-gradient-to-r from-blue-600/10 via-purple-600/5 to-transparent border border-blue-500/10 p-8 rounded-2xl shadow-sm relative overflow-hidden">
         <div className="absolute right-0 top-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -z-10" />

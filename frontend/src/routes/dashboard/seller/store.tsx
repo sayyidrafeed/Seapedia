@@ -32,5 +32,9 @@ function SellerStoreManagement() {
     );
   }
 
-  return <StoreProfileForm store={store} />;
+  return (
+    <div className="animate-in fade-in duration-300">
+      <StoreProfileForm store={store} />
+    </div>
+  );
 }

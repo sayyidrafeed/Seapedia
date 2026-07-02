@@ -37,7 +37,7 @@ function BuyerOrderHistoryPage() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">
+    <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8 animate-in fade-in duration-300">
       {/* Header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
@@ -48,7 +48,7 @@ function BuyerOrderHistoryPage() {
 
       {orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-border rounded-2xl bg-card/30">
-          <div className="rounded-full bg-primary/10 p-6 text-primary mb-6">
+          <div className="rounded-full bg-primary/10 p-6 text-primary mb-6 hover-jiggle transition-all duration-350 cursor-pointer">
             <ClipboardList className="h-12 w-12" />
           </div>
           <h3 className="text-xl font-bold text-foreground">{t('buyer.orders.noOrders')}</h3>

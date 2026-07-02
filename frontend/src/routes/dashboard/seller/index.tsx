@@ -25,7 +25,7 @@ function SellerDashboardIndex() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="bg-card border border-border p-6 rounded-lg shadow-sm">
         <h2 className="text-lg font-bold text-foreground mb-4">
           {t('seller.overview.welcome', { name: store?.name })}

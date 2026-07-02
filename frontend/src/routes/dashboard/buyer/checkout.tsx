@@ -55,7 +55,7 @@ function CheckoutPage() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">
+    <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8 animate-in fade-in duration-300">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link to="/dashboard/buyer/cart">

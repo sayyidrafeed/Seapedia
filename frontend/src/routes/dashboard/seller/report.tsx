@@ -75,7 +75,7 @@ function SellerIncomeReportPage() {
   }));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-300">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
           {t('seller.report.title')}

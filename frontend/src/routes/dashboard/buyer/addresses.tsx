@@ -39,7 +39,7 @@ function BuyerAddressesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {isEditing ? (
         <div className="space-y-4">
           <button

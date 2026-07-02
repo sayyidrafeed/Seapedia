@@ -91,7 +91,7 @@ function SellerOnboarding() {
   });
 
   return (
-    <div className="max-w-xl mx-auto mt-12 bg-card border border-border p-8 rounded-xl shadow-sm">
+    <div className="max-w-xl mx-auto mt-12 bg-card border border-border p-8 rounded-xl shadow-sm animate-in fade-in duration-300">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold">{t('seller.store.onboardingTitle')}</h2>
         <p className="text-muted-foreground mt-2">{t('seller.store.onboardingDesc')}</p>
