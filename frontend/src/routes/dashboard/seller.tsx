@@ -29,7 +29,17 @@ function SellerLayout() {
 
   useEffect(() => {
     if (!auth.isLoading && auth.activeRole !== 'seller') {
-      navigate({ to: '/select-role' });
+      if (auth.activeRole) {
+        navigate({
+          to: `/dashboard/${auth.activeRole}` as
+            | '/dashboard/admin'
+            | '/dashboard/seller'
+            | '/dashboard/driver'
+            | '/dashboard/buyer',
+        });
+      } else {
+        navigate({ to: '/select-role' });
+      }
     }
   }, [auth.isLoading, auth.activeRole, navigate]);
 
