@@ -47,7 +47,9 @@ export function StoreInfoCard({
               <span className="font-semibold text-foreground">
                 {parseFloat(storeRating).toFixed(1)}
               </span>
-              <span>({storeReviewCount} {t('reviews.countLabel', 'ulasan')})</span>
+              <span>
+                ({storeReviewCount} {t('reviews.countLabel', 'ulasan')})
+              </span>
             </div>
             <span className="text-muted-foreground/30">•</span>
             <div className="flex items-center gap-1">
@@ -68,4 +70,3 @@ export function StoreInfoCard({
     </div>
   );
 }
-
