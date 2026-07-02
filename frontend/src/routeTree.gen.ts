@@ -34,6 +34,7 @@ import { Route as DashboardBuyerReportRouteImport } from './routes/dashboard/buy
 import { Route as DashboardBuyerCheckoutRouteImport } from './routes/dashboard/buyer/checkout'
 import { Route as DashboardBuyerCartRouteImport } from './routes/dashboard/buyer/cart'
 import { Route as DashboardBuyerAddressesRouteImport } from './routes/dashboard/buyer/addresses'
+import { Route as DashboardAdminReviewsRouteImport } from './routes/dashboard/admin/reviews'
 import { Route as DashboardAdminDiscountsRouteImport } from './routes/dashboard/admin/discounts'
 import { Route as DashboardSellerProductsIndexRouteImport } from './routes/dashboard/seller/products/index'
 import { Route as DashboardSellerOrdersIndexRouteImport } from './routes/dashboard/seller/orders/index'
@@ -171,6 +172,11 @@ const DashboardBuyerAddressesRoute = DashboardBuyerAddressesRouteImport.update({
   path: '/addresses',
   getParentRoute: () => DashboardBuyerRoute,
 } as any)
+const DashboardAdminReviewsRoute = DashboardAdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
 const DashboardAdminDiscountsRoute = DashboardAdminDiscountsRouteImport.update({
   id: '/discounts',
   path: '/discounts',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
   '/dashboard/admin/discounts': typeof DashboardAdminDiscountsRoute
+  '/dashboard/admin/reviews': typeof DashboardAdminReviewsRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug': typeof StoreSlugIndexRoute
   '/dashboard/admin/discounts': typeof DashboardAdminDiscountsRoute
+  '/dashboard/admin/reviews': typeof DashboardAdminReviewsRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/products/$productId': typeof ProductsProductIdRoute
   '/$storeSlug/': typeof StoreSlugIndexRoute
   '/dashboard/admin/discounts': typeof DashboardAdminDiscountsRoute
+  '/dashboard/admin/reviews': typeof DashboardAdminReviewsRoute
   '/dashboard/buyer/addresses': typeof DashboardBuyerAddressesRoute
   '/dashboard/buyer/cart': typeof DashboardBuyerCartRoute
   '/dashboard/buyer/checkout': typeof DashboardBuyerCheckoutRoute
@@ -356,6 +365,7 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/$storeSlug/'
     | '/dashboard/admin/discounts'
+    | '/dashboard/admin/reviews'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
     | '/dashboard/buyer/checkout'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/$storeSlug'
     | '/dashboard/admin/discounts'
+    | '/dashboard/admin/reviews'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
     | '/dashboard/buyer/checkout'
@@ -426,6 +437,7 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/$storeSlug/'
     | '/dashboard/admin/discounts'
+    | '/dashboard/admin/reviews'
     | '/dashboard/buyer/addresses'
     | '/dashboard/buyer/cart'
     | '/dashboard/buyer/checkout'
@@ -642,6 +654,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBuyerAddressesRouteImport
       parentRoute: typeof DashboardBuyerRoute
     }
+    '/dashboard/admin/reviews': {
+      id: '/dashboard/admin/reviews'
+      path: '/reviews'
+      fullPath: '/dashboard/admin/reviews'
+      preLoaderRoute: typeof DashboardAdminReviewsRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
     '/dashboard/admin/discounts': {
       id: '/dashboard/admin/discounts'
       path: '/discounts'
@@ -717,11 +736,13 @@ declare module '@tanstack/react-router' {
 
 interface DashboardAdminRouteChildren {
   DashboardAdminDiscountsRoute: typeof DashboardAdminDiscountsRoute
+  DashboardAdminReviewsRoute: typeof DashboardAdminReviewsRoute
   DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
 }
 
 const DashboardAdminRouteChildren: DashboardAdminRouteChildren = {
   DashboardAdminDiscountsRoute: DashboardAdminDiscountsRoute,
+  DashboardAdminReviewsRoute: DashboardAdminReviewsRoute,
   DashboardAdminIndexRoute: DashboardAdminIndexRoute,
 }
 

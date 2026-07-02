@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
-import { LayoutDashboard, Ticket } from 'lucide-react';
+import { LayoutDashboard, Ticket, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/dashboard/admin')({
@@ -16,7 +16,17 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!auth.isLoading && auth.activeRole !== 'admin') {
-      navigate({ to: '/select-role' });
+      if (auth.activeRole) {
+        navigate({
+          to: `/dashboard/${auth.activeRole}` as
+            | '/dashboard/admin'
+            | '/dashboard/seller'
+            | '/dashboard/driver'
+            | '/dashboard/buyer',
+        });
+      } else {
+        navigate({ to: '/select-role' });
+      }
     }
   }, [auth.isLoading, auth.activeRole, navigate]);
 
@@ -41,6 +51,11 @@ function AdminLayout() {
       label: t('admin.layout.nav.discounts'),
       to: '/dashboard/admin/discounts',
       icon: <Ticket className="h-4 w-4" />,
+    },
+    {
+      label: t('admin.layout.nav.reviews'),
+      to: '/dashboard/admin/reviews',
+      icon: <MessageSquare className="h-4 w-4" />,
     },
   ];
 
