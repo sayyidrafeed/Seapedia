@@ -22,8 +22,18 @@ export function ProductList({ products, onDelete, isDeleting }: ProductListProps
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 bg-card border border-dashed border-border rounded-xl">
-        <p className="text-muted-foreground text-sm">{t('seller.products.noProducts')}</p>
+      <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-card border border-dashed border-border rounded-xl shadow-sm">
+        <img
+          src="/shipping-box-so.png"
+          alt="No products"
+          className="w-full max-w-[280px] sm:max-w-[320px] mb-6 object-contain opacity-90 hover:opacity-100 transition-opacity"
+        />
+        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+          {t('seller.products.productHeader')}
+        </h3>
+        <p className="text-muted-foreground text-sm max-w-[300px]">
+          {t('seller.products.noProducts')}
+        </p>
       </div>
     );
   }
