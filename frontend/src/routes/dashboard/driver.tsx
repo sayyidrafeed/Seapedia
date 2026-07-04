@@ -1,34 +1,20 @@
-import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useAuth } from '@/lib/auth/context';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { LayoutDashboard, Truck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { requireDashboardRole } from '@/lib/auth/guards';
 
 export const Route = createFileRoute('/dashboard/driver')({
+  beforeLoad: ({ context }) => {
+    requireDashboardRole(context.auth, 'driver');
+  },
   component: DriverLayout,
 });
 
 function DriverLayout() {
   const auth = useAuth();
-  const navigate = useNavigate();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    if (!auth.isLoading && auth.activeRole !== 'driver') {
-      if (auth.activeRole) {
-        navigate({
-          to: `/dashboard/${auth.activeRole}` as
-            | '/dashboard/admin'
-            | '/dashboard/seller'
-            | '/dashboard/driver'
-            | '/dashboard/buyer',
-        });
-      } else {
-        navigate({ to: '/select-role' });
-      }
-    }
-  }, [auth.isLoading, auth.activeRole, navigate]);
 
   if (auth.isLoading || auth.activeRole !== 'driver') {
     return (

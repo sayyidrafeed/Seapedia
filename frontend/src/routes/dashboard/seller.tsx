@@ -1,13 +1,16 @@
 import { createFileRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth/context';
-import { useQuery } from '@tanstack/react-query';
-import { getCurrentSellerStoreOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { LayoutDashboard, ShoppingBag, Clock, BarChart3, User, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSellerStore } from '@/features/seller/hooks/use-seller-store';
+import { requireDashboardRole } from '@/lib/auth/guards';
 
 export const Route = createFileRoute('/dashboard/seller')({
+  beforeLoad: ({ context }) => {
+    requireDashboardRole(context.auth, 'seller');
+  },
   component: SellerLayout,
 });
 
@@ -17,48 +20,10 @@ function SellerLayout() {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const {
-    data: store,
-    isLoading: isStoreLoading,
-    error: storeError,
-  } = useQuery({
-    ...getCurrentSellerStoreOptions(),
-    retry: false,
-    enabled: auth.activeRole === 'seller',
-  });
-
-  useEffect(() => {
-    if (!auth.isLoading && auth.activeRole !== 'seller') {
-      if (auth.activeRole) {
-        navigate({
-          to: `/dashboard/${auth.activeRole}` as
-            | '/dashboard/admin'
-            | '/dashboard/seller'
-            | '/dashboard/driver'
-            | '/dashboard/buyer',
-        });
-      } else {
-        navigate({ to: '/select-role' });
-      }
-    }
-  }, [auth.isLoading, auth.activeRole, navigate]);
+  const { store, isStoreLoading, isNotFoundError } = useSellerStore();
 
   useEffect(() => {
     if (auth.activeRole === 'seller' && !isStoreLoading) {
-      const err = storeError as {
-        message?: string;
-        status?: number;
-        error?: string;
-        body?: { error?: string };
-      } | null;
-      const isNotFoundError =
-        err &&
-        (err.message?.includes('404') ||
-          err.status === 404 ||
-          err.error === 'Store not found' ||
-          err.error?.includes('not found') ||
-          err.body?.error === 'Store not found');
-
       if (isNotFoundError) {
         if (location.pathname !== '/dashboard/seller/onboarding') {
           navigate({ to: '/dashboard/seller/onboarding' });
@@ -67,7 +32,7 @@ function SellerLayout() {
         navigate({ to: '/dashboard/seller' });
       }
     }
-  }, [auth.activeRole, isStoreLoading, storeError, store, navigate, location.pathname]);
+  }, [auth.activeRole, isStoreLoading, isNotFoundError, store, navigate, location.pathname]);
 
   if (auth.isLoading || auth.activeRole !== 'seller' || isStoreLoading) {
     return (
