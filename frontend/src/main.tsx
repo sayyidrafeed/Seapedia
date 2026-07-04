@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
@@ -26,6 +27,11 @@ declare module '@tanstack/react-router' {
 
 function InnerApp() {
   const auth = useAuth();
+
+  useEffect(() => {
+    router.invalidate();
+  }, [auth.isLoading, auth.user]);
+
   return <RouterProvider router={router} context={{ auth }} />;
 }
 
