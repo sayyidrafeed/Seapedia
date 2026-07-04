@@ -1,43 +1,39 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useAuth } from '@/lib/auth/context';
 import { Logo } from '@/components/shared/logo';
 import { SelectRolePanel } from '@/features/authentication/components/select-role-panel';
 import { useTranslation } from 'react-i18next';
+import { requireAuth } from '@/lib/auth/guards';
 
 export const Route = createFileRoute('/select-role')({
+  beforeLoad: async ({ context }) => {
+    requireAuth(context.auth);
+    if (!context.auth.isLoading && context.auth.activeRole) {
+      throw redirect({
+        to: `/dashboard/${context.auth.activeRole}` as
+          | '/dashboard/admin'
+          | '/dashboard/seller'
+          | '/dashboard/buyer'
+          | '/dashboard/driver',
+      });
+    } else if (!context.auth.isLoading && context.auth.roles.length === 1) {
+      const singleRole = context.auth.roles[0];
+      await context.auth.selectRole(singleRole as 'admin' | 'seller' | 'buyer' | 'driver');
+      throw redirect({
+        to: `/dashboard/${singleRole}` as
+          | '/dashboard/admin'
+          | '/dashboard/seller'
+          | '/dashboard/buyer'
+          | '/dashboard/driver',
+      });
+    }
+  },
   component: SelectRolePage,
 });
 
 function SelectRolePage() {
   const { t } = useTranslation();
   const auth = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!auth.isLoading && !auth.user) {
-      navigate({ to: '/login' });
-    } else if (!auth.isLoading && auth.activeRole) {
-      navigate({
-        to: `/dashboard/${auth.activeRole}` as
-          | '/dashboard/admin'
-          | '/dashboard/seller'
-          | '/dashboard/driver'
-          | '/dashboard/buyer',
-      });
-    } else if (!auth.isLoading && auth.roles.length === 1) {
-      const singleRole = auth.roles[0];
-      auth.selectRole(singleRole as 'admin' | 'seller' | 'buyer' | 'driver').then(() => {
-        navigate({
-          to: `/dashboard/${singleRole}` as
-            | '/dashboard/admin'
-            | '/dashboard/seller'
-            | '/dashboard/driver'
-            | '/dashboard/buyer',
-        });
-      });
-    }
-  }, [auth.isLoading, auth.user, auth.roles, auth.activeRole, navigate]);
 
   if (auth.isLoading) {
     return (
