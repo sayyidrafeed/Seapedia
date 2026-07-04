@@ -32,7 +32,8 @@ export const topUpRequestSchema = z
     amount: z.coerce
       .number(customMsg('Jumlah top-up wajib diisi', 'Jumlah top-up harus berupa angka'))
       .int('Jumlah top-up harus berupa bilangan bulat')
-      .min(10000, 'Jumlah top-up minimal Rp 10.000'),
+      .min(10000, 'Jumlah top-up minimal Rp 10.000')
+      .max(1000000000, 'Jumlah top-up maksimal Rp 1.000.000.000'),
   })
   .meta({ id: 'TopUpRequest' });
 
