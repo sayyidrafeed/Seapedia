@@ -10,11 +10,10 @@ import { StoreInfoCard } from '@/features/marketplace/components/store-info-card
 import { QuantitySelector } from '@/components/shared/quantity-selector';
 import { Button } from '@/components/ui/button';
 import { useCartActions } from '@/features/buyer/hooks/use-cart-actions';
+import { StoreProductPageSkeleton } from './store-product-page-skeleton';
 
 const CartConflictDialog = lazy(() =>
-  import('@/components/cart/CartConflictDialog').then((m) => ({
-    default: m.CartConflictDialog,
-  })),
+  import('@/components/cart/CartConflictDialog').then((m) => ({ default: m.CartConflictDialog })),
 );
 
 interface StoreProductPageProps {
@@ -47,17 +46,7 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
   } = useCartActions(product?.id);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-6 py-12 max-w-5xl animate-pulse space-y-6">
-        <div className="h-8 bg-muted rounded w-1/3" />
-        <div className="h-4 bg-muted rounded w-1/4" />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-4 h-80 bg-muted rounded-xl" />
-          <div className="lg:col-span-5 h-80 bg-muted rounded-xl" />
-          <div className="lg:col-span-3 h-80 bg-muted rounded-xl" />
-        </div>
-      </div>
-    );
+    return <StoreProductPageSkeleton />;
   }
 
   if (error || !product) {
@@ -78,7 +67,6 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Section - Product Image */}
         <div className="lg:col-span-4">
           <div className="aspect-square bg-muted rounded-xl overflow-hidden border border-border">
             {product.imageUrl ? (
@@ -95,7 +83,6 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
           </div>
         </div>
 
-        {/* Center Section - Product Details & Store Info */}
         <div className="lg:col-span-5 space-y-6">
           <div className="space-y-3">
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
@@ -114,7 +101,7 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
               </div>
               <span className="text-muted-foreground/30">•</span>
               <span className="text-muted-foreground text-xs">
-                Terjual{' '}
+                {t('catalog.sold', 'Terjual')}{' '}
                 <span className="font-semibold text-foreground">
                   {(product.soldCount as number) || 0}
                 </span>
@@ -122,7 +109,9 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
             </div>
 
             <div className="pt-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase">Harga</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                {t('catalog.price', 'Harga')}
+              </span>
               <p className="text-3xl font-black text-foreground mt-1">
                 {formatCurrency(product.price)}
               </p>
@@ -130,13 +119,15 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
           </div>
 
           <div className="border-t border-border/50 pt-4">
-            <h4 className="font-bold text-sm mb-2">Deskripsi Produk</h4>
+            <h4 className="font-bold text-sm mb-2">
+              {t('catalog.productDescription', 'Deskripsi Produk')}
+            </h4>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {(product.description as string) || 'Tidak ada deskripsi.'}
+              {(product.description as string) ||
+                t('catalog.noDescription', 'Tidak ada deskripsi.')}
             </p>
           </div>
 
-          {/* Store Info Card */}
           <div className="border-t border-border/50 pt-6">
             <StoreInfoCard
               storeName={product.storeName || ''}
@@ -149,19 +140,20 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
           </div>
         </div>
 
-        {/* Right Section - Desktop Checkout Card */}
         <div className="hidden lg:block lg:col-span-3">
           <div className="border border-border rounded-xl p-5 bg-card space-y-5 sticky top-6">
-            <h4 className="font-bold text-sm">Atur Jumlah</h4>
+            <h4 className="font-bold text-sm">{t('catalog.setQuantity', 'Atur Jumlah')}</h4>
 
             <div className="flex items-center gap-3">
               <QuantitySelector value={quantity} max={product.stock} onChange={setQuantity} />
-              <span className="text-xs text-muted-foreground">Stok: {product.stock}</span>
+              <span className="text-xs text-muted-foreground">
+                {t('catalog.stock', 'Stok')}: {product.stock}
+              </span>
             </div>
 
             <div className="border-t border-border/50 pt-4 space-y-3">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{t('catalog.subtotal', 'Subtotal')}</span>
                 <span className="font-bold text-foreground">
                   {formatCurrency(product.price * quantity)}
                 </span>
@@ -183,11 +175,10 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
         </div>
       </div>
 
-      {/* Floating Sticky Bottom Bar for Mobile Viewports */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border p-4 z-40 flex items-center justify-between gap-4 shadow-lg">
         <div className="flex flex-col">
           <span className="text-[10px] text-muted-foreground uppercase font-semibold">
-            Subtotal
+            {t('catalog.subtotal', 'Subtotal')}
           </span>
           <span className="font-black text-primary text-base">
             {formatCurrency(product.price * quantity)}
@@ -202,7 +193,11 @@ export function StoreProductPage({ storeSlug, productSlug }: StoreProductPagePro
             disabled={product.stock <= 0 || isAdding}
             className="cursor-pointer font-bold h-9 text-xs px-3"
           >
-            {product.stock <= 0 ? 'Habis' : isAdding ? 'Loading...' : '+ Keranjang'}
+            {product.stock <= 0
+              ? t('catalog.outOfStock')
+              : isAdding
+                ? t('catalog.adding')
+                : t('catalog.addToCartCompact', '+ Keranjang')}
           </Button>
         </div>
       </div>
