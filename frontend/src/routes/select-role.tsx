@@ -17,13 +17,27 @@ function SelectRolePage() {
   useEffect(() => {
     if (!auth.isLoading && !auth.user) {
       navigate({ to: '/login' });
+    } else if (!auth.isLoading && auth.activeRole) {
+      navigate({
+        to: `/dashboard/${auth.activeRole}` as
+          | '/dashboard/admin'
+          | '/dashboard/seller'
+          | '/dashboard/driver'
+          | '/dashboard/buyer',
+      });
     } else if (!auth.isLoading && auth.roles.length === 1) {
       const singleRole = auth.roles[0];
       auth.selectRole(singleRole as 'admin' | 'seller' | 'buyer' | 'driver').then(() => {
-        navigate({ to: `/dashboard/${singleRole}` });
+        navigate({
+          to: `/dashboard/${singleRole}` as
+            | '/dashboard/admin'
+            | '/dashboard/seller'
+            | '/dashboard/driver'
+            | '/dashboard/buyer',
+        });
       });
     }
-  }, [auth.isLoading, auth.user, auth.roles, navigate]);
+  }, [auth.isLoading, auth.user, auth.roles, auth.activeRole, navigate]);
 
   if (auth.isLoading) {
     return (

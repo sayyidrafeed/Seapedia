@@ -45,6 +45,7 @@ import {
   getPromo,
   getProvinces,
   getPublicStoreInfo,
+  getReviewsStats,
   getSellerIncomeReport,
   getSellerOrderDetail,
   getSellerProductById,
@@ -73,14 +74,13 @@ import {
   processOverdueOrders,
   processSellerOrder,
   registerUser,
-  requestTopUp,
   selectActiveRole,
   setDefaultAddress,
   simulateTime,
-  simulateTopUp,
   submitProductReview,
   submitReview,
   takeDeliveryJob,
+  topUpWallet,
   updateAddress,
   updateCartItem,
   updateCurrentSellerStore,
@@ -194,6 +194,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
+  GetReviewsStatsData,
+  GetReviewsStatsError,
+  GetReviewsStatsResponse,
   GetSellerIncomeReportData,
   GetSellerIncomeReportError,
   GetSellerIncomeReportResponse,
@@ -274,9 +277,6 @@ import type {
   RegisterUserData,
   RegisterUserError,
   RegisterUserResponse,
-  RequestTopUpData,
-  RequestTopUpError,
-  RequestTopUpResponse,
   SelectActiveRoleData,
   SelectActiveRoleError,
   SelectActiveRoleResponse,
@@ -286,9 +286,6 @@ import type {
   SimulateTimeData,
   SimulateTimeError,
   SimulateTimeResponse,
-  SimulateTopUpData,
-  SimulateTopUpError,
-  SimulateTopUpResponse,
   SubmitProductReviewData,
   SubmitProductReviewError,
   SubmitProductReviewResponse,
@@ -298,6 +295,9 @@ import type {
   TakeDeliveryJobData,
   TakeDeliveryJobError,
   TakeDeliveryJobResponse,
+  TopUpWalletData,
+  TopUpWalletError,
+  TopUpWalletResponse,
   UpdateAddressData,
   UpdateAddressError,
   UpdateAddressResponse,
@@ -1035,7 +1035,7 @@ export const listReviewsQueryKey = (options?: Options<ListReviewsData>) =>
   createQueryKey('listReviews', options);
 
 /**
- * List all public application reviews
+ * List all public application reviews with pagination
  */
 export const listReviewsOptions = (options?: Options<ListReviewsData>) =>
   queryOptions<
@@ -1055,6 +1055,49 @@ export const listReviewsOptions = (options?: Options<ListReviewsData>) =>
     },
     queryKey: listReviewsQueryKey(options),
   });
+
+export const listReviewsInfiniteQueryKey = (
+  options?: Options<ListReviewsData>,
+): QueryKey<Options<ListReviewsData>> => createQueryKey('listReviews', options, true);
+
+/**
+ * List all public application reviews with pagination
+ */
+export const listReviewsInfiniteOptions = (options?: Options<ListReviewsData>) =>
+  infiniteQueryOptions<
+    ListReviewsResponse,
+    ListReviewsError,
+    InfiniteData<ListReviewsResponse>,
+    QueryKey<Options<ListReviewsData>>,
+    number | Pick<QueryKey<Options<ListReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListReviewsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await listReviews({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: listReviewsInfiniteQueryKey(options),
+    },
+  );
 
 /**
  * Submit a new application review (public/guest)
@@ -1078,6 +1121,31 @@ export const submitReviewMutation = (
   };
   return mutationOptions;
 };
+
+export const getReviewsStatsQueryKey = (options?: Options<GetReviewsStatsData>) =>
+  createQueryKey('getReviewsStats', options);
+
+/**
+ * Get application reviews statistics (total count and average rating)
+ */
+export const getReviewsStatsOptions = (options?: Options<GetReviewsStatsData>) =>
+  queryOptions<
+    GetReviewsStatsResponse,
+    GetReviewsStatsError,
+    GetReviewsStatsResponse,
+    ReturnType<typeof getReviewsStatsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getReviewsStats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getReviewsStatsQueryKey(options),
+  });
 
 export const privateAdminEndpointQueryKey = (options?: Options<PrivateAdminEndpointData>) =>
   createQueryKey('privateAdminEndpoint', options);
@@ -1470,41 +1538,18 @@ export const getBuyerWalletOptions = (options?: Options<GetBuyerWalletData>) =>
   });
 
 /**
- * Initiate a simulated top-up request
+ * Directly top up the wallet balance
  */
-export const requestTopUpMutation = (
-  options?: Partial<Options<RequestTopUpData>>,
-): UseMutationOptions<RequestTopUpResponse, RequestTopUpError, Options<RequestTopUpData>> => {
+export const topUpWalletMutation = (
+  options?: Partial<Options<TopUpWalletData>>,
+): UseMutationOptions<TopUpWalletResponse, TopUpWalletError, Options<TopUpWalletData>> => {
   const mutationOptions: UseMutationOptions<
-    RequestTopUpResponse,
-    RequestTopUpError,
-    Options<RequestTopUpData>
+    TopUpWalletResponse,
+    TopUpWalletError,
+    Options<TopUpWalletData>
   > = {
     mutationFn: async (fnOptions) => {
-      const { data } = await requestTopUp({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Simulate successful payment for a top-up transaction
- */
-export const simulateTopUpMutation = (
-  options?: Partial<Options<SimulateTopUpData>>,
-): UseMutationOptions<SimulateTopUpResponse, SimulateTopUpError, Options<SimulateTopUpData>> => {
-  const mutationOptions: UseMutationOptions<
-    SimulateTopUpResponse,
-    SimulateTopUpError,
-    Options<SimulateTopUpData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await simulateTopUp({
+      const { data } = await topUpWallet({
         ...options,
         ...fnOptions,
         throwOnError: true,

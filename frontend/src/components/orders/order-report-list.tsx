@@ -62,8 +62,15 @@ export function OrderReportList({
       </CardHeader>
       <CardContent className="p-0">
         {orders.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">
-            {t('buyer.report.noTransactions')}
+          <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+            <img
+              src="/notes.png"
+              alt="No transactions"
+              className="w-full max-w-[280px] sm:max-w-[320px] mb-6 object-contain opacity-90 hover:opacity-100 transition-opacity"
+            />
+            <p className="text-muted-foreground text-sm max-w-[300px]">
+              {t('buyer.report.noTransactions')}
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-border/60">

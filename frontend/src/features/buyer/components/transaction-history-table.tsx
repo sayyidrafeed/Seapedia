@@ -1,14 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ArrowUpRight, TrendingDown, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import { PAYMENT_METHODS } from '../constants/wallet-constants';
 import { useTranslation } from 'react-i18next';
 
 interface Transaction {
   id: string;
   createdAt: string;
   type: string;
-  paymentMethod: unknown;
+  paymentMethod?: unknown;
   reference: string;
   status: string;
   amount: number;
@@ -36,8 +35,15 @@ export function TransactionHistoryTable({ transactions, isLoading }: Transaction
             <div className="h-8 bg-muted animate-pulse rounded w-full" />
           </div>
         ) : !transactions || transactions.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            {t('buyer.wallet.noTransactions')}
+          <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+            <img
+              src="/no-transaction.png"
+              alt="No transactions"
+              className="w-full max-w-[280px] sm:max-w-[320px] mb-6 object-contain opacity-90 hover:opacity-100 transition-opacity"
+            />
+            <p className="text-muted-foreground text-sm max-w-[300px]">
+              {t('buyer.wallet.noTransactions')}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -55,9 +61,13 @@ export function TransactionHistoryTable({ transactions, isLoading }: Transaction
                 {transactions.map((tx) => {
                   const isCredit = tx.type === 'topup' || tx.type === 'refund';
                   const methodName =
-                    PAYMENT_METHODS.find((m) => m.id === (tx.paymentMethod as string))?.name ||
-                    (tx.paymentMethod as string) ||
-                    '-';
+                    tx.type === 'topup'
+                      ? t('buyer.wallet.directTopUp') || 'Direct Top Up'
+                      : tx.type === 'payment'
+                        ? t('buyer.wallet.orderPayment') || 'Order Payment'
+                        : tx.type === 'refund'
+                          ? t('buyer.wallet.refund') || 'Refund'
+                          : '-';
 
                   return (
                     <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">

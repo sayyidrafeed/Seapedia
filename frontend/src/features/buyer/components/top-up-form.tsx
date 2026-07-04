@@ -3,28 +3,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowDownToLine } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import { PRESET_AMOUNTS, PAYMENT_METHODS } from '../constants/wallet-constants';
+import { PRESET_AMOUNTS } from '../constants/wallet-constants';
 import { useTranslation } from 'react-i18next';
 
 interface TopUpFormProps {
   topUpAmount: number;
   customAmount: string;
-  selectedMethod: string;
   isPending: boolean;
   onPresetSelect: (amount: number) => void;
   onCustomAmountChange: (value: string) => void;
-  onMethodSelect: (method: string) => void;
   onSubmit: () => void;
 }
 
 export function TopUpForm({
   topUpAmount,
   customAmount,
-  selectedMethod,
   isPending,
   onPresetSelect,
   onCustomAmountChange,
-  onMethodSelect,
   onSubmit,
 }: TopUpFormProps) {
   const { t } = useTranslation();
@@ -49,13 +45,13 @@ export function TopUpForm({
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
               {t('buyer.wallet.selectAmount')}
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="flex flex-wrap gap-3">
               {PRESET_AMOUNTS.map((amt) => (
                 <button
                   key={amt}
                   type="button"
                   onClick={() => onPresetSelect(amt)}
-                  className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all ${
+                  className={`flex-1 min-w-[100px] text-center py-2.5 px-3 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                     topUpAmount === amt && !customAmount
                       ? 'bg-blue-500 border-blue-500 text-white'
                       : 'bg-card border-border hover:border-blue-500/50 hover:bg-slate-50'
@@ -87,51 +83,12 @@ export function TopUpForm({
             </div>
           </div>
 
-          {/* Payment Method */}
-          <div className="space-y-2.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              {t('buyer.wallet.selectPaymentChannel')}
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PAYMENT_METHODS.map((method) => (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => onMethodSelect(method.id)}
-                  className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all ${
-                    selectedMethod === method.id
-                      ? 'border-blue-500 bg-blue-500/5 ring-1 ring-blue-500'
-                      : 'border-border bg-card hover:border-blue-500/30'
-                  }`}
-                >
-                  <div>
-                    <p className="font-semibold text-sm text-foreground">{method.name}</p>
-                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                      {method.type}
-                    </span>
-                  </div>
-                  <div
-                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                      selectedMethod === method.id
-                        ? 'border-blue-500 bg-blue-500 text-white'
-                        : 'border-muted-foreground/30'
-                    }`}
-                  >
-                    {selectedMethod === method.id && (
-                      <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
           <Button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 rounded-xl"
             disabled={isPending}
           >
-            {isPending ? t('buyer.wallet.generatingInstructions') : t('buyer.wallet.requestTopUp')}
+            {isPending ? t('buyer.wallet.topUp') + '...' : t('buyer.wallet.topUp')}
           </Button>
         </form>
       </CardContent>

@@ -153,7 +153,10 @@
       "instructionBody": "Karena ini adalah alur simulasi sandbox, gunakan tombol di bawah ini untuk mensimulasikan keberhasilan pembayaran kode Virtual Account yang dihasilkan.",
       "cancel": "Batal",
       "simulating": "Mensimulasikan...",
-      "simulateSuccess": "Simulasikan Pembayaran Sukses"
+      "simulateSuccess": "Simulasikan Pembayaran Sukses",
+      "directTopUp": "Isi Saldo Langsung",
+      "orderPayment": "Pembayaran Pesanan",
+      "refund": "Pengembalian Dana"
     },
     "address": {
       "defaultLabel": "Alamat Utama",
@@ -288,7 +291,8 @@
       "title": "Laporan Pengeluaran",
       "desc": "Rincian komprehensif dari pengeluaran Anda yang telah selesai di Seapedia.",
       "historyTitle": "Riwayat Transaksi",
-      "historyDesc": "Semua transaksi Anda. Hanya transaksi selesai yang berkontribusi pada metrik ringkasan keuangan di atas."
+      "historyDesc": "Semua transaksi Anda. Hanya transaksi selesai yang berkontribusi pada metrik ringkasan keuangan di atas.",
+      "noTransactions": "Tidak ada transaksi yang ditemukan."
     }
   },
   "seller": {
@@ -490,8 +494,22 @@
       "desc": "Konfigurasi sistem, promosi, dan pemantauan pasar.",
       "nav": {
         "dashboard": "Dasbor",
-        "discounts": "Pengelolaan Diskon"
+        "discounts": "Pengelolaan Diskon",
+        "reviews": "Ulasan Aplikasi"
       }
+    },
+    "reviews": {
+      "title": "Ulasan Aplikasi",
+      "desc": "Jelajahi dan baca umpan balik yang dikirimkan oleh pengguna aplikasi Seapedia.",
+      "totalReviews": "Total Ulasan",
+      "averageRating": "Rata-rata Rating",
+      "noReviews": "Ulasan tidak ditemukan.",
+      "reviewer": "Peninjau",
+      "rating": "Rating",
+      "comment": "Komentar",
+      "date": "Tanggal",
+      "loading": "Memuat ulasan aplikasi...",
+      "errorLoading": "Gagal memuat ulasan aplikasi."
     },
     "kpi": {
       "totalUsers": "Total Pengguna",

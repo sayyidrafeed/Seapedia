@@ -5,8 +5,10 @@ import {
   submitReviewSchema,
   reviewResponseSchema,
   reviewListResponseSchema,
+  reviewStatsResponseSchema,
 } from './reviews.schemas';
 import { ReviewsService } from './reviews.service';
+import { paginationQuerySchema } from '@/lib/schemas';
 
 export const reviewsRouter = factory.createApp();
 
@@ -15,14 +17,18 @@ reviewsRouter.get(
   describeRoute({
     operationId: 'listReviews',
     tags: ['Reviews'],
-    summary: 'List all public application reviews',
+    summary: 'List all public application reviews with pagination',
     responses: {
       200: jsonContent(reviewListResponseSchema, 'List of app reviews'),
       ...errorResponses(500),
     },
   }),
+  validator('query', paginationQuerySchema),
   async (c) => {
-    const list = await ReviewsService.listReviews();
+    const { page, limit } = c.req.valid('query');
+    const offset = (page - 1) * limit;
+
+    const list = await ReviewsService.listReviews({ limit, offset });
     const formatted = list.map((r) => ({
       id: r.id,
       reviewerName: r.reviewerName,
@@ -32,6 +38,23 @@ reviewsRouter.get(
     }));
 
     return c.json(formatted);
+  },
+);
+
+reviewsRouter.get(
+  '/stats',
+  describeRoute({
+    operationId: 'getReviewsStats',
+    tags: ['Reviews'],
+    summary: 'Get application reviews statistics (total count and average rating)',
+    responses: {
+      200: jsonContent(reviewStatsResponseSchema, 'Review statistics'),
+      ...errorResponses(500),
+    },
+  }),
+  async (c) => {
+    const stats = await ReviewsService.getReviewsStats();
+    return c.json(stats);
   },
 );
 

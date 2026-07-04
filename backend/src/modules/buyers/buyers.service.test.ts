@@ -147,43 +147,31 @@ describe('BuyersService', () => {
     expect(dbState.insertIdx).toBe(0); // no insert
   });
 
-  test('should request a top up', async () => {
+  test('should perform direct top up', async () => {
     // 1. getOrCreateWallet select
-    dbState.addSelect([{ id: 'wallet-1', userId, balance: 0 }]);
-    // 2. insert transaction
+    dbState.addSelect([{ id: 'wallet-1', userId, balance: 10000 }]);
+    // 2. insert transaction inside db transaction
     dbState.addInsert([
       {
         id: 'tx-1',
         walletId: 'wallet-1',
         amount: 50000,
         type: 'topup',
-        paymentMethod: 'BCA_VA',
-        status: 'pending',
+        status: 'success',
         reference: '8801234567',
         createdAt: new Date(),
       },
     ]);
+    // 3. update wallet balance inside db transaction
+    dbState.addUpdate([]);
 
-    const result = await BuyersService.createTopUpRequest(userId, 50000, 'BCA_VA');
-    expect(result.transaction.id).toBe('tx-1');
-    expect(result.transaction.amount).toBe(50000);
-    expect(result.paymentInstructions.virtualAccount).toBeDefined();
+    const transaction = await BuyersService.directTopUp(userId, 50000);
+    expect(transaction.id).toBe('tx-1');
+    expect(transaction.amount).toBe(50000);
+    expect(transaction.status).toBe('success');
     expect(dbState.selectIdx).toBe(1);
     expect(dbState.insertIdx).toBe(1);
-  });
-
-  test('should simulate top up payment success', async () => {
-    // 1. getOrCreateWallet select
-    dbState.addSelect([{ id: 'wallet-1', userId, balance: 10000 }]);
-    // 2. select transaction details
-    dbState.addSelect([{ id: 'tx-1', walletId: 'wallet-1', amount: 50000, status: 'pending' }]);
-    // 3. update transaction status
-    dbState.addUpdate([{ id: 'tx-1', walletId: 'wallet-1', amount: 50000, status: 'success' }]);
-
-    const successTx = await BuyersService.simulateTopUpPayment(userId, 'tx-1');
-    expect(successTx.status).toBe('success');
-    expect(dbState.selectIdx).toBe(2);
-    expect(dbState.updateIdx).toBe(1); // Only the transaction update uses .returning()
+    expect(dbState.updateIdx).toBe(0);
   });
 
   test('should get wallet transactions', async () => {

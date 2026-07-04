@@ -4,20 +4,13 @@ import {
   getBuyerWalletOptions,
   getWalletTransactionsOptions,
 } from '@/lib/api/generated/@tanstack/react-query.gen';
-import { requestTopUp, simulateTopUp } from '@/lib/api/generated';
+import { topUpWallet } from '@/lib/api/generated';
 import { toast } from 'sonner';
 
 export function useWallet() {
   const queryClient = useQueryClient();
   const [topUpAmount, setTopUpAmount] = useState<number>(50000);
   const [customAmount, setCustomAmount] = useState<string>('');
-  const [selectedMethod, setSelectedMethod] = useState<string>('BCA_VA');
-  const [pendingPayment, setPendingPayment] = useState<{
-    transactionId: string;
-    amount: number;
-    paymentMethod: string;
-    virtualAccount: string;
-  } | null>(null);
 
   const walletQuery = useQuery({
     ...getBuyerWalletOptions(),
@@ -29,45 +22,23 @@ export function useWallet() {
     retry: false,
   });
 
-  const requestTopUpMutation = useMutation({
-    mutationFn: async (vars: { amount: number; paymentMethod: string }) => {
-      const { data, error } = await requestTopUp({
-        body: vars,
+  const topUpMutation = useMutation({
+    mutationFn: async (amount: number) => {
+      const { data, error } = await topUpWallet({
+        body: { amount },
       });
       if (error) {
-        throw new Error(error.error || 'Failed to create top-up request');
-      }
-      return data;
-    },
-    onSuccess: (data) => {
-      if (data && data.transaction) {
-        setPendingPayment({
-          transactionId: data.transaction.id,
-          amount: data.transaction.amount,
-          paymentMethod: (data.transaction.paymentMethod as string) || selectedMethod,
-          virtualAccount: data.paymentInstructions.virtualAccount || '',
-        });
-        toast.success('Top-up request generated!');
-      }
-    },
-    onError: (err) => {
-      toast.error(err.message);
-    },
-  });
-
-  const simulatePaymentMutation = useMutation({
-    mutationFn: async (transactionId: string) => {
-      const { data, error } = await simulateTopUp({
-        path: { transactionId },
-      });
-      if (error) {
-        throw new Error(error.error || 'Failed to simulate payment');
+        const errObj = error as Record<string, unknown>;
+        const errorMsg =
+          (typeof errObj.message === 'string' ? errObj.message : '') ||
+          (typeof errObj.error === 'string' ? errObj.error : '') ||
+          'Failed to top up wallet';
+        throw new Error(errorMsg);
       }
       return data;
     },
     onSuccess: () => {
-      toast.success('Payment simulated successfully! Balance updated.');
-      setPendingPayment(null);
+      toast.success('Wallet topped up successfully!');
       queryClient.invalidateQueries({ queryKey: getBuyerWalletOptions().queryKey });
       queryClient.invalidateQueries({ queryKey: getWalletTransactionsOptions().queryKey });
     },
@@ -83,25 +54,49 @@ export function useWallet() {
 
   const handleCustomAmountChange = (val: string) => {
     setCustomAmount(val);
-    const parsed = parseInt(val, 10);
+    if (val === '') {
+      setTopUpAmount(50000);
+      return;
+    }
+    const parsed = Number(val);
     if (!isNaN(parsed)) {
       setTopUpAmount(parsed);
     }
   };
 
   const handleRequestTopUp = () => {
+    // If user typed a custom amount, perform strict format checks first
+    if (customAmount) {
+      const parsedNum = Number(customAmount);
+
+      if (isNaN(parsedNum)) {
+        toast.error('Top-up amount must be a valid number');
+        return;
+      }
+
+      if (!Number.isInteger(parsedNum)) {
+        toast.error('Top-up amount must be a whole number (no decimals)');
+        return;
+      }
+
+      if (parsedNum > 1000000000) {
+        toast.error('Maximum top-up amount is Rp 1.000.000.000');
+        return;
+      }
+    } else {
+      // Check preset amount
+      if (topUpAmount > 1000000000) {
+        toast.error('Maximum top-up amount is Rp 1.000.000.000');
+        return;
+      }
+    }
+
     if (topUpAmount < 10000) {
       toast.error('Minimum top-up amount is Rp 10.000');
       return;
     }
-    requestTopUpMutation.mutate({
-      amount: topUpAmount,
-      paymentMethod: selectedMethod,
-    });
-  };
 
-  const cancelPending = () => {
-    setPendingPayment(null);
+    topUpMutation.mutate(topUpAmount);
   };
 
   return {
@@ -111,19 +106,9 @@ export function useWallet() {
     isTxLoading: transactionsQuery.isLoading,
     topUpAmount,
     customAmount,
-    selectedMethod,
-    pendingPayment,
-    isRequesting: requestTopUpMutation.isPending,
-    isSimulating: simulatePaymentMutation.isPending,
-    setSelectedMethod,
+    isPending: topUpMutation.isPending,
     handlePresetSelect,
     handleCustomAmountChange,
     handleRequestTopUp,
-    simulatePayment: () => {
-      if (pendingPayment) {
-        simulatePaymentMutation.mutate(pendingPayment.transactionId);
-      }
-    },
-    cancelPending,
   };
 }

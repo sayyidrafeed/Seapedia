@@ -420,3 +420,22 @@ label {
   line-height: var(--line-height-label);
   color: var(--foreground);
 }
+
+@keyframes jiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+@utility hover-jiggle {
+  &:hover {
+    animation: jiggle 0.35s ease-in-out;
+  }
+}

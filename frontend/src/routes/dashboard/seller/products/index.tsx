@@ -17,7 +17,7 @@ function SellerProductsPage() {
     useSellerProducts();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold text-foreground">{t('seller.products.title')}</h2>

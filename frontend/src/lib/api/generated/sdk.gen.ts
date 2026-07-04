@@ -108,6 +108,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
+  GetReviewsStatsData,
+  GetReviewsStatsErrors,
+  GetReviewsStatsResponses,
   GetSellerIncomeReportData,
   GetSellerIncomeReportErrors,
   GetSellerIncomeReportResponses,
@@ -188,9 +191,6 @@ import type {
   RegisterUserData,
   RegisterUserErrors,
   RegisterUserResponses,
-  RequestTopUpData,
-  RequestTopUpErrors,
-  RequestTopUpResponses,
   SelectActiveRoleData,
   SelectActiveRoleErrors,
   SelectActiveRoleResponses,
@@ -200,9 +200,6 @@ import type {
   SimulateTimeData,
   SimulateTimeErrors,
   SimulateTimeResponses,
-  SimulateTopUpData,
-  SimulateTopUpErrors,
-  SimulateTopUpResponses,
   SubmitProductReviewData,
   SubmitProductReviewErrors,
   SubmitProductReviewResponses,
@@ -212,6 +209,9 @@ import type {
   TakeDeliveryJobData,
   TakeDeliveryJobErrors,
   TakeDeliveryJobResponses,
+  TopUpWalletData,
+  TopUpWalletErrors,
+  TopUpWalletResponses,
   UpdateAddressData,
   UpdateAddressErrors,
   UpdateAddressResponses,
@@ -635,7 +635,7 @@ export const updateSellerProduct = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * List all public application reviews
+ * List all public application reviews with pagination
  */
 export const listReviews = <ThrowOnError extends boolean = false>(
   options?: Options<ListReviewsData, ThrowOnError>,
@@ -658,6 +658,17 @@ export const submitReview = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+/**
+ * Get application reviews statistics (total count and average rating)
+ */
+export const getReviewsStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetReviewsStatsData, ThrowOnError>,
+): RequestResult<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError>({
+    url: '/api/reviews/stats',
+    ...options,
   });
 
 /**
@@ -957,12 +968,12 @@ export const getBuyerWallet = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Initiate a simulated top-up request
+ * Directly top up the wallet balance
  */
-export const requestTopUp = <ThrowOnError extends boolean = false>(
-  options: Options<RequestTopUpData, ThrowOnError>,
-): RequestResult<RequestTopUpResponses, RequestTopUpErrors, ThrowOnError> =>
-  (options.client ?? client).post<RequestTopUpResponses, RequestTopUpErrors, ThrowOnError>({
+export const topUpWallet = <ThrowOnError extends boolean = false>(
+  options: Options<TopUpWalletData, ThrowOnError>,
+): RequestResult<TopUpWalletResponses, TopUpWalletErrors, ThrowOnError> =>
+  (options.client ?? client).post<TopUpWalletResponses, TopUpWalletErrors, ThrowOnError>({
     security: [
       {
         in: 'cookie',
@@ -970,30 +981,12 @@ export const requestTopUp = <ThrowOnError extends boolean = false>(
         type: 'apiKey',
       },
     ],
-    url: '/api/buyers/wallet/topup/request',
+    url: '/api/buyers/wallet/topup',
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  });
-
-/**
- * Simulate successful payment for a top-up transaction
- */
-export const simulateTopUp = <ThrowOnError extends boolean = false>(
-  options: Options<SimulateTopUpData, ThrowOnError>,
-): RequestResult<SimulateTopUpResponses, SimulateTopUpErrors, ThrowOnError> =>
-  (options.client ?? client).post<SimulateTopUpResponses, SimulateTopUpErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/wallet/topup/{transactionId}/simulate',
-    ...options,
   });
 
 /**

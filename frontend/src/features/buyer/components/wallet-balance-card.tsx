@@ -23,7 +23,10 @@ export function WalletBalanceCard({ balance, isLoading }: WalletBalanceCardProps
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 relative z-10">
-        <div className="text-4xl font-extrabold tracking-tight">
+        <div
+          className="text-3xl lg:text-2xl xl:text-4xl font-extrabold tracking-tight truncate"
+          title={balance ? formatCurrency(balance) : undefined}
+        >
           {isLoading ? (
             <span className="h-10 w-48 bg-slate-800 animate-pulse block rounded" />
           ) : (

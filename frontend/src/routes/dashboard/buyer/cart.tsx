@@ -148,7 +148,7 @@ function BuyerCartPage() {
     updateQuantityMutation.isPending || removeItemMutation.isPending || clearCartMutation.isPending;
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8">
+    <div className="container mx-auto px-6 py-8 max-w-5xl space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
           {t('buyer.cart.pageTitle')}

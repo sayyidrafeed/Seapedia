@@ -153,7 +153,10 @@
       "instructionBody": "Since this is a simulated sandbox flow, use the button below to simulate successfully paying the generated Virtual Account code.",
       "cancel": "Cancel",
       "simulating": "Simulating...",
-      "simulateSuccess": "Simulate Payment Success"
+      "simulateSuccess": "Simulate Payment Success",
+      "directTopUp": "Direct Top Up",
+      "orderPayment": "Order Payment",
+      "refund": "Refund"
     },
     "address": {
       "defaultLabel": "Default Address",
@@ -288,7 +291,8 @@
       "title": "Spending Report",
       "desc": "A comprehensive breakdown of your completed expenses on Seapedia.",
       "historyTitle": "Transaction History",
-      "historyDesc": "All your transactions. Only completed transactions contribute to the financial summary metrics above."
+      "historyDesc": "All your transactions. Only completed transactions contribute to the financial summary metrics above.",
+      "noTransactions": "No transactions found."
     }
   },
   "seller": {
@@ -490,8 +494,22 @@
       "desc": "System configuration, promotions, and marketplace monitoring.",
       "nav": {
         "dashboard": "Dashboard",
-        "discounts": "Discounts Management"
+        "discounts": "Discounts Management",
+        "reviews": "App Reviews"
       }
+    },
+    "reviews": {
+      "title": "Application Reviews",
+      "desc": "Browse and read feedback submitted by users of the Seapedia application.",
+      "totalReviews": "Total Reviews",
+      "averageRating": "Average Rating",
+      "noReviews": "No reviews found.",
+      "reviewer": "Reviewer",
+      "rating": "Rating",
+      "comment": "Comment",
+      "date": "Date",
+      "loading": "Loading application reviews...",
+      "errorLoading": "Failed to load application reviews."
     },
     "kpi": {
       "totalUsers": "Total Users",

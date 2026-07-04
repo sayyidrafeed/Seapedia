@@ -76,18 +76,18 @@ export function ApplicationReviewForm({ flat = false }: { flat?: boolean }) {
         <RadioGroup
           value={rating.toString()}
           onValueChange={(val) => setRating(parseInt(val))}
-          className="flex gap-2"
+          className="flex gap-0"
         >
           {[1, 2, 3, 4, 5].map((stars) => (
             <label
               key={stars}
               onMouseEnter={() => setHoverRating(stars)}
               onMouseLeave={() => setHoverRating(0)}
-              className="cursor-pointer group"
+              className="cursor-pointer group p-0.5"
             >
               <RadioGroupItem value={stars.toString()} className="sr-only" />
               <Star
-                className={`h-6 w-6 transition-all group-hover:scale-110 ${
+                className={`h-7 w-7 transition-all group-hover:scale-110 ${
                   (hoverRating || rating) >= stars
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-muted-foreground/30'
