@@ -4,6 +4,14 @@ import { getProductById } from '@/lib/api/generated/sdk.gen';
 import { formatCurrency } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { ProductReviews } from '@/components/products/product-reviews';
+import { useCartActions } from '@/features/buyer/hooks/use-cart-actions';
+import { Suspense, lazy } from 'react';
+
+const CartConflictDialog = lazy(() =>
+  import('@/components/cart/CartConflictDialog').then((m) => ({
+    default: m.CartConflictDialog,
+  })),
+);
 
 interface ProductDetailPageProps {
   productId: string;
@@ -26,6 +34,15 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       return res.data;
     },
   });
+
+  const {
+    conflictOpen,
+    setConflictOpen,
+    currentStoreName,
+    handleAddToCart,
+    isAdding,
+    clearAndAddMutation,
+  } = useCartActions(product?.id);
 
   if (isLoading) {
     return (
@@ -82,12 +99,30 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
           </div>
 
           <div>
-            <button className="w-full sm:w-auto rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-50 cursor-not-allowed">
-              {t('catalog.addToCart')} (Level 3)
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stock <= 0 || isAdding}
+              className="w-full sm:w-auto rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {product.stock <= 0
+                ? t('catalog.outOfStock')
+                : isAdding
+                  ? t('catalog.adding')
+                  : t('catalog.addToCart')}
             </button>
           </div>
         </div>
       </div>
+
+      <Suspense fallback={null}>
+        <CartConflictDialog
+          isOpen={conflictOpen}
+          onClose={() => setConflictOpen(false)}
+          onConfirm={() => clearAndAddMutation.mutate()}
+          currentStoreName={currentStoreName}
+          newStoreName={product.storeName}
+        />
+      </Suspense>
 
       <ProductReviews productId={product.id} />
     </div>
