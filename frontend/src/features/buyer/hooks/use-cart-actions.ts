@@ -52,7 +52,9 @@ export function useCartActions(productId: string | undefined) {
 
   const clearAndAddMutation = useMutation({
     mutationFn: async () => {
-      if (!productId) return;
+      if (!productId) {
+        throw new Error('Product ID is required');
+      }
       const { error: clearErr } = await clearCart();
       if (clearErr) throw new Error(clearErr.error || 'Failed to clear cart');
 
