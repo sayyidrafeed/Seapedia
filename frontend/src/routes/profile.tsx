@@ -1,27 +1,23 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
-import { useAuth } from '@/lib/auth/context';
+import { createFileRoute } from '@tanstack/react-router';
 import { useProfile } from '@/features/profile/hooks/use-profile';
 import { ProfileDetails } from '@/features/profile/components/profile-details';
 import { RolesSection } from '@/features/profile/components/roles-section';
 import { FinancialOverview } from '@/features/profile/components/financial-overview';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/auth/context';
+import { requireAuth } from '@/lib/auth/guards';
 
 export const Route = createFileRoute('/profile')({
+  beforeLoad: ({ context }) => {
+    requireAuth(context.auth);
+  },
   component: ProfilePage,
 });
 
 function ProfilePage() {
   const auth = useAuth();
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const { financialSummary, isLoading: isFinancialLoading } = useProfile(!!auth.user);
-
-  useEffect(() => {
-    if (!auth.isLoading && !auth.user) {
-      navigate({ to: '/login' });
-    }
-  }, [auth.isLoading, auth.user, navigate]);
 
   if (auth.isLoading || !auth.user) {
     return (

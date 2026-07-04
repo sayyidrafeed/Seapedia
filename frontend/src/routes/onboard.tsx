@@ -1,30 +1,24 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useAuth } from '@/lib/auth/context';
 import { useOnboarding } from '@/features/authentication/hooks/use-onboarding';
 import { OnboardingForm } from '@/features/authentication/components/onboarding-form';
 import { useTranslation } from 'react-i18next';
+import { requireAuth } from '@/lib/auth/guards';
 
 export const Route = createFileRoute('/onboard')({
+  beforeLoad: ({ context }) => {
+    requireAuth(context.auth);
+    if (!context.auth.isLoading && context.auth.user && context.auth.user.isOnboarded) {
+      throw redirect({ to: '/' });
+    }
+  },
   component: OnboardPage,
 });
 
 function OnboardPage() {
   const { t } = useTranslation();
   const auth = useAuth();
-  const navigate = useNavigate();
   const onboarding = useOnboarding();
-
-  useEffect(() => {
-    // If not logged in, redirect to login
-    if (!auth.isLoading && !auth.user) {
-      navigate({ to: '/login' });
-    }
-    // If already onboarded, redirect to home
-    if (!auth.isLoading && auth.user && auth.user.isOnboarded) {
-      navigate({ to: '/' });
-    }
-  }, [auth.isLoading, auth.user, navigate]);
 
   if (auth.isLoading) {
     return (

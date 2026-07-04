@@ -1,27 +1,17 @@
-import { createRootRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
+import { createRootRouteWithContext, Outlet, redirect } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useAuth } from '@/lib/auth/context';
-import { useEffect } from 'react';
 import { GlobalNavbar } from '@/components/shared/global-navbar';
 import { Footer } from '@/components/shared/footer';
 import { Toaster } from 'sonner';
+import { QueryClient } from '@tanstack/react-query';
+
+interface MyRouterContext {
+  auth: ReturnType<typeof useAuth>;
+  queryClient: QueryClient;
+}
 
 function RootComponent() {
-  const auth = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  useEffect(() => {
-    if (
-      !auth.isLoading &&
-      auth.user &&
-      !auth.user.isOnboarded &&
-      !auth.roles.includes('admin') &&
-      location.pathname !== '/onboard'
-    ) {
-      navigate({ to: '/onboard' });
-    }
-  }, [auth.user, auth.isLoading, auth.roles, location.pathname, navigate]);
-
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
       <GlobalNavbar />
@@ -39,6 +29,18 @@ function RootComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<MyRouterContext>()({
+  beforeLoad: ({ context, location }) => {
+    const { auth } = context;
+    if (
+      !auth.isLoading &&
+      auth.user &&
+      !auth.user.isOnboarded &&
+      !auth.roles.includes('admin') &&
+      location.pathname !== '/onboard'
+    ) {
+      throw redirect({ to: '/onboard' });
+    }
+  },
   component: RootComponent,
 });
