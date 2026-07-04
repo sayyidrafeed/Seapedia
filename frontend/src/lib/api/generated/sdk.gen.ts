@@ -108,6 +108,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoErrors,
   GetPublicStoreInfoResponses,
+  GetReviewsStatsData,
+  GetReviewsStatsErrors,
+  GetReviewsStatsResponses,
   GetSellerIncomeReportData,
   GetSellerIncomeReportErrors,
   GetSellerIncomeReportResponses,
@@ -632,7 +635,7 @@ export const updateSellerProduct = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * List all public application reviews
+ * List all public application reviews with pagination
  */
 export const listReviews = <ThrowOnError extends boolean = false>(
   options?: Options<ListReviewsData, ThrowOnError>,
@@ -655,6 +658,17 @@ export const submitReview = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+/**
+ * Get application reviews statistics (total count and average rating)
+ */
+export const getReviewsStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetReviewsStatsData, ThrowOnError>,
+): RequestResult<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError>({
+    url: '/api/reviews/stats',
+    ...options,
   });
 
 /**

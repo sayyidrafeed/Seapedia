@@ -534,6 +534,14 @@ export const zUpdateSellerProductResponse = z.object({
   updatedAt: z.string(),
 });
 
+export const zListReviewsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
 /**
  * List of app reviews
  */
@@ -554,6 +562,14 @@ export const zSubmitReviewResponse = z.object({
   rating: z.number(),
   comment: z.string(),
   createdAt: z.string(),
+});
+
+/**
+ * Review statistics
+ */
+export const zGetReviewsStatsResponse = z.object({
+  totalReviews: z.number(),
+  averageRating: z.number(),
 });
 
 /**
@@ -745,7 +761,7 @@ export const zGetBuyerWalletResponse = z.object({
 });
 
 export const zTopUpWalletBody = z.object({
-  amount: z.int().gte(10000).lte(9007199254740991),
+  amount: z.int().gte(10000).lte(1000000000),
 });
 
 /**

@@ -30,3 +30,10 @@ export const reviewResponseSchema = z
   .meta({ id: 'Review' });
 
 export const reviewListResponseSchema = z.array(reviewResponseSchema).meta({ id: 'ReviewList' });
+
+export const reviewStatsResponseSchema = z
+  .object({
+    totalReviews: z.number(),
+    averageRating: z.number(),
+  })
+  .meta({ id: 'ReviewStats' });

@@ -1,9 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { listReviewsOptions } from '@/lib/api/generated/@tanstack/react-query.gen';
+import {
+  listReviewsOptions,
+  getReviewsStatsOptions,
+} from '@/lib/api/generated/@tanstack/react-query.gen';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, MessageSquare, Calendar, User, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { PaginationControls } from '@/components/shared/pagination-controls';
 
 export const Route = createFileRoute('/dashboard/admin/reviews')({
   component: AdminReviewsPage,
@@ -11,7 +16,27 @@ export const Route = createFileRoute('/dashboard/admin/reviews')({
 
 function AdminReviewsPage() {
   const { t } = useTranslation();
-  const { data: reviews, isLoading, error } = useQuery(listReviewsOptions());
+  const [page, setPage] = useState(1);
+  const limit = 20;
+
+  const {
+    data: reviews,
+    isLoading: isReviewsLoading,
+    error: reviewsError,
+  } = useQuery(
+    listReviewsOptions({
+      query: { page, limit },
+    }),
+  );
+
+  const {
+    data: stats,
+    isLoading: isStatsLoading,
+    error: statsError,
+  } = useQuery(getReviewsStatsOptions());
+
+  const isLoading = isReviewsLoading || isStatsLoading;
+  const error = reviewsError || statsError;
 
   if (isLoading) {
     return (
@@ -24,7 +49,7 @@ function AdminReviewsPage() {
     );
   }
 
-  if (error || !reviews) {
+  if (error || !reviews || !stats) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center space-y-4 text-center">
         <span className="text-destructive font-semibold">{t('admin.reviews.errorLoading')}</span>
@@ -35,17 +60,9 @@ function AdminReviewsPage() {
     );
   }
 
-  // Calculate frontend statistics
-  const totalReviews = reviews.length;
-  const averageRating =
-    totalReviews > 0
-      ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / totalReviews).toFixed(1)
-      : '0.0';
-
-  // Sort reviews newest first
-  const sortedReviews = [...reviews].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  const totalReviews = stats.totalReviews;
+  const averageRating = totalReviews > 0 ? stats.averageRating.toFixed(1) : '0.0';
+  const totalPages = Math.ceil(totalReviews / limit);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -87,57 +104,60 @@ function AdminReviewsPage() {
 
       {/* Reviews list */}
       <div className="space-y-4">
-        {sortedReviews.length === 0 ? (
+        {reviews.length === 0 ? (
           <Card className="border border-border/80 shadow-sm p-8 text-center text-muted-foreground">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground/60" />
             <p className="text-sm font-medium">{t('admin.reviews.noReviews')}</p>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {sortedReviews.map((review) => (
-              <Card
-                key={review.id}
-                className="border border-border/80 shadow-sm flex flex-col justify-between"
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                        <User className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-sm text-foreground line-clamp-1">
-                          {review.reviewerName}
-                        </h4>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                          <Calendar className="h-3 w-3" />
-                          <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {reviews.map((review) => (
+                <Card
+                  key={review.id}
+                  className="border border-border/80 shadow-sm flex flex-col justify-between"
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <User className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm text-foreground line-clamp-1">
+                            {review.reviewerName}
+                          </h4>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Calendar className="h-3 w-3" />
+                            <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+                          </div>
                         </div>
                       </div>
+                      {/* Stars */}
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${
+                              review.rating >= star
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-muted-foreground/20'
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    {/* Stars */}
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`h-4 w-4 ${
-                            review.rating >= star
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-muted-foreground/20'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-2 flex-grow">
-                  <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">
-                    {review.comment}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent className="pt-2 flex-grow">
+                    <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">
+                      {review.comment}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
         )}
       </div>
     </div>

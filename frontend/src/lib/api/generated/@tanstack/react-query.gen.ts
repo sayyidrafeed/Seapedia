@@ -45,6 +45,7 @@ import {
   getPromo,
   getProvinces,
   getPublicStoreInfo,
+  getReviewsStats,
   getSellerIncomeReport,
   getSellerOrderDetail,
   getSellerProductById,
@@ -193,6 +194,9 @@ import type {
   GetPublicStoreInfoData,
   GetPublicStoreInfoError,
   GetPublicStoreInfoResponse,
+  GetReviewsStatsData,
+  GetReviewsStatsError,
+  GetReviewsStatsResponse,
   GetSellerIncomeReportData,
   GetSellerIncomeReportError,
   GetSellerIncomeReportResponse,
@@ -1031,7 +1035,7 @@ export const listReviewsQueryKey = (options?: Options<ListReviewsData>) =>
   createQueryKey('listReviews', options);
 
 /**
- * List all public application reviews
+ * List all public application reviews with pagination
  */
 export const listReviewsOptions = (options?: Options<ListReviewsData>) =>
   queryOptions<
@@ -1051,6 +1055,49 @@ export const listReviewsOptions = (options?: Options<ListReviewsData>) =>
     },
     queryKey: listReviewsQueryKey(options),
   });
+
+export const listReviewsInfiniteQueryKey = (
+  options?: Options<ListReviewsData>,
+): QueryKey<Options<ListReviewsData>> => createQueryKey('listReviews', options, true);
+
+/**
+ * List all public application reviews with pagination
+ */
+export const listReviewsInfiniteOptions = (options?: Options<ListReviewsData>) =>
+  infiniteQueryOptions<
+    ListReviewsResponse,
+    ListReviewsError,
+    InfiniteData<ListReviewsResponse>,
+    QueryKey<Options<ListReviewsData>>,
+    number | Pick<QueryKey<Options<ListReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListReviewsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await listReviews({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: listReviewsInfiniteQueryKey(options),
+    },
+  );
 
 /**
  * Submit a new application review (public/guest)
@@ -1074,6 +1121,31 @@ export const submitReviewMutation = (
   };
   return mutationOptions;
 };
+
+export const getReviewsStatsQueryKey = (options?: Options<GetReviewsStatsData>) =>
+  createQueryKey('getReviewsStats', options);
+
+/**
+ * Get application reviews statistics (total count and average rating)
+ */
+export const getReviewsStatsOptions = (options?: Options<GetReviewsStatsData>) =>
+  queryOptions<
+    GetReviewsStatsResponse,
+    GetReviewsStatsError,
+    GetReviewsStatsResponse,
+    ReturnType<typeof getReviewsStatsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getReviewsStats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getReviewsStatsQueryKey(options),
+  });
 
 export const privateAdminEndpointQueryKey = (options?: Options<PrivateAdminEndpointData>) =>
   createQueryKey('privateAdminEndpoint', options);

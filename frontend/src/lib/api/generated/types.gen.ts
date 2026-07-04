@@ -1132,7 +1132,13 @@ export type UpdateSellerProductResponse =
 export type ListReviewsData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  };
   url: '/api/reviews';
 };
 
@@ -1198,6 +1204,36 @@ export type SubmitReviewResponses = {
 };
 
 export type SubmitReviewResponse = SubmitReviewResponses[keyof SubmitReviewResponses];
+
+export type GetReviewsStatsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/reviews/stats';
+};
+
+export type GetReviewsStatsErrors = {
+  /**
+   * Internal Server Error
+   */
+  500: {
+    error: string;
+  };
+};
+
+export type GetReviewsStatsError = GetReviewsStatsErrors[keyof GetReviewsStatsErrors];
+
+export type GetReviewsStatsResponses = {
+  /**
+   * Review statistics
+   */
+  200: {
+    totalReviews: number;
+    averageRating: number;
+  };
+};
+
+export type GetReviewsStatsResponse = GetReviewsStatsResponses[keyof GetReviewsStatsResponses];
 
 export type PrivateAdminEndpointData = {
   body?: never;
