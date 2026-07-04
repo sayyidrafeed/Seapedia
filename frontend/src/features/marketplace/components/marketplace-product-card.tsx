@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { formatCurrency } from '@/lib/utils';
 import { Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Product {
   id: string;
@@ -25,12 +26,14 @@ export function MarketplaceProductCard({
   product,
   showStoreName = true,
 }: MarketplaceProductCardProps) {
+  const { t } = useTranslation();
   const ratingVal = parseFloat((product.rating as string) || '0.00');
 
   // Format sold count nicely (e.g., "100+ terjual" or "2rb+ terjual" or similar)
   const formatSoldCount = (count: number) => {
     if (count >= 1000) {
-      return `${(count / 1000).toFixed(count % 1000 === 0 ? 0 : 1)}rb+`;
+      const suffix = t('catalog.thousandSuffix', 'rb');
+      return `${(count / 1000).toFixed(count % 1000 === 0 ? 0 : 1)}${suffix}+`;
     }
     if (count >= 100) {
       return `${Math.floor(count / 100) * 100}+`;
@@ -95,7 +98,9 @@ export function MarketplaceProductCard({
           {product.soldCount !== undefined && (product.soldCount as number) > 0 && (
             <>
               <span>•</span>
-              <span>{formatSoldCount(product.soldCount as number)} terjual</span>
+              <span>
+                {formatSoldCount(product.soldCount as number)} {t('catalog.sold', 'terjual')}
+              </span>
             </>
           )}
         </div>
