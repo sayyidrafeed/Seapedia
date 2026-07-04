@@ -4,6 +4,7 @@ import { Logo } from '@/components/shared/logo';
 import { SelectRolePanel } from '@/features/authentication/components/select-role-panel';
 import { useTranslation } from 'react-i18next';
 import { requireAuth } from '@/lib/auth/guards';
+import { useEffect } from 'react';
 
 export const Route = createFileRoute('/select-role')({
   beforeLoad: async ({ context }) => {
@@ -11,16 +12,6 @@ export const Route = createFileRoute('/select-role')({
     if (!context.auth.isLoading && context.auth.activeRole) {
       throw redirect({
         to: `/dashboard/${context.auth.activeRole}` as
-          | '/dashboard/admin'
-          | '/dashboard/seller'
-          | '/dashboard/buyer'
-          | '/dashboard/driver',
-      });
-    } else if (!context.auth.isLoading && context.auth.roles.length === 1) {
-      const singleRole = context.auth.roles[0];
-      await context.auth.selectRole(singleRole as 'admin' | 'seller' | 'buyer' | 'driver');
-      throw redirect({
-        to: `/dashboard/${singleRole}` as
           | '/dashboard/admin'
           | '/dashboard/seller'
           | '/dashboard/buyer'
@@ -34,6 +25,13 @@ export const Route = createFileRoute('/select-role')({
 function SelectRolePage() {
   const { t } = useTranslation();
   const auth = useAuth();
+
+  useEffect(() => {
+    if (!auth.isLoading && auth.roles.length === 1 && !auth.activeRole) {
+      const singleRole = auth.roles[0];
+      auth.selectRole(singleRole as 'admin' | 'seller' | 'buyer' | 'driver');
+    }
+  }, [auth.isLoading, auth.roles, auth.activeRole, auth.selectRole]);
 
   if (auth.isLoading) {
     return (
