@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useSearch, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { listProducts } from '@/lib/api/generated/sdk.gen';
 
 export function useStoreCatalog(storeSlug: string, enabled: boolean) {
-  const [page, setPage] = useState(1);
+  const search = useSearch({ from: '/$storeSlug/' });
+  const page = search.page ?? 1;
+  const navigate = useNavigate({ from: '/$storeSlug/' });
   const limit = 20;
 
   const {
@@ -24,6 +26,12 @@ export function useStoreCatalog(storeSlug: string, enabled: boolean) {
 
   const total = productsData?.total ?? 0;
   const totalPages = Math.ceil(total / limit) || 1;
+
+  const setPage = (newPage: number) => {
+    navigate({
+      search: (prev) => ({ ...prev, page: newPage }),
+    });
+  };
 
   return {
     page,
