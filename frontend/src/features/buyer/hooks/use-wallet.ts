@@ -54,7 +54,11 @@ export function useWallet() {
 
   const handleCustomAmountChange = (val: string) => {
     setCustomAmount(val);
-    const parsed = parseFloat(val);
+    if (val === '') {
+      setTopUpAmount(50000);
+      return;
+    }
+    const parsed = Number(val);
     if (!isNaN(parsed)) {
       setTopUpAmount(parsed);
     }
