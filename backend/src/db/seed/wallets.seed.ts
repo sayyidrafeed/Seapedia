@@ -8,15 +8,15 @@ interface WalletSpec {
 }
 
 const walletSpecs: WalletSpec[] = [
-  { username: 'dewi_lestari', topupAmount: 5000000 },
-  { username: 'sari_dewi', topupAmount: 3000000 },
-  { username: 'putri_anggraini', topupAmount: 4000000 },
-  { username: 'andi_prasetyo', topupAmount: 2500000 },
-  { username: 'rizki_pratama', topupAmount: 3500000 },
-  { username: 'nadia_saputri', topupAmount: 4000000 },
-  { username: 'agus_setiawan', topupAmount: 1500000 },
-  { username: 'rina_wulandari', topupAmount: 3000000 },
-  { username: 'rina_multi', topupAmount: 2500000 },
+  { username: 'dewi_lestari', topupAmount: 100000000 },
+  { username: 'sari_dewi', topupAmount: 100000000 },
+  { username: 'putri_anggraini', topupAmount: 100000000 },
+  { username: 'andi_prasetyo', topupAmount: 100000000 },
+  { username: 'rizki_pratama', topupAmount: 100000000 },
+  { username: 'nadia_saputri', topupAmount: 100000000 },
+  { username: 'agus_setiawan', topupAmount: 100000000 },
+  { username: 'rina_wulandari', topupAmount: 100000000 },
+  { username: 'rina_multi', topupAmount: 100000000 },
 ];
 
 export async function seedWallets(tx: any, userMap: Map<string, string>) {

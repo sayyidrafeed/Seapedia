@@ -10,6 +10,7 @@ import {
 } from '../schema';
 import { rawProducts } from './data/products.data';
 import { rawAddresses } from './data/addresses.data';
+import { rawVouchers, rawPromos } from './data/discounts.data';
 
 interface TargetOrderDistribution {
   status: string;
@@ -119,18 +120,27 @@ export async function seedOrders(
       let discountCode: string | null = null;
       let discountType: string | null = null;
 
-      // Apply a voucher/promo with 40% probability if subtotal is high enough
-      if (Math.random() < 0.4 && subtotal >= 50000) {
+      // Apply a voucher/promo with 40% probability
+      if (Math.random() < 0.4) {
         if (Math.random() < 0.5) {
           // Voucher
-          discountCode = subtotal >= 200000 ? 'HEMAT50K' : 'HEMAT25K';
-          discountAmount = discountCode === 'HEMAT50K' ? 50000 : 25000;
-          discountType = 'voucher';
+          const eligibleVouchers = rawVouchers.filter((v) => subtotal >= v.minOrderAmount);
+          if (eligibleVouchers.length > 0) {
+            const voucher = eligibleVouchers[Math.floor(Math.random() * eligibleVouchers.length)];
+            discountCode = voucher.code;
+            discountAmount = voucher.discountAmount;
+            discountType = 'voucher';
+          }
         } else {
           // Promo
-          discountCode = 'PROMO10';
-          discountAmount = Math.round(subtotal * 0.1);
-          discountType = 'promo';
+          const eligiblePromos = rawPromos.filter((p) => subtotal >= p.minOrderAmount);
+          if (eligiblePromos.length > 0) {
+            const promo = eligiblePromos[Math.floor(Math.random() * eligiblePromos.length)];
+            discountCode = promo.code;
+            const calculatedPercentDiscount = Math.round(subtotal * (promo.discountPercent / 100));
+            discountAmount = Math.min(calculatedPercentDiscount, promo.maxDiscountAmount);
+            discountType = 'promo';
+          }
         }
       }
 
@@ -255,37 +265,47 @@ export async function seedOrders(
       });
 
       if (buyerWallet) {
-        const newBalance = buyerWallet.balance - totalAmount;
-        await tx.update(wallets).set({ balance: newBalance }).where(eq(wallets.id, buyerWallet.id));
-
-        const randomRef = 'PAY-' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
-
-        await tx.insert(walletTransactions).values({
-          walletId: buyerWallet.id,
-          amount: -totalAmount,
-          type: 'payment',
-          status: 'success',
-          reference: randomRef,
-          createdAt,
-        });
-
-        // If returned, refund to wallet
-        if (dist.status === 'dikembalikan') {
+        if (buyerWallet.balance < totalAmount) {
+          console.warn(
+            `Buyer ${buyerUsername} has insufficient balance. Skipping wallet deduction to prevent negative balance.`,
+          );
+        } else {
+          const newBalance = buyerWallet.balance - totalAmount;
           await tx
             .update(wallets)
-            .set({ balance: newBalance + totalAmount })
+            .set({ balance: newBalance })
             .where(eq(wallets.id, buyerWallet.id));
 
-          const refundRef = 'REF-' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
+          const randomRef = 'PAY-' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
           await tx.insert(walletTransactions).values({
             walletId: buyerWallet.id,
-            amount: totalAmount,
-            type: 'refund',
+            amount: -totalAmount,
+            type: 'payment',
             status: 'success',
-            reference: refundRef,
-            createdAt: historyTime,
+            reference: randomRef,
+            createdAt,
           });
+
+          // If returned, refund to wallet
+          if (dist.status === 'dikembalikan') {
+            await tx
+              .update(wallets)
+              .set({ balance: newBalance + totalAmount })
+              .where(eq(wallets.id, buyerWallet.id));
+
+            const refundRef =
+              'REF-' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+            await tx.insert(walletTransactions).values({
+              walletId: buyerWallet.id,
+              amount: totalAmount,
+              type: 'refund',
+              status: 'success',
+              reference: refundRef,
+              createdAt: historyTime,
+            });
+          }
         }
       }
     }

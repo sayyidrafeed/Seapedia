@@ -173,18 +173,19 @@ export async function seedReviews(
   }
 
   // 3. Update products rating and reviewCount
-  const allProds = await tx.query.products.findMany();
-  for (const prod of allProds) {
-    const reviews = await tx
-      .select({
-        avgRating: avg(productReviews.rating),
-        totalReviews: count(productReviews.id),
-      })
-      .from(productReviews)
-      .where(eq(productReviews.productId, prod.id));
+  const productReviewsSummary = await tx
+    .select({
+      productId: productReviews.productId,
+      avgRating: avg(productReviews.rating),
+      totalReviews: count(productReviews.id),
+    })
+    .from(productReviews)
+    .groupBy(productReviews.productId);
 
-    const avgVal = parseFloat(reviews[0]?.avgRating || '0.00').toFixed(2);
-    const countVal = reviews[0]?.totalReviews || 0;
+  for (const summary of productReviewsSummary) {
+    if (!summary.productId) continue;
+    const avgVal = parseFloat(summary.avgRating || '0.00').toFixed(2);
+    const countVal = summary.totalReviews || 0;
 
     await tx
       .update(products)
@@ -192,24 +193,24 @@ export async function seedReviews(
         rating: avgVal,
         reviewCount: countVal,
       })
-      .where(eq(products.id, prod.id));
+      .where(eq(products.id, summary.productId));
   }
 
   // 4. Update stores rating and reviewCount
-  const allStores = await tx.query.stores.findMany();
-  for (const store of allStores) {
-    // Average rating of all reviews of all products in this store
-    const storeReviews = await tx
-      .select({
-        avgRating: avg(productReviews.rating),
-        totalReviews: count(productReviews.id),
-      })
-      .from(productReviews)
-      .innerJoin(products, eq(productReviews.productId, products.id))
-      .where(eq(products.storeId, store.id));
+  const storeReviewsSummary = await tx
+    .select({
+      storeId: products.storeId,
+      avgRating: avg(productReviews.rating),
+      totalReviews: count(productReviews.id),
+    })
+    .from(productReviews)
+    .innerJoin(products, eq(productReviews.productId, products.id))
+    .groupBy(products.storeId);
 
-    const avgVal = parseFloat(storeReviews[0]?.avgRating || '0.00').toFixed(2);
-    const countVal = storeReviews[0]?.totalReviews || 0;
+  for (const summary of storeReviewsSummary) {
+    if (!summary.storeId) continue;
+    const avgVal = parseFloat(summary.avgRating || '0.00').toFixed(2);
+    const countVal = summary.totalReviews || 0;
 
     await tx
       .update(stores)
@@ -217,7 +218,7 @@ export async function seedReviews(
         rating: avgVal,
         reviewCount: countVal,
       })
-      .where(eq(stores.id, store.id));
+      .where(eq(stores.id, summary.storeId));
   }
 
   // 5. Seed App Reviews

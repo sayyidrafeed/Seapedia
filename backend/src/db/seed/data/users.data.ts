@@ -122,7 +122,7 @@ export const rawUsers: RawUser[] = [
     name: 'Agus Setiawan',
     roles: ['buyer'],
     avatarUrl:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1500048993953-d23a436266cf?w=150&auto=format&fit=crop&q=80',
     createdAtDaysAgo: 17,
   },
   {
@@ -149,7 +149,7 @@ export const rawUsers: RawUser[] = [
     name: 'Budi Hartono',
     roles: ['driver'],
     avatarUrl:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
     createdAtDaysAgo: 24,
   },
   {

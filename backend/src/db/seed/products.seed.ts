@@ -9,6 +9,9 @@ export async function seedProducts(tx: any, storeMap: Map<string, string>) {
   const productMap = new Map<string, string>();
   const storeProductCounts = new Map<string, number>();
 
+  const productsToInsert: any[] = [];
+  const validRawProducts: typeof rawProducts = [];
+
   for (const raw of rawProducts) {
     const storeId = storeMap.get(raw.storeSlug);
     if (!storeId) {
@@ -19,29 +22,35 @@ export async function seedProducts(tx: any, storeMap: Map<string, string>) {
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - 20); // 20 days ago
 
-    const [insertedProduct] = await tx
-      .insert(products)
-      .values({
-        storeId,
-        name: raw.name,
-        slug: raw.slug,
-        description: raw.description,
-        price: raw.price,
-        stock: raw.stock,
-        imageKey: raw.imageUrl,
-        rating: '0.00', // Will be calculated and updated during review seed
-        reviewCount: 0,
-        soldCount: 0, // Will be calculated during order seed
-        createdAt,
-        updatedAt: createdAt,
-      })
-      .returning();
+    productsToInsert.push({
+      storeId,
+      name: raw.name,
+      slug: raw.slug,
+      description: raw.description,
+      price: raw.price,
+      stock: raw.stock,
+      imageKey: raw.imageUrl,
+      rating: '0.00', // Will be calculated and updated during review seed
+      reviewCount: 0,
+      soldCount: 0, // Will be calculated during order seed
+      createdAt,
+      updatedAt: createdAt,
+    });
+    validRawProducts.push(raw);
+  }
 
-    productMap.set(raw.slug, insertedProduct.id);
+  if (productsToInsert.length > 0) {
+    const insertedProducts = await tx.insert(products).values(productsToInsert).returning();
 
-    // Track total products per store
-    const currentCount = storeProductCounts.get(storeId) || 0;
-    storeProductCounts.set(storeId, currentCount + 1);
+    for (let i = 0; i < insertedProducts.length; i++) {
+      const inserted = insertedProducts[i];
+      const raw = validRawProducts[i];
+      productMap.set(raw.slug, inserted.id);
+
+      // Track total products per store
+      const currentCount = storeProductCounts.get(inserted.storeId) || 0;
+      storeProductCounts.set(inserted.storeId, currentCount + 1);
+    }
   }
 
   // Update store totalProducts count
@@ -54,6 +63,6 @@ export async function seedProducts(tx: any, storeMap: Map<string, string>) {
       .where(eq(stores.id, storeId));
   }
 
-  console.log(`Seeded ${rawProducts.length} products successfully.`);
+  console.log(`Seeded ${productsToInsert.length} products successfully.`);
   return productMap;
 }
