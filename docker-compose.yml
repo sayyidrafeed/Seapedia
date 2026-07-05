@@ -34,7 +34,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: bun run dev
+    command: sh -c "bun src/db/migrate.ts && bun --hot src/index.ts"
 
   frontend:
     build:
