@@ -106,6 +106,9 @@ export class StorageService {
    */
   static getPublicUrl(objectKey: string): string {
     if (!objectKey) return '';
+    if (objectKey.startsWith('http://') || objectKey.startsWith('https://')) {
+      return objectKey;
+    }
     const cleanKey = objectKey.replace(/^\/+/g, '');
     const domain = env.R2_PUBLIC_DOMAIN;
     if (!domain) {
