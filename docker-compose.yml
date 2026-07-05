@@ -34,7 +34,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: sh -c "bun src/db/migrate.ts && bun --hot src/index.ts"
+    command: bun run dev
 
   frontend:
     build:
@@ -49,7 +49,7 @@ services:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:3001
       - VITE_APP_URL=http://localhost:5173
-    command: bun run dev -- --host
+    command: bun run dev
 
 volumes:
   pgdata:

@@ -94,6 +94,15 @@ bun run seed
 
 ### Useful URLs
 
+#### Production
+
+| Service | URL |
+|---------|-----|
+| Frontend app | [https://seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) |
+| Scalar API Docs | [https://api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
+
+#### Local Development
+
 | Service | URL |
 |---------|-----|
 | Frontend app | [http://localhost:5173](http://localhost:5173) |
@@ -297,9 +306,14 @@ To verify the security controls implemented in Level 7:
 
 ## Deployment
 
-*Deployment instructions are provided here once deployed.*
+The application is deployed and publicly accessible:
 
-The app runs locally using Docker:
+| Service | URL |
+|---------|-----|
+| Frontend | [https://seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) |
+| API Docs | [https://api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
+
+### Local Development (Docker)
 
 ```bash
 docker compose up --build
