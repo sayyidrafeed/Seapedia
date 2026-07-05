@@ -4,6 +4,26 @@
 
 SEAPEDIA is a multi-role e-commerce platform connecting Buyers, Sellers, Drivers, and Admins in a single marketplace. Built progressively across 7 levels, it supports product catalog browsing, authentication with role awareness, store and product management, wallet and checkout, discounts, delivery workflows, admin monitoring, and security hardening.
 
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](./docs/) folder:
+
+| Document | Description |
+|----------|-------------|
+| [Documentation Index](./docs/README.md) | Full documentation overview |
+| [Setup Guide](./docs/SETUP.md) | Installation & deployment |
+| [Authentication](./docs/AUTH.md) | Multi-role auth system |
+| [Business Rules](./docs/BUSINESS-RULES.md) | Core rules & calculations |
+| [Order Lifecycle](./docs/ORDER-LIFECYCLE.md) | Order status flow |
+| [Demo Guide](./docs/DEMO-GUIDE.md) | Step-by-step walkthrough for judges |
+| [API Reference](./docs/API.md) | Endpoint overview |
+| [Database Schema](./docs/SCHEMA.md) | Schema reference |
+| [Security](./docs/SECURITY.md) | Security measures |
+
+Role-specific flows: [Guest](./docs/GUEST.md) | [Seller](./docs/SELLER.md) | [Buyer](./docs/BUYER.md) | [Driver](./docs/DRIVER.md) | [Admin](./docs/ADMIN.md)
+
+Feature deep dives: [Discounts](./docs/DISCOUNTS.md) | [Delivery](./docs/DELIVERY.md) | [Overdue Handling](./docs/OVERDUE.md) | [Seed Data](./docs/SEED-DATA.md)
+
 ## Tech Stack
 
 | Layer | Backend | Frontend |
