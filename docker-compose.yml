@@ -49,7 +49,7 @@ services:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:3001
       - VITE_APP_URL=http://localhost:5173
-    command: bun run dev
+    command: bun run dev -- --host
 
 volumes:
   pgdata:
