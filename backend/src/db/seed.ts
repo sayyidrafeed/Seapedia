@@ -1,126 +1,62 @@
 import { db } from './index';
-import { users, userRole, activeSession, systemTimeOffset, stores, wallets } from './schema';
-import { inArray } from 'drizzle-orm';
+import { systemTimeOffset } from './schema';
+import {
+  seedUsers,
+  seedWallets,
+  seedStores,
+  seedProducts,
+  seedDiscounts,
+  seedOrders,
+  seedDelivery,
+  seedReviews,
+  seedCarts,
+} from './seed/index';
 
 async function seed() {
-  console.log('Seeding database with default accounts...');
-
-  const accounts = [
-    {
-      username: 'admin',
-      email: 'admin@seapedia.com',
-      password: 'admin123',
-      name: 'System Administrator',
-      roles: ['admin'],
-    },
-    {
-      username: 'seller1',
-      email: 'seller1@seapedia.com',
-      password: 'seller123',
-      name: 'John Seller',
-      roles: ['seller'],
-    },
-    {
-      username: 'buyer1',
-      email: 'buyer1@seapedia.com',
-      password: 'buyer123',
-      name: 'Jane Buyer',
-      roles: ['buyer'],
-    },
-    {
-      username: 'driver1',
-      email: 'driver1@seapedia.com',
-      password: 'driver123',
-      name: 'Bob Driver',
-      roles: ['driver'],
-    },
-    {
-      username: 'multirole',
-      email: 'multirole@seapedia.com',
-      password: 'multi123',
-      name: 'Alice Multirole',
-      roles: ['seller', 'buyer', 'driver'],
-    },
-  ];
+  console.log('Starting database seeding');
 
   try {
-    // 1. Clean up existing seeded users
-    const usernames = accounts.map((a) => a.username);
-    await db.delete(users).where(inArray(users.username, usernames));
+    await db.transaction(async (tx) => {
+      // 1. Seed users (deletes previous seeded users and inserts roles/sessions)
+      const userMap = await seedUsers(tx);
 
-    // 2. Hash passwords in parallel
-    const hashedAccounts = await Promise.all(
-      accounts.map(async (acc) => ({
-        ...acc,
-        passwordHash: await Bun.password.hash(acc.password, 'bcrypt'),
-      })),
-    );
+      // 2. Seed wallets (creates wallets for non-admins, adds topups, seeds addresses)
+      await seedWallets(tx, userMap);
 
-    // 3. Insert users and their profiles
-    for (const acc of hashedAccounts) {
-      const [insertedUser] = await db
-        .insert(users)
+      // 3. Seed stores
+      const storeMap = await seedStores(tx, userMap);
+
+      // 4. Seed products (associates to stores, updates store totalProducts)
+      const productMap = await seedProducts(tx, storeMap);
+
+      // 5. Seed discounts (vouchers and promos)
+      const { voucherMap, promoMap } = await seedDiscounts(tx);
+
+      // 6. Seed orders (creates orders, orderItems, orderStatusHistory, payments & refunds)
+      const orderMap = await seedOrders(tx, userMap, storeMap, productMap, voucherMap, promoMap);
+
+      // 7. Seed delivery jobs (assigns drivers to orders waiting for shipment, in shipping, or completed)
+      await seedDelivery(tx, orderMap, userMap);
+
+      // 8. Seed reviews (adds product reviews and app reviews, calculates ratings for products/stores)
+      await seedReviews(tx, userMap, productMap, orderMap);
+
+      // 9. Seed active carts (creates carts and cartItems for a few buyers)
+      await seedCarts(tx, userMap, productMap, storeMap);
+
+      // 10. Ensure system time offset exists
+      await tx
+        .insert(systemTimeOffset)
         .values({
-          username: acc.username,
-          email: acc.email,
-          passwordHash: acc.passwordHash,
-          name: acc.name,
-          isOnboarded: true,
+          id: 1,
+          offsetSeconds: 0,
         })
-        .returning();
+        .onConflictDoNothing();
+    });
 
-      // Seed roles
-      for (const role of acc.roles) {
-        await db.insert(userRole).values({
-          userId: insertedUser.id,
-          role,
-        });
-      }
-
-      // Seed active session
-      const primaryRole = acc.roles[0];
-      await db.insert(activeSession).values({
-        userId: insertedUser.id,
-        activeRole: primaryRole,
-      });
-
-      // Seed store if user is a seller
-      if (acc.roles.includes('seller')) {
-        await db.insert(stores).values({
-          sellerId: insertedUser.id,
-          name: `${acc.name}'s Store`,
-          slug: `${acc.username}-store`,
-          description: `Welcome to ${acc.name}'s official store!`,
-        });
-      }
-
-      // Seed wallet if user is not admin
-      if (!acc.roles.includes('admin')) {
-        await db.insert(wallets).values({
-          userId: insertedUser.id,
-          balance: 0,
-        });
-      }
-    }
-
-    // 3. Ensure system time offset exists
-    await db
-      .insert(systemTimeOffset)
-      .values({
-        id: 1,
-        offsetSeconds: 0,
-      })
-      .onConflictDoNothing();
-
-    console.log('Database seeded successfully!');
-    console.log('Credentials seeded:');
-    for (const acc of accounts) {
-      console.log(
-        `  - Username: ${acc.username} | Password: ${acc.password} | Roles: ${acc.roles.join(', ')}`,
-      );
-    }
+    console.log('Database seeded successfully');
   } catch (error) {
-    console.error('Error seeding database:', error);
+    console.error('Fatal error seeding database:', error);
   } finally {
     process.exit(0);
   }
