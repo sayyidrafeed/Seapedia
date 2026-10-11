@@ -1,14 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
-import { inArray } from 'drizzle-orm';
 import { users, userRole, activeSession } from '../schema';
 import { rawUsers } from './data/users.data';
+import type { Dbs } from '../dbs';
 
-export async function seedUsers(tx: any) {
+export async function seedUsers({ identity: tx }: Dbs) {
   console.log('Seeding users...');
-
-  // Clean up existing seeded users
-  const usernames = rawUsers.map((u) => u.username);
-  await tx.delete(users).where(inArray(users.username, usernames));
 
   const userMap = new Map<string, string>();
 

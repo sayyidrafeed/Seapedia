@@ -48,6 +48,9 @@ export function createGateway(config: GatewayConfig) {
     }),
   );
 
+  // Liveness of the gateway process itself; /api/health reports the upstreams.
+  app.get('/healthz', (c) => c.json({ status: 'ok' }));
+
   app.get('/', (c) =>
     c.json({
       name: 'Seapedia API Gateway',

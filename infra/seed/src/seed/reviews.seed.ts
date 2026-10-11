@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
+/* eslint-disable max-lines */
 import { eq, avg, count } from 'drizzle-orm';
 import { productReviews, appReview, products, stores, orders, orderItems } from '../schema';
+import type { Dbs } from '../dbs';
 
 const positiveComments = [
   'Barang original, pengiriman cepat! Packing juga aman. Recommended seller!',
@@ -109,8 +110,8 @@ const appReviewsData = [
 ];
 
 export async function seedReviews(
-  tx: any,
-  _userMap: Map<string, string>,
+  { catalog: tx, commerce }: Dbs,
+  displayNames: Map<string, string>,
   _productMap: Map<string, string>,
   _orderMap: Map<string, string>,
 ) {
@@ -121,7 +122,7 @@ export async function seedReviews(
   await tx.delete(appReview);
 
   // 2. Fetch completed orders
-  const completedOrders = await tx
+  const completedOrders = await commerce
     .select()
     .from(orders)
     .where(eq(orders.status, 'pesanan_selesai'));
@@ -129,7 +130,7 @@ export async function seedReviews(
   const reviewedProducts = new Set<string>();
 
   for (const order of completedOrders) {
-    const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, order.id));
+    const items = await commerce.select().from(orderItems).where(eq(orderItems.orderId, order.id));
 
     for (const item of items) {
       if (!item.productId) continue;
@@ -165,6 +166,7 @@ export async function seedReviews(
       await tx.insert(productReviews).values({
         productId: item.productId,
         buyerId: order.buyerId,
+        reviewerName: displayNames.get(order.buyerId) ?? 'Pembeli',
         rating,
         comment,
         createdAt,

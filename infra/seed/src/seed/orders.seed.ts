@@ -1,13 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
-import { eq, sql } from 'drizzle-orm';
-import {
-  orders,
-  orderItems,
-  orderStatusHistory,
-  wallets,
-  walletTransactions,
-  products,
-} from '../schema';
+/* eslint-disable max-lines */
+import { eq } from 'drizzle-orm';
+import { orders, orderItems, orderStatusHistory, wallets, walletTransactions } from '../schema';
+import type { Dbs } from '../dbs';
 import { rawProducts } from './data/products.data';
 import { rawAddresses } from './data/addresses.data';
 import { rawVouchers, rawPromos } from './data/discounts.data';
@@ -33,7 +27,7 @@ const deliveryFees: Record<string, number> = {
 };
 
 export async function seedOrders(
-  tx: any,
+  { commerce: tx }: Dbs,
   userMap: Map<string, string>,
   storeMap: Map<string, string>,
   productMap: Map<string, string>,
@@ -190,16 +184,6 @@ export async function seedOrders(
           createdAt,
           updatedAt: createdAt,
         });
-
-        // Increment soldCount for products in completed/shipped/returned orders
-        if (['pesanan_selesai', 'sedang_dikirim', 'dikembalikan'].includes(dist.status)) {
-          await tx
-            .update(products)
-            .set({
-              soldCount: sql`${products.soldCount} + ${item.quantity}`,
-            })
-            .where(eq(products.id, item.productId));
-        }
       }
 
       // 6. Create Order Status History

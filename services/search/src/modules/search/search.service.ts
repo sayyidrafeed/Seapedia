@@ -21,11 +21,23 @@ export function buildProductQuery({ q, storeSlug }: ProductQuery): estypes.Query
     function_score: {
       query: {
         bool: {
+          // Every query word must match. Names tolerate typos; descriptions must match exactly,
+          // otherwise long descriptions drag in near-miss words from unrelated products.
           must: {
-            multi_match: {
-              query: q,
-              fields: ['name^3', 'storeName', 'description'],
-              fuzziness: 'AUTO',
+            bool: {
+              should: [
+                {
+                  multi_match: {
+                    query: q,
+                    fields: ['name^3', 'storeName^1.5'],
+                    fuzziness: 'AUTO',
+                    prefix_length: 1,
+                    operator: 'and',
+                  },
+                },
+                { match: { description: { query: q, operator: 'and' } } },
+              ],
+              minimum_should_match: 1,
             },
           },
           filter,

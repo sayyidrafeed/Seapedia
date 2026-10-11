@@ -1,6 +1,7 @@
 {
   "name": "@seapedia/seed",
   "private": true,
+  "description": "Ops tool: wipes and seeds the identity, catalog and commerce databases with demo data.",
   "type": "module",
   "scripts": {
     "seed": "bun src/seed.ts",
@@ -8,5 +9,18 @@
     "lint": "oxlint",
     "format": "oxfmt --write",
     "fl": "bun run format && bun run lint"
+  },
+  "dependencies": {
+    "@seapedia/platform": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "bun-types": "^1.3.14",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "typescript": "^6.0.3"
   }
 }

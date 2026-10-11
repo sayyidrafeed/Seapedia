@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
 import { wallets, walletTransactions, addresses } from '../schema';
 import { rawAddresses } from './data/addresses.data';
+import type { Dbs } from '../dbs';
 
 interface WalletSpec {
   username: string;
@@ -19,7 +19,7 @@ const walletSpecs: WalletSpec[] = [
   { username: 'rina_multi', topupAmount: 100000000 },
 ];
 
-export async function seedWallets(tx: any, userMap: Map<string, string>) {
+export async function seedWallets({ commerce: tx }: Dbs, userMap: Map<string, string>) {
   console.log('Seeding wallets and addresses...');
 
   const walletMap = new Map<string, string>();

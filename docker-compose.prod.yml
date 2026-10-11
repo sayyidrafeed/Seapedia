@@ -1,0 +1,151 @@
+# Production-like stack: every service from its own image, one network, memory limits sized for a
+# 4 GB host (the same budget as the Dokploy VPS, see docs/DEPLOYMENT.md).
+#   cp .env.prod.example .env.prod.local   # fill in secrets
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod.local up -d --build
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod.local --profile tools run --rm seed
+name: seapedia
+
+x-service-env: &service-env
+  NODE_ENV: production
+  INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?set INTERNAL_API_TOKEN}
+  IDENTITY_SERVICE_URL: http://identity:4001
+  CATALOG_SERVICE_URL: http://catalog:4002
+  COMMERCE_SERVICE_URL: http://commerce:4003
+
+x-r2-env: &r2-env
+  R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+  R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+  R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+  R2_BUCKET_NAME: ${R2_BUCKET_NAME:-}
+  R2_PUBLIC_DOMAIN: ${R2_PUBLIC_DOMAIN:-}
+
+services:
+  postgres:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?set IDENTITY_DB_PASSWORD}
+      CATALOG_DB_PASSWORD: ${CATALOG_DB_PASSWORD:?set CATALOG_DB_PASSWORD}
+      COMMERCE_DB_PASSWORD: ${COMMERCE_DB_PASSWORD:?set COMMERCE_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    mem_limit: 384m
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  elasticsearch:
+    image: elasticsearch:9.5.3
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:?set ELASTIC_PASSWORD}
+      xpack.security.enabled: 'true'
+      # Plain HTTP on the private network only; never published.
+      xpack.security.http.ssl.enabled: 'false'
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    mem_limit: 1200m
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsu "elastic:$$ELASTIC_PASSWORD" localhost:9200/_cluster/health >/dev/null']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  identity:
+    build: { context: ., dockerfile: services/identity/Dockerfile }
+    environment:
+      <<: [*service-env, *r2-env]
+      DATABASE_URL: postgres://identity:${IDENTITY_DB_PASSWORD}@postgres:5432/identity
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+    depends_on:
+      postgres: { condition: service_healthy }
+    mem_limit: 192m
+    restart: unless-stopped
+
+  catalog:
+    build: { context: ., dockerfile: services/catalog/Dockerfile }
+    environment:
+      <<: [*service-env, *r2-env]
+      DATABASE_URL: postgres://catalog:${CATALOG_DB_PASSWORD}@postgres:5432/catalog
+      SEARCH_SERVICE_URL: http://search:4004
+    depends_on:
+      postgres: { condition: service_healthy }
+    mem_limit: 192m
+    restart: unless-stopped
+
+  commerce:
+    build: { context: ., dockerfile: services/commerce/Dockerfile }
+    environment:
+      <<: *service-env
+      DATABASE_URL: postgres://commerce:${COMMERCE_DB_PASSWORD}@postgres:5432/commerce
+    depends_on:
+      postgres: { condition: service_healthy }
+    mem_limit: 192m
+    restart: unless-stopped
+
+  search:
+    build: { context: ., dockerfile: services/search/Dockerfile }
+    environment:
+      <<: *service-env
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_PASSWORD: ${ELASTIC_PASSWORD}
+    depends_on:
+      elasticsearch: { condition: service_healthy }
+      catalog: { condition: service_healthy }
+    mem_limit: 192m
+    restart: unless-stopped
+
+  gateway:
+    build: { context: ., dockerfile: services/gateway/Dockerfile }
+    environment:
+      <<: *service-env
+      FRONTEND_URL: ${WEB_URL:-http://localhost:8080}
+      PUBLIC_API_URL: ${API_URL:-http://localhost:3001}
+    ports:
+      - '3001:3001'
+    depends_on:
+      identity: { condition: service_healthy }
+      catalog: { condition: service_healthy }
+      commerce: { condition: service_healthy }
+    mem_limit: 128m
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: release
+      args:
+        VITE_API_URL: ${API_URL:-http://localhost:3001}
+        VITE_APP_URL: ${WEB_URL:-http://localhost:8080}
+    ports:
+      - '${WEB_PORT:-8080}:8080'
+    mem_limit: 32m
+    restart: unless-stopped
+
+  # One-off: wipe and seed the service databases, then rebuild the search index.
+  seed:
+    profiles: [tools]
+    build: { context: ., dockerfile: infra/seed/Dockerfile }
+    environment:
+      IDENTITY_DATABASE_URL: postgres://identity:${IDENTITY_DB_PASSWORD}@postgres:5432/identity
+      CATALOG_DATABASE_URL: postgres://catalog:${CATALOG_DB_PASSWORD}@postgres:5432/catalog
+      COMMERCE_DATABASE_URL: postgres://commerce:${COMMERCE_DB_PASSWORD}@postgres:5432/commerce
+      SEARCH_REINDEX_URL: http://search:4004/search/reindex
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
+    depends_on:
+      identity: { condition: service_healthy }
+      catalog: { condition: service_healthy }
+      commerce: { condition: service_healthy }
+      search: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  esdata:

@@ -1,5 +1,7 @@
-import { db } from './index';
-import { systemTimeOffset } from './schema';
+import { sql } from 'drizzle-orm';
+import { connections, type Dbs, type Tx } from './dbs';
+import { inventory, orderItems, orders, products, systemTimeOffset } from './schema';
+import { rawUsers } from './seed/data/users.data';
 import {
   seedUsers,
   seedWallets,
@@ -12,54 +14,105 @@ import {
   seedCarts,
 } from './seed/index';
 
-async function seed() {
-  console.log('Starting database seeding');
+/** Seeding starts clean: every service table is emptied (migration history is untouched). */
+async function wipe(tx: Tx) {
+  const tables = await tx.execute<{ tablename: string }>(
+    sql`select tablename from pg_tables where schemaname = 'public'`,
+  );
+  if (tables.length === 0) return;
+  const names = tables.map((t) => `"public"."${t.tablename}"`).join(', ');
+  await tx.execute(sql.raw(`truncate table ${names} restart identity cascade`));
+}
 
-  try {
-    await db.transaction(async (tx) => {
-      // 1. Seed users (deletes previous seeded users and inserts roles/sessions)
-      const userMap = await seedUsers(tx);
+/**
+ * Catalog shows read models of commerce data (stock, sold counts). At runtime the outbox keeps
+ * them in step; the seed writes them directly from commerce's final state.
+ */
+async function syncReadModels({ catalog, commerce }: Dbs) {
+  const stock = await commerce.select().from(inventory);
+  for (const row of stock) {
+    await catalog
+      .update(products)
+      .set({ stock: row.stock })
+      .where(sql`${products.id} = ${row.productId}`);
+  }
 
-      // 2. Seed wallets (creates wallets for non-admins, adds topups, seeds addresses)
-      await seedWallets(tx, userMap);
-
-      // 3. Seed stores
-      const storeMap = await seedStores(tx, userMap);
-
-      // 4. Seed products (associates to stores, updates store totalProducts)
-      const productMap = await seedProducts(tx, storeMap);
-
-      // 5. Seed discounts (vouchers and promos)
-      const { voucherMap, promoMap } = await seedDiscounts(tx);
-
-      // 6. Seed orders (creates orders, orderItems, orderStatusHistory, payments & refunds)
-      const orderMap = await seedOrders(tx, userMap, storeMap, productMap, voucherMap, promoMap);
-
-      // 7. Seed delivery jobs (assigns drivers to orders waiting for shipment, in shipping, or completed)
-      await seedDelivery(tx, orderMap, userMap);
-
-      // 8. Seed reviews (adds product reviews and app reviews, calculates ratings for products/stores)
-      await seedReviews(tx, userMap, productMap, orderMap);
-
-      // 9. Seed active carts (creates carts and cartItems for a few buyers)
-      await seedCarts(tx, userMap, productMap, storeMap);
-
-      // 10. Ensure system time offset exists
-      await tx
-        .insert(systemTimeOffset)
-        .values({
-          id: 1,
-          offsetSeconds: 0,
-        })
-        .onConflictDoNothing();
-    });
-
-    console.log('Database seeded successfully');
-  } catch (error) {
-    console.error('Fatal error seeding database:', error);
-  } finally {
-    process.exit(0);
+  const sold = await commerce
+    .select({
+      productId: orderItems.productId,
+      soldCount: sql<number>`sum(${orderItems.quantity})::int`,
+    })
+    .from(orderItems)
+    .innerJoin(orders, sql`${orders.id} = ${orderItems.orderId}`)
+    .where(sql`${orders.status} = 'pesanan_selesai' and ${orderItems.productId} is not null`)
+    .groupBy(orderItems.productId);
+  for (const row of sold) {
+    await catalog
+      .update(products)
+      .set({ soldCount: row.soldCount })
+      .where(sql`${products.id} = ${row.productId}`);
   }
 }
 
-seed();
+async function seed(dbs: Dbs) {
+  await Promise.all([wipe(dbs.identity), wipe(dbs.catalog), wipe(dbs.commerce)]);
+
+  const userMap = await seedUsers(dbs);
+  const displayNames = new Map(
+    rawUsers.flatMap((u) => {
+      const id = userMap.get(u.username);
+      return id ? [[id, u.name ?? u.username] as const] : [];
+    }),
+  );
+
+  await seedWallets(dbs, userMap);
+  const storeMap = await seedStores(dbs, userMap);
+  const productMap = await seedProducts(dbs, storeMap);
+  const { voucherMap, promoMap } = await seedDiscounts(dbs);
+  const orderMap = await seedOrders(dbs, userMap, storeMap, productMap, voucherMap, promoMap);
+  await seedDelivery(dbs, orderMap, userMap);
+  await seedReviews(dbs, displayNames, productMap, orderMap);
+  await seedCarts(dbs, userMap, productMap, storeMap);
+  await dbs.commerce
+    .insert(systemTimeOffset)
+    .values({ id: 1, offsetSeconds: 0 })
+    .onConflictDoNothing();
+  await syncReadModels(dbs);
+}
+
+/** The seed bypasses catalog's outbox, so the search index is rebuilt from scratch. */
+async function rebuildSearchIndex() {
+  const url = process.env.SEARCH_REINDEX_URL;
+  if (!url) {
+    console.log('SEARCH_REINDEX_URL not set: rebuild the search index with POST /search/reindex.');
+    return;
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${process.env.INTERNAL_API_TOKEN ?? ''}` },
+  });
+  if (!res.ok) throw new Error(`search reindex failed: ${res.status} ${await res.text()}`);
+  console.log('Search index rebuilt:', await res.text());
+}
+
+const { identity, catalog, commerce } = connections;
+let exitCode = 0;
+try {
+  console.log('Seeding identity, catalog and commerce databases...');
+  // Nested transactions, one per database: a failure anywhere rolls back all three.
+  await identity.db.transaction((identityTx) =>
+    catalog.db.transaction((catalogTx) =>
+      commerce.db.transaction((commerceTx) =>
+        seed({ identity: identityTx, catalog: catalogTx, commerce: commerceTx }),
+      ),
+    ),
+  );
+  console.log('Seed complete.');
+  await rebuildSearchIndex();
+} catch (error) {
+  console.error('Seeding failed:', error);
+  exitCode = 1;
+} finally {
+  await Promise.all([identity.client.end(), catalog.client.end(), commerce.client.end()]);
+}
+process.exit(exitCode);

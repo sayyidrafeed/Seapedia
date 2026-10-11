@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
-import { stores } from '../schema';
+import { storeRefs, stores } from '../schema';
+import type { Dbs } from '../dbs';
 import { rawStores } from './data/stores.data';
 
-export async function seedStores(tx: any, userMap: Map<string, string>) {
+export async function seedStores({ catalog: tx, commerce }: Dbs, userMap: Map<string, string>) {
   console.log('Seeding stores...');
 
   const storeMap = new Map<string, string>();
@@ -34,6 +34,14 @@ export async function seedStores(tx: any, userMap: Map<string, string>) {
       .returning();
 
     storeMap.set(raw.slug, insertedStore.id);
+
+    // Commerce's replica, normally filled from catalog's outbox.
+    await commerce.insert(storeRefs).values({
+      id: insertedStore.id,
+      sellerId,
+      name: insertedStore.name,
+      slug: insertedStore.slug,
+    });
   }
 
   console.log(`Seeded ${rawStores.length} stores successfully.`);

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://oxfmt.oxlint.io/schema.json",
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "ignore": ["dist", "node_modules"],
+  "plugins": [
+    { "name": "typescript", "filenames": ["*.ts", "*.tsx"] },
+    { "name": "json", "filenames": ["*.json"] },
+    { "name": "markdown", "filenames": ["*.md"] }
+  ]
+}

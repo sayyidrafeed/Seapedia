@@ -1,15 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
 import { eq } from 'drizzle-orm';
-import { products, stores } from '../schema';
+import { inventory, productRefs, products, stores } from '../schema';
+import type { Dbs } from '../dbs';
 import { rawProducts } from './data/products.data';
 
-export async function seedProducts(tx: any, storeMap: Map<string, string>) {
+export async function seedProducts({ catalog: tx, commerce }: Dbs, storeMap: Map<string, string>) {
   console.log('Seeding products...');
 
   const productMap = new Map<string, string>();
   const storeProductCounts = new Map<string, number>();
 
-  const productsToInsert: any[] = [];
+  const productsToInsert: (typeof products.$inferInsert)[] = [];
   const validRawProducts: typeof rawProducts = [];
 
   for (const raw of rawProducts) {
@@ -46,6 +46,17 @@ export async function seedProducts(tx: any, storeMap: Map<string, string>) {
       const inserted = insertedProducts[i];
       const raw = validRawProducts[i];
       productMap.set(raw.slug, inserted.id);
+
+      // Commerce owns stock and keeps a replica of the catalog fields it needs.
+      await commerce.insert(productRefs).values({
+        id: inserted.id,
+        storeId: inserted.storeId,
+        name: inserted.name,
+        slug: inserted.slug,
+        price: inserted.price,
+        imageKey: inserted.imageKey,
+      });
+      await commerce.insert(inventory).values({ productId: inserted.id, stock: raw.stock });
 
       // Track total products per store
       const currentCount = storeProductCounts.get(inserted.storeId) || 0;

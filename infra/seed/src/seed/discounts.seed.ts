@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
 import { vouchers, promos } from '../schema';
 import { rawVouchers, rawPromos } from './data/discounts.data';
+import type { Dbs } from '../dbs';
 
-export async function seedDiscounts(tx: any) {
+export async function seedDiscounts({ commerce: tx }: Dbs) {
   console.log('Seeding vouchers and promos...');
 
   // Clean up all vouchers and promos

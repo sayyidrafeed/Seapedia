@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
 import { inArray } from 'drizzle-orm';
 import { deliveryJobs, orders } from '../schema';
+import type { Dbs } from '../dbs';
 
 export async function seedDelivery(
-  tx: any,
+  { commerce: tx }: Dbs,
   orderMap: Map<string, string>,
   userMap: Map<string, string>,
 ) {
@@ -47,7 +47,7 @@ export async function seedDelivery(
   // Retrieve all orders in a single batch
   const allOrders = await tx.select().from(orders).where(inArray(orders.id, orderIds));
 
-  const jobsToInsert: any[] = [];
+  const jobsToInsert: (typeof deliveryJobs.$inferInsert)[] = [];
 
   for (const order of allOrders) {
     let jobStatus: string | null = null;

@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
 import { carts, cartItems } from '../schema';
+import type { Dbs } from '../dbs';
 
 export async function seedCarts(
-  tx: any,
+  { commerce: tx }: Dbs,
   userMap: Map<string, string>,
   productMap: Map<string, string>,
   storeMap: Map<string, string>,
