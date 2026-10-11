@@ -131,5 +131,5 @@ This creates the 5 demo accounts. For the full 18-user seed, run the expanded se
 
 | Component | File |
 |-----------|------|
-| Current seed script | `backend/src/db/seed.ts` |
+| Current seed script | `infra/seed/src/seed.ts` (wipes and seeds the identity, catalog and commerce databases, then rebuilds the search index) |
 | Expanded seed plan | `SEED-PLAN.md` |

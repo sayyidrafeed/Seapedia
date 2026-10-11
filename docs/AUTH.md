@@ -108,8 +108,11 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A[Request] --> B[requireSession]
-    B --> C{Session valid?}
+    R[Browser request] --> GW[gateway: strip x-user-* headers]
+    GW --> I[identity: introspect __session]
+    I --> A[owning service]
+    A --> B[requireSession]
+    B --> C{Identity headers present?}
     C -->|No| D[401 Unauthorized]
     C -->|Yes| E[requireRole]
     E --> F{Active role matches?}
@@ -119,7 +122,8 @@ flowchart LR
 
 ### Implementation
 
-- **`requireSession`**: Reads `__session` cookie, verifies JWT, validates session exists in DB, sets `userId`, `sessionId`, `activeRole` in context
+- **Gateway**: removes any identity headers the client sent, then resolves the `__session` cookie with identity (`POST /internal/sessions/introspect`, which verifies the JWT and that the session row still exists). The result is cached for 5 seconds and dropped whenever identity changes that session (login, logout, role switch). The gateway forwards `x-user-id`, `x-session-id`, `x-active-role` with the internal service token.
+- **`requireSession`** (`packages/platform/src/internal-auth.ts`): in each service, requires those forwarded headers and sets `userId`, `sessionId`, `activeRole` in context. Services reject requests without the internal token, so the headers cannot come from a browser.
 - **`requireRole`**: Checks if `activeRole` matches the endpoint's required role
 
 ### Route Protection Examples
@@ -166,9 +170,9 @@ flowchart LR
 
 | Component | File |
 |-----------|------|
-| JWT sign/verify | `backend/src/lib/jwt.ts` |
-| Auth middleware | `backend/src/middleware/auth.ts` |
-| Auth service | `backend/src/modules/auth/auth.service.ts` |
-| Auth routes | `backend/src/modules/auth/auth.routes.ts` |
-| Frontend auth context | `frontend/src/lib/auth/context.tsx` |
-| Route guards | `frontend/src/lib/auth/guards.ts` |
+| JWT sign/verify | `services/identity/src/lib/jwt.ts` |
+| Auth middleware | `packages/platform/src/internal-auth.ts` |
+| Auth service | `services/identity/src/modules/auth/auth.service.ts` |
+| Auth routes | `services/identity/src/modules/auth/auth.routes.ts` |
+| Frontend auth context | `apps/web/src/lib/auth/context.tsx` |
+| Route guards | `apps/web/src/lib/auth/guards.ts` |

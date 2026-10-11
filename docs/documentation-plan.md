@@ -134,5 +134,5 @@ regular: 48 hours
 
 - Product images, store logos, and avatars use Cloudflare R2 presigned URLs
 - Seeded data uses realistic object key patterns (e.g., `products/{slug}.jpg`) without actual files
-- R2 presign functionality is implemented and working (`StorageService` in `backend/src/lib/storage.ts`)
+- R2 presign functionality is implemented and working (`StorageService` in `packages/platform/src/storage.ts`)
 - Frontend `ImageUploader` component handles upload flow with preview

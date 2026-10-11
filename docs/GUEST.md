@@ -81,10 +81,10 @@ When a guest tries to access a protected action (e.g., "Add to Cart"):
 
 | Component | File |
 |-----------|------|
-| Landing page | `frontend/src/routes/index.tsx` |
-| Product catalog | `frontend/src/features/marketplace/` |
-| Product detail | `frontend/src/features/marketplace/` |
-| Review form | `frontend/src/features/marketplace/` |
+| Landing page | `apps/web/src/routes/index.tsx` |
+| Product catalog | `apps/web/src/features/marketplace/` |
+| Product detail | `apps/web/src/features/marketplace/` |
+| Review form | `apps/web/src/features/marketplace/` |
 | Public product API | `GET /api/products` |
 | Product detail API | `GET /api/products/:slug` |
 | Store detail API | `GET /api/stores/:slug` |

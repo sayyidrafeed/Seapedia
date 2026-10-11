@@ -24,116 +24,106 @@ Role-specific flows: [Guest](./docs/GUEST.md) | [Seller](./docs/SELLER.md) | [Bu
 
 Feature deep dives: [Discounts](./docs/DISCOUNTS.md) | [Delivery](./docs/DELIVERY.md) | [Overdue Handling](./docs/OVERDUE.md) | [Seed Data](./docs/SEED-DATA.md)
 
+## Architecture
+
+Seapedia runs as microservices: four domain services with their own databases, behind an API
+gateway, plus a static web app. Services talk over HTTP (internal APIs) and a transactional
+outbox; none reads another's database.
+
+```mermaid
+flowchart LR
+  web[web<br/>nginx SPA] -->|/api/*| gw[gateway]
+  gw --> id[identity]
+  gw --> cat[catalog]
+  gw --> com[commerce]
+  cat -->|ranked ids| se[search]
+  id --- idb[(identity db)]
+  cat --- cdb[(catalog db)]
+  com --- mdb[(commerce db)]
+  se --- es[(Elasticsearch)]
+  cat -. product, store events .-> com
+  cat -. product, store events .-> se
+  com -. inventory, sales events .-> cat
+```
+
+| Service | Owns | Data store |
+|---------|------|------------|
+| [gateway](./services/gateway) | public `/api`, session resolution, merged OpenAPI | none |
+| [identity](./services/identity) | users, roles, sessions | Postgres `identity` |
+| [catalog](./services/catalog) | stores, products, reviews | Postgres `catalog` |
+| [commerce](./services/commerce) | cart, wallet, checkout, orders, discounts, delivery, admin, stock | Postgres `commerce` |
+| [search](./services/search) | product search index | Elasticsearch |
+| [web](./apps/web) | React SPA | none |
+
+Each service has its own Dockerfile, image (`ghcr.io/sayyidrafeed/seapedia-<service>`), CI job,
+and Dokploy deployment. Details: [architecture overview](./docs/architecture/overview.md),
+[data ownership](./docs/architecture/data-ownership.md),
+[communication](./docs/architecture/communication.md), [decisions](./docs/architecture/decisions/).
+
 ## Tech Stack
 
-| Layer | Backend | Frontend |
-|-------|---------|----------|
-| Runtime | Bun | Bun (Vite dev server) |
-| Framework | [Hono](https://hono.dev) | [React 19](https://react.dev) + [Vite](https://vite.dev) |
-| Database | PostgreSQL | — |
-| ORM | [Drizzle ORM](https://orm.drizzle.team) | — |
-| Auth | Custom JWT (HS256, HttpOnly cookie) | Custom JWT (Cookie-based session) |
-| Validation | [Zod](https://zod.dev) | Zod (env only) |
-| API Docs | [Scalar](https://scalar.com) at `/docs` | — |
-| API Client | — | [hey-api](https://heyapi.dev) generated SDK |
-| Routing | Hono routes | [TanStack Router](https://tanstack.com/router) |
-| Server State | — | [TanStack Query](https://tanstack.com/query) |
-| Styling | — | [Tailwind CSS v4](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) |
-| Object Storage | [Cloudflare R2](https://www.cloudflare.com/en-gb/developer-platform/products/r2/) (S3-compatible, presigned URLs) | — |
-| Package Manager | [Bun](https://bun.sh) | Bun |
-
-## Prerequisites
-
-- [Bun](https://bun.sh) >= 1.2
-- PostgreSQL >= 15
+| Layer | Choice |
+|-------|--------|
+| Runtime | [Bun](https://bun.sh) (workspace monorepo) |
+| Services | [Hono](https://hono.dev), [Zod](https://zod.dev), OpenAPI via `hono-openapi`, [Scalar](https://scalar.com) at the gateway's `/docs` |
+| Data | PostgreSQL 17 (database per service) with [Drizzle ORM](https://orm.drizzle.team); Elasticsearch 9 for search |
+| Integration | API gateway, internal HTTP APIs with a shared service token, transactional outbox pulled over HTTP |
+| Web | [React 19](https://react.dev), [Vite](https://vite.dev), [TanStack Router](https://tanstack.com/router) and [Query](https://tanstack.com/query), [Tailwind CSS v4](https://tailwindcss.com), [hey-api](https://heyapi.dev) SDK generated from the gateway |
+| Auth | HS256 JWT in an HttpOnly cookie, sessions validated by identity |
+| Object storage | [Cloudflare R2](https://www.cloudflare.com/en-gb/developer-platform/products/r2/) presigned uploads |
+| Delivery | Docker images on GHCR, deployed per service with [Dokploy](https://dokploy.com) |
 
 ## Quick Start
 
-### 1. Backend
+Requires Bun 1.4.2 and Docker.
 
 ```bash
-cd backend
-cp .env.example .env
 bun install
-bun run dev
+docker compose up -d                 # Postgres (3 databases) + Elasticsearch
+for d in services/* infra/seed apps/web; do cp -n "$d/.env.example" "$d/.env"; done
+for s in identity catalog commerce; do (cd services/$s && bun run db:migrate); done
+bun run seed                         # demo data (wipes the databases)
+bun run dev                          # all services + web with hot reload
 ```
 
-The backend API starts on [http://localhost:3001](http://localhost:3001).
-
-### 2. Frontend
+To run every service from its production image instead:
 
 ```bash
-cd frontend
-cp .env.example .env
-bun install
-bun run dev
+cp .env.prod.example .env.prod.local   # fill in secrets
+docker compose -f docker-compose.prod.yml --env-file .env.prod.local up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.prod.local --profile tools run --rm seed
+bun run smoke
 ```
 
-The frontend starts on [http://localhost:5173](http://localhost:5173).
-
-### 3. Docker (alternative)
-
-```bash
-docker compose up --build
-```
-
-### 4. Database Setup
-
-```bash
-cd backend
-bun run db:generate
-bun run db:apply
-```
-
-### 5. Seed Data
-
-```bash
-cd backend
-bun run seed
-```
+See [docs/SETUP.md](./docs/SETUP.md) for details.
 
 ### Useful URLs
 
-#### Production
-
-| Service | URL |
-|---------|-----|
-| Frontend app | [https://seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) |
-| Scalar API Docs | [https://api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
-
-#### Local Development
-
-| Service | URL |
-|---------|-----|
-| Frontend app | [http://localhost:5173](http://localhost:5173) |
-| Backend API | [http://localhost:3001](http://localhost:3001) |
-| Scalar API Docs | [http://localhost:3001/docs](http://localhost:3001/docs) |
-| OpenAPI JSON | [http://localhost:3001/openapi.json](http://localhost:3001/openapi.json) |
+| Service | Production | Local |
+|---------|------------|-------|
+| Web app | [seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) | http://localhost:5173 (dev), http://localhost:8080 (prod-like) |
+| API gateway | [api-seapedia.sayyidrafee.com](https://api-seapedia.sayyidrafee.com) | http://localhost:3001 |
+| API docs (Scalar) | [api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) | http://localhost:3001/docs |
 
 ## Project Structure
 
 ```
 seapedia/
-├── frontend/          # React SPA
-│   ├── src/
-│   │   ├── routes/        # TanStack Router file routes
-│   │   ├── components/    # Reusable UI components
-│   │   ├── components/ui/ # shadcn/ui primitives + custom (ImageUploader, etc.)
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── lib/api/       # hey-api generated SDK (do not edit)
-│   │   ├── lib/query/     # TanStack Query client
-│   │   ├── lib/upload.ts  # Client-side R2 presigned upload utility
-│   │   └── config/        # Environment validation
-│   └── README.md
-├── backend/           # Hono API on Bun
-│   ├── src/
-│   │   ├── modules/       # Feature slices (health, auth, products, orders, users, ...)
-│   │   ├── db/schema/     # Drizzle table definitions
-│   │   ├── middleware/    # Auth middleware
-│   │   └── lib/           # Shared utilities (storage, errors, jwt, schemas)
-│   └── README.md
-├── docker-compose.yml
-└── README.md
+├── apps/web/              # React SPA (talks only to the gateway)
+├── services/
+│   ├── gateway/           # API gateway
+│   ├── identity/          # users, roles, sessions        (own Postgres database)
+│   ├── catalog/           # stores, products, reviews     (own Postgres database)
+│   ├── commerce/          # cart, wallet, orders, stock   (own Postgres database)
+│   └── search/            # Elasticsearch read model
+├── packages/platform/     # technical code shared by services (no business rules)
+├── infra/
+│   ├── postgres/init/     # one database and role per service
+│   └── seed/              # ops tool: seeds the three databases
+├── scripts/smoke.ts       # end-to-end checks through the gateway
+├── docker-compose.yml     # dev infrastructure
+├── docker-compose.prod.yml
+└── docs/                  # architecture, setup, deployment, business flows
 ```
 
 ## Features by Level
@@ -212,13 +202,11 @@ Admin account setup may alternatively be handled through seed data or documented
 
 ## API Documentation
 
-Interactive API documentation is available via **Scalar** at:
+Interactive API documentation is available via **Scalar** on the gateway at
+`http://localhost:3001/docs`.
 
-```
-http://localhost:8787/docs
-```
-
-The OpenAPI JSON spec is served at `/openapi.json` and consumed by the frontend SDK generator.
+The gateway serves `/openapi.json`, the merged contract of identity, catalog, and commerce. The
+frontend SDK is generated from it (`cd apps/web && bun run openapi:generate`).
 
 ## Security Measures
 
@@ -306,22 +294,19 @@ To verify the security controls implemented in Level 7:
 
 ## Deployment
 
-The application is deployed and publicly accessible:
+Each service is a separate Dokploy application pulled from GHCR, redeployed by its own webhook when
+CI publishes a new image. The web app is an nginx image. See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
 
 | Service | URL |
 |---------|-----|
-| Frontend | [https://seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) |
-| API Docs | [https://api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
-
-### Local Development (Docker)
-
-```bash
-docker compose up --build
-```
+| Web app | [https://seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) |
+| API docs | [https://api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
 
 ---
 
 ### Sub-Project READMEs
 
-- [Frontend README](./frontend/README.md) — Architecture, component library, scripts, and dev setup
-- [Backend README](./backend/README.md) — API structure, database, module conventions, and dev setup
+- [Web app](./apps/web/README.md)
+- [gateway](./services/gateway/README.md), [identity](./services/identity/README.md),
+  [catalog](./services/catalog/README.md), [commerce](./services/commerce/README.md),
+  [search](./services/search/README.md)

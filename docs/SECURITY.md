@@ -225,8 +225,8 @@ flowchart LR
 
 | Component | File |
 |-----------|------|
-| Auth middleware | `backend/src/middleware/auth.ts` |
-| JWT handling | `backend/src/lib/jwt.ts` |
-| Zod validation | Throughout `backend/src/modules/*/` |
-| Error handling | `backend/src/lib/errors.ts` |
-| CORS config | `backend/src/app.ts` |
+| Auth middleware | `packages/platform/src/internal-auth.ts` |
+| JWT handling | `services/identity/src/lib/jwt.ts` |
+| Zod validation | Throughout `services/*/src/modules/*/` |
+| Error handling | `packages/platform/src/errors.ts`, `packages/platform/src/service.ts` |
+| CORS config | `services/gateway/src/gateway.ts` |

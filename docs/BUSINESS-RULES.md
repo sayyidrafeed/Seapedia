@@ -30,8 +30,8 @@ flowchart TD
 
 ### Implementation
 
-- Frontend: `frontend/src/features/buyer/` — cart components check store before add
-- Backend: `backend/src/modules/buyers/buyers-cart.service.ts` — validates storeId matches
+- Frontend: `apps/web/src/features/buyer/` — cart components check store before add
+- Backend: `services/commerce/src/modules/buyers/buyers-cart.service.ts` — validates storeId matches
 
 ## Financial Calculation
 
@@ -71,7 +71,7 @@ totalAmount       = 2,904,000 + 348,480 = 3,252,480
 
 ### Code Reference
 
-- `backend/src/modules/orders/orders-checkout.service.ts:25-31` — `calculateTotals()`
+- `services/commerce/src/modules/orders/orders-checkout.service.ts:25-31` — `calculateTotals()`
 
 ## Delivery Methods
 
@@ -96,7 +96,7 @@ Drivers earn **100% of the delivery fee** for each completed delivery.
 
 ### Code Reference
 
-- `backend/src/modules/driver/driver.service.ts:165-171` — earnings calculation
+- `services/commerce/src/modules/driver/driver.service.ts:165-171` — earnings calculation
 
 ## Seller Income Rule
 
@@ -107,7 +107,7 @@ Drivers earn **100% of the delivery fee** for each completed delivery.
 
 ### Code Reference
 
-- `backend/src/modules/orders/orders-seller.service.ts` — income report
+- `services/commerce/src/modules/orders/orders-seller.service.ts` — income report
 
 ## Buyer Spending Rule
 
@@ -117,7 +117,7 @@ Drivers earn **100% of the delivery fee** for each completed delivery.
 
 ### Code Reference
 
-- `backend/src/modules/orders/orders-buyer.service.ts` — expense report
+- `services/commerce/src/modules/orders/orders-buyer.service.ts` — expense report
 
 ## Wallet Rules
 

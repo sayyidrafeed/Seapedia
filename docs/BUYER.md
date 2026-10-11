@@ -226,9 +226,9 @@ Buyer Spending = Σ (order.totalAmount) for orders where status = 'pesanan_seles
 
 | Component | File |
 |-----------|------|
-| Buyer service | `backend/src/modules/buyers/buyers.service.ts` |
-| Cart service | `backend/src/modules/buyers/buyers-cart.service.ts` |
-| Checkout service | `backend/src/modules/orders/orders-checkout.service.ts` |
-| Buyer order service | `backend/src/modules/orders/orders-buyer.service.ts` |
-| Buyer routes | `backend/src/modules/buyers/buyers.routes.ts` |
-| Frontend buyer features | `frontend/src/features/buyer/` |
+| Buyer service | `services/commerce/src/modules/buyers/buyers.service.ts` |
+| Cart service | `services/commerce/src/modules/buyers/buyers-cart.service.ts` |
+| Checkout service | `services/commerce/src/modules/orders/orders-checkout.service.ts` |
+| Buyer order service | `services/commerce/src/modules/orders/orders-buyer.service.ts` |
+| Buyer routes | `services/commerce/src/modules/buyers/buyers.routes.ts` |
+| Frontend buyer features | `apps/web/src/features/buyer/` |

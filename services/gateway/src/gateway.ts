@@ -7,7 +7,7 @@ import { requestId, type RequestIdVariables } from 'hono/request-id';
 import { IDENTITY_HEADERS } from '@seapedia/platform/internal-auth';
 import { mergeSpecs, specSchema } from './openapi';
 import { routeFor, type ServiceName } from './routes';
-import type { SessionResolver } from './session';
+import type { Identity, SessionResolver } from './session';
 
 export type GatewayConfig = {
   upstreams: Record<ServiceName, string>;
@@ -102,7 +102,22 @@ export function createGateway(config: GatewayConfig) {
     for (const name of TRUSTED_HEADERS) headers[name] = undefined;
 
     const token = getCookie(c, '__session');
-    const identity = token ? await config.sessions.resolve(token) : null;
+    let identity: Identity | null = null;
+    if (token) {
+      try {
+        identity = await config.sessions.resolve(token);
+      } catch (error) {
+        console.error(
+          JSON.stringify({
+            service: 'gateway',
+            upstream: 'identity',
+            requestId: c.get('requestId'),
+            error: String(error),
+          }),
+        );
+        return c.json({ error: 'Authentication service unavailable' }, 503);
+      }
+    }
     if (identity) {
       headers[IDENTITY_HEADERS.userId] = identity.userId;
       headers[IDENTITY_HEADERS.sessionId] = identity.sessionId;

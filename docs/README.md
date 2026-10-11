@@ -9,7 +9,7 @@ Welcome to the SEAPEDIA documentation. SEAPEDIA is a multi-role e-commerce platf
 | Component | URL |
 |-----------|-----|
 | Frontend | [seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) |
-| Backend API | [api-seapedia.sayyidrafee.com](https://api-seapedia.sayyidrafee.com) |
+| API gateway | [api-seapedia.sayyidrafee.com](https://api-seapedia.sayyidrafee.com) |
 | API Docs (Scalar) | [api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
 
 ## Documentation Index
@@ -18,7 +18,8 @@ Welcome to the SEAPEDIA documentation. SEAPEDIA is a multi-role e-commerce platf
 
 | Document | Description |
 |----------|-------------|
-| [SETUP.md](./SETUP.md) | Installation, environment variables, local development, and deployment |
+| [SETUP.md](./SETUP.md) | Local development and the production-like stack, environment variables |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Dokploy runbook: one application per service, memory budget, cut-over |
 | [SEED-DATA.md](./SEED-DATA.md) | Demo accounts, test data, and seed data reference |
 | [DEMO-GUIDE.md](./DEMO-GUIDE.md) | Step-by-step walkthrough script for judges |
 
@@ -26,6 +27,10 @@ Welcome to the SEAPEDIA documentation. SEAPEDIA is a multi-role e-commerce platf
 
 | Document | Description |
 |----------|-------------|
+| [architecture/overview.md](./architecture/overview.md) | Services, data stores, and how they connect |
+| [architecture/data-ownership.md](./architecture/data-ownership.md) | Which service owns which table; replicas and read models |
+| [architecture/communication.md](./architecture/communication.md) | Gateway, internal calls, transactional outbox, failure behaviour |
+| [architecture/decisions/](./architecture/decisions/) | Architecture decision records |
 | [AUTH.md](./AUTH.md) | Authentication system, JWT sessions, multi-role model, and role selection |
 | [BUSINESS-RULES.md](./BUSINESS-RULES.md) | Core business rules, financial calculations, and constraints |
 | [ORDER-LIFECYCLE.md](./ORDER-LIFECYCLE.md) | Order status flow, transitions, and status history |
@@ -72,7 +77,7 @@ Welcome to the SEAPEDIA documentation. SEAPEDIA is a multi-role e-commerce platf
 
 ```
 seapedia/
-├── frontend/               # React SPA
+├── apps/web/               # React SPA
 │   └── src/
 │       ├── routes/         # TanStack Router file routes
 │       ├── features/       # Domain feature slices
@@ -83,14 +88,15 @@ seapedia/
 │           ├── auth/       # Auth context + route guards
 │           ├── query/      # TanStack Query client
 │           └── i18n/       # i18next (EN/ID locales)
-├── backend/                # Hono API on Bun
-│   └── src/
-│       ├── modules/        # Feature slices (14 modules)
-│       ├── db/schema/      # Drizzle table definitions
-│       ├── middleware/      # Auth middleware
-│       └── lib/            # Shared utilities
+├── services/               # gateway, identity, catalog, commerce, search
+│   └── <service>/src/
+│       ├── modules/        # Feature slices owned by that service
+│       └── db/schema/      # That service's tables (own database)
+├── packages/platform/      # Technical code shared by services
+├── infra/                  # Postgres bootstrap, seed tool
 ├── docs/                   # This documentation
-└── docker-compose.yml      # Full-stack Docker setup
+├── docker-compose.yml      # Dev infrastructure (Postgres, Elasticsearch)
+└── docker-compose.prod.yml # Every service from its production image
 ```
 
 ## Challenge Levels

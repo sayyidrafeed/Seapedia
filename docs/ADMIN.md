@@ -129,7 +129,7 @@ When an order exceeds its delivery SLA:
 
 ### Code Reference
 
-- `backend/src/modules/admin/admin.service.ts:207-327` — `processOverdueOrders()`
+- `services/commerce/src/modules/admin/admin.service.ts:207-327` — `processOverdueOrders()`
 
 ## API Endpoints
 
@@ -149,9 +149,9 @@ When an order exceeds its delivery SLA:
 
 | Component | File |
 |-----------|------|
-| Admin service | `backend/src/modules/admin/admin.service.ts` |
-| Admin routes | `backend/src/modules/admin/admin.routes.ts` |
-| Admin constants | `backend/src/modules/admin/admin.constants.ts` |
-| Admin schemas | `backend/src/modules/admin/admin.schemas.ts` |
-| Discount service | `backend/src/modules/discounts/discounts.service.ts` |
-| Frontend admin features | `frontend/src/features/admin/` |
+| Admin service | `services/commerce/src/modules/admin/admin.service.ts` |
+| Admin routes | `services/commerce/src/modules/admin/admin.routes.ts` |
+| Admin constants | `services/commerce/src/modules/admin/admin.constants.ts` |
+| Admin schemas | `services/commerce/src/modules/admin/admin.schemas.ts` |
+| Discount service | `services/commerce/src/modules/discounts/discounts.service.ts` |
+| Frontend admin features | `apps/web/src/features/admin/` |
