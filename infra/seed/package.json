@@ -1,0 +1,12 @@
+{
+  "name": "@seapedia/seed",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "bun src/seed.ts",
+    "check": "tsc --noEmit",
+    "lint": "oxlint",
+    "format": "oxfmt --write",
+    "fl": "bun run format && bun run lint"
+  }
+}
