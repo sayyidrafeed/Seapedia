@@ -17,7 +17,7 @@ export type GatewayConfig = {
   publicUrl: string;
   timeoutMs: number;
   /** Injected so the composition root (and tests) decide how upstreams are reached. */
-  fetch?: typeof fetch;
+  fetch?: (input: Request | URL | string, init?: RequestInit) => Promise<Response>;
 };
 
 /** Headers a client must never be able to set: they carry identity and service trust. */
@@ -30,7 +30,7 @@ const TRUSTED_HEADERS = [...Object.values(IDENTITY_HEADERS), 'authorization'];
  */
 export function createGateway(config: GatewayConfig) {
   const app = new Hono<{ Variables: RequestIdVariables }>();
-  const doFetch = config.fetch ?? fetch;
+  const doFetch = config.fetch ?? ((input, init) => fetch(input, init));
 
   app.onError((err, c) => {
     console.error(
