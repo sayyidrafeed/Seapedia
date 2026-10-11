@@ -2,246 +2,42 @@
 
 import * as z from 'zod';
 
-export const zAddressResponse = z.object({
-  id: z.string(),
-  userId: z.string(),
-  label: z.string(),
-  recipientName: z.string(),
-  phoneNumber: z.string(),
-  province: z.string(),
-  city: z.string(),
-  district: z.string(),
-  postalCode: z.string(),
-  fullAddress: z.string(),
-  isDefault: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zOrderResponse = z.object({
-  id: z.string(),
-  buyerId: z.string(),
-  storeId: z.string(),
-  storeName: z.string(),
-  deliveryMethod: z.string(),
-  subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
-  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  discountCode: z.union([z.string(), z.unknown()]),
-  discountType: z.union([z.string(), z.unknown()]),
-  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
-  ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
-  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  status: z.string(),
-  addressSnapshot: zAddressResponse,
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  items: z.array(
-    z.object({
-      id: z.string(),
-      productId: z.union([z.string(), z.unknown()]),
-      productName: z.string(),
-      productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
-      quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
-    }),
-  ),
-  statusHistory: z
-    .array(
-      z.object({
-        id: z.string(),
-        status: z.string(),
-        note: z.union([z.string(), z.unknown()]),
-        createdAt: z.string(),
-      }),
-    )
-    .optional(),
-});
-
-export const zProduct = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  currency: z.string().optional().default('IDR'),
-  stock: z.number(),
-  storeId: z.string(),
-  storeName: z.string(),
-  storeSlug: z.string(),
-  slug: z.string(),
-  imageKey: z.union([z.string(), z.unknown()]),
-  imageUrl: z.union([z.string(), z.unknown()]),
-  rating: z.string().optional().default('0.00'),
-  reviewCount: z.number().optional().default(0),
-  soldCount: z.number().optional().default(0),
-  storeRating: z.string().optional().default('0.00'),
-  storeReviewCount: z.number().optional().default(0),
-  storeLogoKey: z.union([z.string(), z.unknown()]).optional(),
-  storeLogoUrl: z.union([z.string(), z.unknown()]).optional(),
-  storeTotalProducts: z.number().optional().default(0),
-});
-
-export const zProductReviewResponse = z.object({
-  id: z.string(),
-  productId: z.string(),
-  buyerId: z.string(),
-  reviewerName: z.string(),
-  rating: z.number(),
-  comment: z.string(),
-  createdAt: z.string(),
-});
-
-export const zSellerProductResponse = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  stock: z.number(),
-  imageKey: z.union([z.string(), z.unknown()]),
-  imageUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zReview = z.object({
-  id: z.string(),
-  reviewerName: z.string(),
-  rating: z.number(),
-  comment: z.string(),
-  createdAt: z.string(),
-});
-
-export const zWalletTransactionResponse = z.object({
-  id: z.string(),
-  walletId: z.string(),
-  amount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  type: z.string(),
-  status: z.string(),
-  reference: z.string(),
-  createdAt: z.string(),
-});
-
-export const zVoucherResponse = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-  code: z.string(),
-  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  minOrderAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  expiresAt: z.string(),
-  remainingUsage: z.int().gte(-9007199254740991).lte(9007199254740991),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zPromoResponse = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-  code: z.string(),
-  discountPercent: z.int().gte(-9007199254740991).lte(9007199254740991),
-  maxDiscountAmount: z.union([z.int().gte(-9007199254740991).lte(9007199254740991), z.unknown()]),
-  minOrderAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  expiresAt: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zDeliveryJobResponse = z.object({
-  id: z.string(),
-  orderId: z.string(),
-  driverId: z.union([z.string(), z.unknown()]),
-  status: z.string(),
-  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  storeName: z.string(),
-  deliveryMethod: z.string(),
-  addressSnapshot: zAddressResponse,
-  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  items: z
-    .array(
-      z.object({
-        id: z.string(),
-        productId: z.union([z.string(), z.unknown()]),
-        productName: z.string(),
-        productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
-        quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
-      }),
-    )
-    .optional(),
-});
-
-export const zLocationItem = z.object({
-  id: z.string(),
-  name: z.string(),
-});
-
-/**
- * Service is healthy
- */
-export const zHealthCheckResponse = z.object({
+export const zSuccess = z.object({
   success: z.boolean(),
 });
 
-export const zRegisterUserBody = z.object({
+export const zError = z.object({
+  error: z.string(),
+});
+
+export const zRegisterInput = z.object({
   username: z.string().min(3).max(50),
   email: z
     .email()
     .regex(
-      /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/,
+      /^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/,
     ),
   password: z.string().min(8),
   name: z.string().optional(),
 });
 
-/**
- * Registration successful
- */
-export const zRegisterUserResponse = z.object({
-  success: z.boolean(),
-});
-
-export const zLoginUserBody = z.object({
+export const zLoginInput = z.object({
   username: z.string().min(1),
   password: z.string().min(1),
 });
 
-/**
- * Login successful
- */
-export const zLoginUserResponse = z.object({
-  success: z.boolean(),
-});
-
-/**
- * Logout successful
- */
-export const zLogoutUserResponse = z.object({
-  success: z.boolean(),
-});
-
-/**
- * Current user details
- */
-export const zGetCurrentUserResponse = z.object({
+export const zUserResponse = z.object({
   id: z.string(),
   username: z.string(),
   email: z.string(),
-  name: z.union([z.string(), z.unknown()]),
-  avatarKey: z.union([z.string(), z.unknown()]),
-  avatarUrl: z.union([z.string(), z.unknown()]),
+  name: z.unknown(),
+  avatarKey: z.unknown(),
+  avatarUrl: z.unknown(),
   isOnboarded: z.boolean(),
   createdAt: z.string(),
 });
 
-/**
- * Current user financial summary
- */
-export const zGetCurrentUserFinancialSummaryResponse = z.object({
+export const zFinancialSummary = z.object({
   buyer: z
     .object({
       balance: z.number(),
@@ -259,161 +55,69 @@ export const zGetCurrentUserFinancialSummaryResponse = z.object({
     .optional(),
 });
 
-export const zOnboardUserBody = z.object({
+export const zOnboardInput = z.object({
   roles: z.array(z.enum(['buyer', 'seller', 'driver'])),
 });
 
-/**
- * Onboarding successful
- */
-export const zOnboardUserResponse = z.object({
-  success: z.boolean(),
-});
-
-/**
- * Current session information
- */
-export const zGetCurrentSessionResponse = z.object({
+export const zSessionResponse = z.object({
   userId: z.string(),
   activeRole: z.string(),
   roles: z.array(z.string()),
 });
 
-export const zSelectActiveRoleBody = z.object({
+export const zSelectRoleInput = z.object({
   role: z.enum(['admin', 'seller', 'buyer', 'driver']),
 });
 
-/**
- * Role updated successfully
- */
-export const zSelectActiveRoleResponse = z.object({
-  success: z.boolean(),
-});
-
-export const zListProductsQuery = z.object({
-  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
-  limit: z.int().gte(1).lte(100).optional().default(20),
-  search: z.string().min(1).optional(),
-  sortBy: z.string().optional(),
-  order: z.enum(['asc', 'desc']).optional().default('desc'),
-  storeSlug: z.string().optional(),
-});
-
-/**
- * Products list
- */
-export const zListProductsResponse = z.object({
-  products: z.array(zProduct),
-  total: z.number(),
-});
-
-export const zGetProductByIdPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Product details
- */
-export const zGetProductByIdResponse = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  currency: z.string().optional().default('IDR'),
-  stock: z.number(),
-  storeId: z.string(),
-  storeName: z.string(),
-  storeSlug: z.string(),
-  slug: z.string(),
-  imageKey: z.union([z.string(), z.unknown()]),
-  imageUrl: z.union([z.string(), z.unknown()]),
-  rating: z.string().optional().default('0.00'),
-  reviewCount: z.number().optional().default(0),
-  soldCount: z.number().optional().default(0),
-  storeRating: z.string().optional().default('0.00'),
-  storeReviewCount: z.number().optional().default(0),
-  storeLogoKey: z.union([z.string(), z.unknown()]).optional(),
-  storeLogoUrl: z.union([z.string(), z.unknown()]).optional(),
-  storeTotalProducts: z.number().optional().default(0),
-});
-
-export const zGetProductBySlugPath = z.object({
-  storeSlug: z.string(),
-  productSlug: z.string(),
-});
-
-/**
- * Product details
- */
-export const zGetProductBySlugResponse = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  currency: z.string().optional().default('IDR'),
-  stock: z.number(),
-  storeId: z.string(),
-  storeName: z.string(),
-  storeSlug: z.string(),
-  slug: z.string(),
-  imageKey: z.union([z.string(), z.unknown()]),
-  imageUrl: z.union([z.string(), z.unknown()]),
-  rating: z.string().optional().default('0.00'),
-  reviewCount: z.number().optional().default(0),
-  soldCount: z.number().optional().default(0),
-  storeRating: z.string().optional().default('0.00'),
-  storeReviewCount: z.number().optional().default(0),
-  storeLogoKey: z.union([z.string(), z.unknown()]).optional(),
-  storeLogoUrl: z.union([z.string(), z.unknown()]).optional(),
-  storeTotalProducts: z.number().optional().default(0),
-});
-
-export const zPresignProductImageBody = z.object({
-  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
-});
-
-/**
- * Presigned URL generated successfully
- */
-export const zPresignProductImageResponse = z.object({
+export const zPresignResponse = z.object({
   uploadUrl: z.string(),
   objectKey: z.string(),
   publicUrl: z.string(),
 });
 
-export const zGetProductReviewsPath = z.object({
+export const zPresignRequest = z.object({
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+});
+
+export const zUpdateProfileInput = z.object({
+  name: z.string().max(255).optional(),
+  avatarKey: z.union([z.string().max(512), z.unknown()]).optional(),
+});
+
+export const zPrivateMessage = z.object({
+  message: z.string(),
+  activeRole: z.string(),
+});
+
+export const zProduct = z.object({
   id: z.string(),
+  name: z.string(),
+  description: z.unknown(),
+  price: z.number(),
+  currency: z.string().optional().default('IDR'),
+  stock: z.number(),
+  storeId: z.string(),
+  storeName: z.string(),
+  storeSlug: z.string(),
+  slug: z.string(),
+  imageKey: z.unknown(),
+  imageUrl: z.unknown(),
+  rating: z.string().optional().default('0.00'),
+  reviewCount: z.number().optional().default(0),
+  soldCount: z.number().optional().default(0),
+  storeRating: z.string().optional().default('0.00'),
+  storeReviewCount: z.number().optional().default(0),
+  storeLogoKey: z.unknown().optional(),
+  storeLogoUrl: z.unknown().optional(),
+  storeTotalProducts: z.number().optional().default(0),
 });
 
-export const zGetProductReviewsQuery = z.object({
-  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
-  limit: z.int().gte(1).lte(100).optional().default(20),
-  search: z.string().min(1).optional(),
-  sortBy: z.string().optional(),
-  order: z.enum(['asc', 'desc']).optional().default('desc'),
-});
-
-/**
- * Product reviews list
- */
-export const zGetProductReviewsResponse = z.object({
-  reviews: z.array(zProductReviewResponse),
+export const zProductListResponse = z.object({
+  products: z.array(zProduct),
   total: z.number(),
 });
 
-export const zSubmitProductReviewBody = z.object({
-  rating: z.int().gte(1).lte(5),
-  comment: z.string().min(1).max(1000),
-});
-
-export const zSubmitProductReviewPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Review submitted successfully
- */
-export const zSubmitProductReviewResponse = z.object({
+export const zProductReviewResponse = z.object({
   id: z.string(),
   productId: z.string(),
   buyerId: z.string(),
@@ -423,140 +127,73 @@ export const zSubmitProductReviewResponse = z.object({
   createdAt: z.string(),
 });
 
-export const zListSellerProductsQuery = z.object({
-  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
-  limit: z.int().gte(1).lte(100).optional().default(20),
-  search: z.string().min(1).optional(),
-  sortBy: z.string().optional(),
-  order: z.enum(['asc', 'desc']).optional().default('desc'),
-});
-
-/**
- * Products list
- */
-export const zListSellerProductsResponse = z.object({
-  products: z.array(zSellerProductResponse),
-  total: z.number(),
-});
-
-export const zCreateSellerProductBody = z.object({
-  name: z.string().min(1).max(255),
-  description: z.union([z.string(), z.unknown()]).optional(),
-  price: z.int().gte(0).lte(9007199254740991),
-  stock: z.int().gte(0).lte(9007199254740991),
-  imageKey: z.union([z.string().max(512), z.unknown()]).optional(),
-});
-
-/**
- * Product created successfully
- */
-export const zCreateSellerProductResponse = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  stock: z.number(),
-  imageKey: z.union([z.string(), z.unknown()]),
-  imageUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zDeleteSellerProductPath = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-});
-
-/**
- * Product deleted successfully
- */
-export const zDeleteSellerProductResponse = z.object({
-  success: z.boolean(),
-});
-
-export const zGetSellerProductByIdPath = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-});
-
-/**
- * Product details
- */
-export const zGetSellerProductByIdResponse = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  stock: z.number(),
-  imageKey: z.union([z.string(), z.unknown()]),
-  imageUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zUpdateSellerProductBody = z.object({
-  name: z.string().min(1).max(255).optional(),
-  description: z.union([z.string(), z.unknown()]).optional(),
-  price: z.int().gte(0).lte(9007199254740991).optional(),
-  stock: z.int().gte(0).lte(9007199254740991).optional(),
-  imageKey: z.union([z.string().max(512), z.unknown()]).optional(),
-});
-
-export const zUpdateSellerProductPath = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-});
-
-/**
- * Product updated successfully
- */
-export const zUpdateSellerProductResponse = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  price: z.number(),
-  stock: z.number(),
-  imageKey: z.union([z.string(), z.unknown()]),
-  imageUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zListReviewsQuery = z.object({
-  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
-  limit: z.int().gte(1).lte(100).optional().default(20),
-  search: z.string().min(1).optional(),
-  sortBy: z.string().optional(),
-  order: z.enum(['asc', 'desc']).optional().default('desc'),
-});
-
-/**
- * List of app reviews
- */
-export const zListReviewsResponse = z.array(zReview);
-
-export const zSubmitReviewBody = z.object({
-  reviewerName: z.string().min(1).max(100),
+export const zSubmitProductReview = z.object({
   rating: z.int().gte(1).lte(5),
   comment: z.string().min(1).max(1000),
 });
 
-/**
- * Review submitted successfully
- */
-export const zSubmitReviewResponse = z.object({
+export const zProductReviewListResponse = z.object({
+  reviews: z.array(zProductReviewResponse),
+  total: z.number(),
+});
+
+export const zSellerProductResponse = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  description: z.unknown(),
+  price: z.number(),
+  stock: z.number(),
+  imageKey: z.unknown(),
+  imageUrl: z.unknown(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zSellerProductListResponse = z.object({
+  products: z.array(zSellerProductResponse),
+  total: z.number(),
+});
+
+export const zCreateProduct = z.object({
+  name: z.string().min(1).max(255),
+  description: z.unknown().optional(),
+  price: z.int().gte(0).lte(9007199254740991),
+  imageKey: z.union([z.string().max(512), z.unknown()]).optional(),
+});
+
+export const zUpdateProduct = z.object({
+  name: z.string().min(1).max(255).optional(),
+  description: z.unknown().optional(),
+  price: z.int().gte(0).lte(9007199254740991).optional(),
+  imageKey: z.union([z.string().max(512), z.unknown()]).optional(),
+});
+
+export const zStoreResponse = z.object({
+  id: z.string(),
+  sellerId: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.unknown(),
+  logoKey: z.unknown(),
+  logoUrl: z.unknown(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zCreateStoreInput = z.object({
+  name: z.string().min(3).max(255),
+  description: z.string().optional(),
+  logoKey: z.union([z.string().max(512), z.unknown()]).optional(),
+});
+
+export const zUpdateStoreInput = z.object({
+  name: z.string().min(3).max(255).optional(),
+  description: z.string().optional(),
+  logoKey: z.union([z.string().max(512), z.unknown()]).optional(),
+});
+
+export const zReview = z.object({
   id: z.string(),
   reviewerName: z.string(),
   rating: z.number(),
@@ -564,195 +201,20 @@ export const zSubmitReviewResponse = z.object({
   createdAt: z.string(),
 });
 
-/**
- * Review statistics
- */
-export const zGetReviewsStatsResponse = z.object({
+export const zReviewList = z.array(zReview);
+
+export const zReviewStats = z.object({
   totalReviews: z.number(),
   averageRating: z.number(),
 });
 
-/**
- * Private admin endpoint message
- */
-export const zPrivateAdminEndpointResponse = z.object({
-  message: z.string(),
-  activeRole: z.string(),
+export const zSubmitReviewInput = z.object({
+  reviewerName: z.string().min(1).max(100),
+  rating: z.int().gte(1).lte(5),
+  comment: z.string().min(1).max(1000),
 });
 
-/**
- * Private seller endpoint message
- */
-export const zPrivateSellerEndpointResponse = z.object({
-  message: z.string(),
-  activeRole: z.string(),
-});
-
-/**
- * Private buyer endpoint message
- */
-export const zPrivateBuyerEndpointResponse = z.object({
-  message: z.string(),
-  activeRole: z.string(),
-});
-
-/**
- * Private driver endpoint message
- */
-export const zPrivateDriverEndpointResponse = z.object({
-  message: z.string(),
-  activeRole: z.string(),
-});
-
-export const zCreateStoreBody = z.object({
-  name: z.string().min(3).max(255),
-  description: z.string().optional(),
-  logoKey: z.union([z.string().max(512), z.unknown()]).optional(),
-});
-
-/**
- * Store created successfully
- */
-export const zCreateStoreResponse = z.object({
-  id: z.string(),
-  sellerId: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  logoKey: z.union([z.string(), z.unknown()]),
-  logoUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-/**
- * Store found
- */
-export const zGetCurrentSellerStoreResponse = z.object({
-  id: z.string(),
-  sellerId: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  logoKey: z.union([z.string(), z.unknown()]),
-  logoUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zUpdateCurrentSellerStoreBody = z.object({
-  name: z.string().min(3).max(255).optional(),
-  description: z.string().optional(),
-  logoKey: z.union([z.string().max(512), z.unknown()]).optional(),
-});
-
-/**
- * Store updated successfully
- */
-export const zUpdateCurrentSellerStoreResponse = z.object({
-  id: z.string(),
-  sellerId: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  logoKey: z.union([z.string(), z.unknown()]),
-  logoUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zGetPublicStoreInfoPath = z.object({
-  slugOrId: z.string().min(3),
-});
-
-/**
- * Store found
- */
-export const zGetPublicStoreInfoResponse = z.object({
-  id: z.string(),
-  sellerId: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.union([z.string(), z.unknown()]),
-  logoKey: z.union([z.string(), z.unknown()]),
-  logoUrl: z.union([z.string(), z.unknown()]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zPresignStoreLogoBody = z.object({
-  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
-});
-
-export const zPresignStoreLogoPath = z.object({
-  storeId: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-});
-
-/**
- * Presigned URL generated successfully
- */
-export const zPresignStoreLogoResponse = z.object({
-  uploadUrl: z.string(),
-  objectKey: z.string(),
-  publicUrl: z.string(),
-});
-
-export const zPresignUserAvatarBody = z.object({
-  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
-});
-
-/**
- * Presigned URL generated successfully
- */
-export const zPresignUserAvatarResponse = z.object({
-  uploadUrl: z.string(),
-  objectKey: z.string(),
-  publicUrl: z.string(),
-});
-
-export const zUpdateUserProfileBody = z.object({
-  name: z.string().max(255).optional(),
-  avatarKey: z.union([z.string().max(512), z.unknown()]).optional(),
-});
-
-/**
- * Profile updated successfully
- */
-export const zUpdateUserProfileResponse = z.object({
-  id: z.string(),
-  username: z.string(),
-  email: z.string(),
-  name: z.union([z.string(), z.unknown()]),
-  avatarKey: z.union([z.string(), z.unknown()]),
-  avatarUrl: z.union([z.string(), z.unknown()]),
-  isOnboarded: z.boolean(),
-  createdAt: z.string(),
-});
-
-export const zGetMyProductReviewsQuery = z.object({
-  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
-  limit: z.int().gte(1).lte(100).optional().default(20),
-  search: z.string().min(1).optional(),
-  sortBy: z.string().optional(),
-  order: z.enum(['asc', 'desc']).optional().default('desc'),
-});
-
-/**
- * User product reviews list
- */
-export const zGetMyProductReviewsResponse = z.object({
-  reviews: z.array(zProductReviewResponse),
-  total: z.number(),
-});
-
-/**
- * Wallet details
- */
-export const zGetBuyerWalletResponse = z.object({
+export const zWalletResponse = z.object({
   id: z.string(),
   userId: z.string(),
   balance: z.int().gte(-9007199254740991).lte(9007199254740991),
@@ -760,14 +222,7 @@ export const zGetBuyerWalletResponse = z.object({
   updatedAt: z.string(),
 });
 
-export const zTopUpWalletBody = z.object({
-  amount: z.int().gte(10000).lte(1000000000),
-});
-
-/**
- * Wallet topped up successfully
- */
-export const zTopUpWalletResponse = z.object({
+export const zWalletTransactionResponse = z.object({
   id: z.string(),
   walletId: z.string(),
   amount: z.int().gte(-9007199254740991).lte(9007199254740991),
@@ -777,32 +232,13 @@ export const zTopUpWalletResponse = z.object({
   createdAt: z.string(),
 });
 
-/**
- * List of transactions
- */
-export const zGetWalletTransactionsResponse = z.array(zWalletTransactionResponse);
-
-/**
- * List of addresses
- */
-export const zGetAddressesResponse = z.array(zAddressResponse);
-
-export const zCreateAddressBody = z.object({
-  label: z.string().min(1).max(100),
-  recipientName: z.string().min(1).max(255),
-  phoneNumber: z.string().min(9).max(15),
-  province: z.string().min(1).max(100),
-  city: z.string().min(1).max(100),
-  district: z.string().min(1).max(100),
-  postalCode: z.string().regex(/^\d{5}$/),
-  fullAddress: z.string().min(5),
-  isDefault: z.boolean().optional().default(false),
+export const zTopUpRequest = z.object({
+  amount: z.int().gte(10000).lte(1000000000),
 });
 
-/**
- * Address created
- */
-export const zCreateAddressResponse = z.object({
+export const zWalletTransactionsList = z.array(zWalletTransactionResponse);
+
+export const zAddressResponse = z.object({
   id: z.string(),
   userId: z.string(),
   label: z.string(),
@@ -818,18 +254,9 @@ export const zCreateAddressResponse = z.object({
   updatedAt: z.string(),
 });
 
-export const zDeleteAddressPath = z.object({
-  id: z.string(),
-});
+export const zAddressListResponse = z.array(zAddressResponse);
 
-/**
- * Address deleted
- */
-export const zDeleteAddressResponse = z.object({
-  success: z.boolean(),
-});
-
-export const zUpdateAddressBody = z.object({
+export const zAddressRequest = z.object({
   label: z.string().min(1).max(100),
   recipientName: z.string().min(1).max(255),
   phoneNumber: z.string().min(9).max(15),
@@ -841,56 +268,12 @@ export const zUpdateAddressBody = z.object({
   isDefault: z.boolean().optional().default(false),
 });
 
-export const zUpdateAddressPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Address updated
- */
-export const zUpdateAddressResponse = z.object({
-  id: z.string(),
-  userId: z.string(),
-  label: z.string(),
-  recipientName: z.string(),
-  phoneNumber: z.string(),
-  province: z.string(),
-  city: z.string(),
-  district: z.string(),
-  postalCode: z.string(),
-  fullAddress: z.string(),
-  isDefault: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const zSetDefaultAddressPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Default address set
- */
-export const zSetDefaultAddressResponse = z.object({
-  success: z.boolean(),
-});
-
-/**
- * Cart cleared successfully
- */
-export const zClearCartResponse = z.object({
-  success: z.boolean(),
-});
-
-/**
- * Cart summary details
- */
-export const zGetBuyerCartResponse = z.object({
+export const zCartSummaryResponse = z.object({
   id: z.string(),
   buyerId: z.string(),
-  storeId: z.union([z.string(), z.unknown()]),
-  storeName: z.union([z.string(), z.unknown()]),
-  storeSlug: z.union([z.string(), z.unknown()]),
+  storeId: z.unknown(),
+  storeName: z.unknown(),
+  storeSlug: z.unknown(),
   items: z.array(
     z.object({
       id: z.string(),
@@ -913,7 +296,7 @@ export const zGetBuyerCartResponse = z.object({
   updatedAt: z.string(),
 });
 
-export const zAddCartItemBody = z.object({
+export const zCartItemRequest = z.object({
   productId: z
     .uuid()
     .regex(
@@ -922,51 +305,10 @@ export const zAddCartItemBody = z.object({
   quantity: z.int().gte(1).lte(9007199254740991),
 });
 
-/**
- * Item added/updated successfully
- */
-export const zAddCartItemResponse = z.object({
-  id: z.string(),
-  productId: z.string(),
-  quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
-});
-
-export const zDeleteCartItemPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Item deleted successfully
- */
-export const zDeleteCartItemResponse = z.object({
-  success: z.boolean(),
-});
-
-export const zUpdateCartItemBody = z.object({
+export const zUpdateCartItemRequest = z.object({
   quantity: z.int().gte(1).lte(9007199254740991),
 });
 
-export const zUpdateCartItemPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Item quantity updated successfully
- */
-export const zUpdateCartItemResponse = z.object({
-  id: z.string(),
-  productId: z.string(),
-  quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
-});
-
-export const zCheckoutPreviewBody = z.object({
-  deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
-  discountCode: z.string().optional(),
-});
-
-/**
- * Calculated checkout totals
- */
 export const zCheckoutPreviewResponse = z.object({
   items: z.array(
     z.object({
@@ -979,37 +321,24 @@ export const zCheckoutPreviewResponse = z.object({
   ),
   subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
   discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  discountCode: z.union([z.string(), z.unknown()]),
-  discountType: z.union([z.string(), z.unknown()]),
+  discountCode: z.unknown(),
+  discountType: z.unknown(),
   deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
   taxBase: z.int().gte(-9007199254740991).lte(9007199254740991),
   ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
   totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
   deliveryMethod: z.string(),
   address: z.union([zAddressResponse, z.unknown()]),
-  storeId: z.union([z.string(), z.unknown()]),
-  storeName: z.union([z.string(), z.unknown()]),
+  storeId: z.unknown(),
+  storeName: z.unknown(),
 });
 
-/**
- * List of buyer orders
- */
-export const zListBuyerOrdersResponse = z.array(zOrderResponse);
-
-export const zCreateOrderBody = z.object({
+export const zCheckoutPreviewRequest = z.object({
   deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
-  addressId: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
   discountCode: z.string().optional(),
 });
 
-/**
- * Order successfully created
- */
-export const zCreateOrderResponse = z.object({
+export const zOrderResponse = z.object({
   id: z.string(),
   buyerId: z.string(),
   storeId: z.string(),
@@ -1017,8 +346,8 @@ export const zCreateOrderResponse = z.object({
   deliveryMethod: z.string(),
   subtotal: z.int().gte(-9007199254740991).lte(9007199254740991),
   discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  discountCode: z.union([z.string(), z.unknown()]),
-  discountType: z.union([z.string(), z.unknown()]),
+  discountCode: z.unknown(),
+  discountType: z.unknown(),
   deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
   ppn: z.int().gte(-9007199254740991).lte(9007199254740991),
   totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
@@ -1029,7 +358,7 @@ export const zCreateOrderResponse = z.object({
   items: z.array(
     z.object({
       id: z.string(),
-      productId: z.union([z.string(), z.unknown()]),
+      productId: z.unknown(),
       productName: z.string(),
       productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
       quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
@@ -1040,132 +369,155 @@ export const zCreateOrderResponse = z.object({
       z.object({
         id: z.string(),
         status: z.string(),
-        note: z.union([z.string(), z.unknown()]),
+        note: z.unknown(),
         createdAt: z.string(),
       }),
     )
     .optional(),
 });
 
-/**
- * Buyer expense report details
- */
-export const zGetBuyerExpenseReportResponse = z.object({
+export const zCreateOrderRequest = z.object({
+  deliveryMethod: z.enum(['instant', 'next_day', 'regular']),
+  addressId: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+  discountCode: z.string().optional(),
+});
+
+export const zOrderListResponse = z.array(zOrderResponse);
+
+export const zBuyerReportResponse = z.object({
   totalSpending: z.int().gte(-9007199254740991).lte(9007199254740991),
   totalOrders: z.int().gte(-9007199254740991).lte(9007199254740991),
   averageOrderValue: z.int().gte(-9007199254740991).lte(9007199254740991),
   orders: z.array(zOrderResponse),
 });
 
-export const zGetBuyerOrderDetailPath = z.object({
-  id: z.string(),
-});
+export const zOrderDetailResponse = zOrderResponse;
 
-/**
- * Buyer order details
- */
-export const zGetBuyerOrderDetailResponse = zOrderResponse;
-
-/**
- * List of seller store orders
- */
-export const zListSellerOrdersResponse = z.array(zOrderResponse);
-
-/**
- * Seller income report details
- */
-export const zGetSellerIncomeReportResponse = z.object({
+export const zSellerReportResponse = z.object({
   totalIncome: z.int().gte(-9007199254740991).lte(9007199254740991),
   totalOrders: z.int().gte(-9007199254740991).lte(9007199254740991),
   averageRevenue: z.int().gte(-9007199254740991).lte(9007199254740991),
   orders: z.array(zOrderResponse),
 });
 
-export const zGetSellerOrderDetailPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Seller incoming order details
- */
-export const zGetSellerOrderDetailResponse = zOrderResponse;
-
-export const zProcessSellerOrderBody = z.object({
+export const zProcessOrderRequest = z.object({
   note: z.string().max(1000).optional(),
 });
 
-export const zProcessSellerOrderPath = z.object({
-  id: z.string(),
+export const zStockResponse = z.object({
+  productId: z.string(),
+  stock: z.int().gte(-9007199254740991).lte(9007199254740991),
 });
 
-/**
- * Updated order details
- */
-export const zProcessSellerOrderResponse = zOrderResponse;
+export const zSetStock = z.object({
+  stock: z.int().gte(0).lte(9007199254740991),
+});
 
-/**
- * List of vouchers
- */
-export const zListVouchersResponse = z.array(zVoucherResponse);
+export const zValidateDiscountResponse = z.object({
+  type: z.enum(['voucher', 'promo']),
+  code: z.string(),
+  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  description: z.string(),
+});
 
-export const zCreateVoucherBody = z.object({
+export const zValidateDiscountRequest = z.object({
+  code: z.string().min(1),
+  subtotal: z.int().lte(9007199254740991),
+});
+
+export const zDeliveryJobResponse = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  driverId: z.unknown(),
+  status: z.string(),
+  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  storeName: z.string(),
+  deliveryMethod: z.string(),
+  addressSnapshot: zAddressResponse,
+  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        productId: z.unknown(),
+        productName: z.string(),
+        productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
+        quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+      }),
+    )
+    .optional(),
+});
+
+export const zDriverStatsResponse = z.object({
+  totalEarnings: z.int().gte(-9007199254740991).lte(9007199254740991),
+  completedJobsCount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  activeJobs: z.array(zDeliveryJobResponse),
+  completedJobs: z.array(zDeliveryJobResponse),
+});
+
+export const zDriverJobHistoryResponse = z.object({
+  jobs: z.array(zDeliveryJobResponse),
+  total: z.int().gte(-9007199254740991).lte(9007199254740991),
+});
+
+export const zDeliveryJobListResponse = z.array(zDeliveryJobResponse);
+
+export const zDriverActionSuccessResponse = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+
+export const zVoucherResponse = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+  code: z.string(),
+  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  minOrderAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  expiresAt: z.string(),
+  remainingUsage: z.int().gte(-9007199254740991).lte(9007199254740991),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const zCreateVoucherRequest = z.object({
   code: z.string().min(1),
   discountAmount: z.int().lte(9007199254740991),
   minOrderAmount: z.int().gte(0).lte(9007199254740991).optional().default(0),
   expiresAt: z.iso
     .datetime()
     .regex(
-      /^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$/,
+      /^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$/,
     ),
   remainingUsage: z.int().gte(0).lte(9007199254740991),
 });
 
-/**
- * Voucher created successfully
- */
-export const zCreateVoucherResponse = z.object({
+export const zVoucherListResponse = z.array(zVoucherResponse);
+
+export const zPromoResponse = z.object({
   id: z
     .uuid()
     .regex(
       /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
     ),
   code: z.string(),
-  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
+  discountPercent: z.int().gte(-9007199254740991).lte(9007199254740991),
+  maxDiscountAmount: z.union([z.int().gte(-9007199254740991).lte(9007199254740991), z.unknown()]),
   minOrderAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
   expiresAt: z.string(),
-  remainingUsage: z.int().gte(-9007199254740991).lte(9007199254740991),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-export const zGetVoucherPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Voucher details
- */
-export const zGetVoucherResponse = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-  code: z.string(),
-  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  minOrderAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  expiresAt: z.string(),
-  remainingUsage: z.int().gte(-9007199254740991).lte(9007199254740991),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-/**
- * List of promos
- */
-export const zListPromosResponse = z.array(zPromoResponse);
-
-export const zCreatePromoBody = z.object({
+export const zCreatePromoRequest = z.object({
   code: z.string().min(1),
   discountPercent: z.int().gte(1).lte(100),
   maxDiscountAmount: z.union([z.int().lte(9007199254740991), z.unknown()]).optional(),
@@ -1173,54 +525,13 @@ export const zCreatePromoBody = z.object({
   expiresAt: z.iso
     .datetime()
     .regex(
-      /^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$/,
+      /^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$/,
     ),
 });
 
-/**
- * Promo created successfully
- */
-export const zCreatePromoResponse = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-  code: z.string(),
-  discountPercent: z.int().gte(-9007199254740991).lte(9007199254740991),
-  maxDiscountAmount: z.union([z.int().gte(-9007199254740991).lte(9007199254740991), z.unknown()]),
-  minOrderAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  expiresAt: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
+export const zPromoListResponse = z.array(zPromoResponse);
 
-export const zGetPromoPath = z.object({
-  id: z.string(),
-});
-
-/**
- * Promo details
- */
-export const zGetPromoResponse = z.object({
-  id: z
-    .uuid()
-    .regex(
-      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
-    ),
-  code: z.string(),
-  discountPercent: z.int().gte(-9007199254740991).lte(9007199254740991),
-  maxDiscountAmount: z.union([z.int().gte(-9007199254740991).lte(9007199254740991), z.unknown()]),
-  minOrderAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  expiresAt: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-/**
- * Dashboard statistics fetched successfully
- */
-export const zGetDashboardStatsResponse = z.object({
+export const zDashboardStatsResponse = z.object({
   users: z.object({
     total: z.int().gte(-9007199254740991).lte(9007199254740991),
     roles: z.object({
@@ -1263,10 +574,7 @@ export const zGetDashboardStatsResponse = z.object({
   }),
 });
 
-/**
- * Overdue orders processed successfully
- */
-export const zProcessOverdueOrdersResponse = z.object({
+export const zProcessOverdueResponse = z.object({
   processedCount: z.int().gte(-9007199254740991).lte(9007199254740991),
   results: z.array(
     z.object({
@@ -1279,42 +587,516 @@ export const zProcessOverdueOrdersResponse = z.object({
   ),
 });
 
-export const zSimulateTimeBody = z.object({
-  hoursToAdvance: z.number().gte(0).lte(240),
-});
-
-/**
- * System time offset updated successfully
- */
 export const zSimulateTimeResponse = z.object({
   newOffsetHours: z.number(),
   effectiveTime: z.string(),
 });
 
-export const zValidateDiscountCodeBody = z.object({
-  code: z.string().min(1),
-  subtotal: z.int().lte(9007199254740991),
+export const zSimulateTimeRequest = z.object({
+  hoursToAdvance: z.number().gte(0).lte(240),
 });
+
+export const zLocationItem = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
+export const zLocationList = z.array(zLocationItem);
+
+export const zRegisterUserBody = zRegisterInput;
+
+/**
+ * Registration successful
+ */
+export const zRegisterUserResponse = zSuccess;
+
+export const zLoginUserBody = zLoginInput;
+
+/**
+ * Login successful
+ */
+export const zLoginUserResponse = zSuccess;
+
+/**
+ * Logout successful
+ */
+export const zLogoutUserResponse = zSuccess;
+
+/**
+ * Current user details
+ */
+export const zGetCurrentUserResponse = zUserResponse;
+
+/**
+ * Current user financial summary
+ */
+export const zGetCurrentUserFinancialSummaryResponse = zFinancialSummary;
+
+export const zOnboardUserBody = zOnboardInput;
+
+/**
+ * Onboarding successful
+ */
+export const zOnboardUserResponse = zSuccess;
+
+/**
+ * Current session information
+ */
+export const zGetCurrentSessionResponse = zSessionResponse;
+
+export const zSelectActiveRoleBody = zSelectRoleInput;
+
+/**
+ * Role updated successfully
+ */
+export const zSelectActiveRoleResponse = zSuccess;
+
+export const zPresignUserAvatarBody = zPresignRequest;
+
+/**
+ * Presigned URL generated successfully
+ */
+export const zPresignUserAvatarResponse = zPresignResponse;
+
+export const zUpdateUserProfileBody = zUpdateProfileInput;
+
+/**
+ * Profile updated successfully
+ */
+export const zUpdateUserProfileResponse = zUserResponse;
+
+/**
+ * Private admin endpoint message
+ */
+export const zPrivateAdminEndpointResponse = zPrivateMessage;
+
+/**
+ * Private seller endpoint message
+ */
+export const zPrivateSellerEndpointResponse = zPrivateMessage;
+
+/**
+ * Private buyer endpoint message
+ */
+export const zPrivateBuyerEndpointResponse = zPrivateMessage;
+
+/**
+ * Private driver endpoint message
+ */
+export const zPrivateDriverEndpointResponse = zPrivateMessage;
+
+export const zListProductsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+  storeSlug: z.string().optional(),
+});
+
+/**
+ * Products list
+ */
+export const zListProductsResponse = zProductListResponse;
+
+export const zGetProductByIdPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Product details
+ */
+export const zGetProductByIdResponse = zProduct;
+
+export const zGetProductBySlugPath = z.object({
+  storeSlug: z.string(),
+  productSlug: z.string(),
+});
+
+/**
+ * Product details
+ */
+export const zGetProductBySlugResponse = zProduct;
+
+export const zPresignProductImageBody = zPresignRequest;
+
+/**
+ * Presigned URL generated successfully
+ */
+export const zPresignProductImageResponse = zPresignResponse;
+
+export const zGetProductReviewsPath = z.object({
+  id: z.string(),
+});
+
+export const zGetProductReviewsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+/**
+ * Product reviews list
+ */
+export const zGetProductReviewsResponse = zProductReviewListResponse;
+
+export const zSubmitProductReviewBody = zSubmitProductReview;
+
+export const zSubmitProductReviewPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Review submitted successfully
+ */
+export const zSubmitProductReviewResponse = zProductReviewResponse;
+
+export const zGetMyProductReviewsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+/**
+ * User product reviews list
+ */
+export const zGetMyProductReviewsResponse = zProductReviewListResponse;
+
+export const zListSellerProductsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+/**
+ * Products list
+ */
+export const zListSellerProductsResponse = zSellerProductListResponse;
+
+export const zCreateSellerProductBody = zCreateProduct;
+
+/**
+ * Product created successfully
+ */
+export const zCreateSellerProductResponse = zSellerProductResponse;
+
+export const zDeleteSellerProductPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Product deleted successfully
+ */
+export const zDeleteSellerProductResponse = z.object({
+  success: z.boolean(),
+});
+
+export const zGetSellerProductByIdPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Product details
+ */
+export const zGetSellerProductByIdResponse = zSellerProductResponse;
+
+export const zUpdateSellerProductBody = zUpdateProduct;
+
+export const zUpdateSellerProductPath = z.object({
+  id: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Product updated successfully
+ */
+export const zUpdateSellerProductResponse = zSellerProductResponse;
+
+export const zCreateStoreBody = zCreateStoreInput;
+
+/**
+ * Store created successfully
+ */
+export const zCreateStoreResponse = zStoreResponse;
+
+/**
+ * Store found
+ */
+export const zGetCurrentSellerStoreResponse = zStoreResponse;
+
+export const zUpdateCurrentSellerStoreBody = zUpdateStoreInput;
+
+/**
+ * Store updated successfully
+ */
+export const zUpdateCurrentSellerStoreResponse = zStoreResponse;
+
+export const zGetPublicStoreInfoPath = z.object({
+  slugOrId: z.string().min(3),
+});
+
+/**
+ * Store found
+ */
+export const zGetPublicStoreInfoResponse = zStoreResponse;
+
+export const zPresignStoreLogoBody = zPresignRequest;
+
+export const zPresignStoreLogoPath = z.object({
+  storeId: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Presigned URL generated successfully
+ */
+export const zPresignStoreLogoResponse = zPresignResponse;
+
+export const zListReviewsQuery = z.object({
+  page: z.int().gte(1).lte(9007199254740991).optional().default(1),
+  limit: z.int().gte(1).lte(100).optional().default(20),
+  search: z.string().min(1).optional(),
+  sortBy: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+/**
+ * List of app reviews
+ */
+export const zListReviewsResponse = zReviewList;
+
+export const zSubmitReviewBody = zSubmitReviewInput;
+
+/**
+ * Review submitted successfully
+ */
+export const zSubmitReviewResponse = zReview;
+
+/**
+ * Review statistics
+ */
+export const zGetReviewsStatsResponse = zReviewStats;
+
+/**
+ * Wallet details
+ */
+export const zGetBuyerWalletResponse = zWalletResponse;
+
+export const zTopUpWalletBody = zTopUpRequest;
+
+/**
+ * Wallet topped up successfully
+ */
+export const zTopUpWalletResponse = zWalletTransactionResponse;
+
+/**
+ * List of transactions
+ */
+export const zGetWalletTransactionsResponse = zWalletTransactionsList;
+
+/**
+ * List of addresses
+ */
+export const zGetAddressesResponse = zAddressListResponse;
+
+export const zCreateAddressBody = zAddressRequest;
+
+/**
+ * Address created
+ */
+export const zCreateAddressResponse = zAddressResponse;
+
+export const zDeleteAddressPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Address deleted
+ */
+export const zDeleteAddressResponse = z.object({
+  success: z.boolean(),
+});
+
+export const zUpdateAddressBody = zAddressRequest;
+
+export const zUpdateAddressPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Address updated
+ */
+export const zUpdateAddressResponse = zAddressResponse;
+
+export const zSetDefaultAddressPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Default address set
+ */
+export const zSetDefaultAddressResponse = z.object({
+  success: z.boolean(),
+});
+
+/**
+ * Cart cleared successfully
+ */
+export const zClearCartResponse = z.object({
+  success: z.boolean(),
+});
+
+/**
+ * Cart summary details
+ */
+export const zGetBuyerCartResponse = zCartSummaryResponse;
+
+export const zAddCartItemBody = zCartItemRequest;
+
+/**
+ * Item added/updated successfully
+ */
+export const zAddCartItemResponse = z.object({
+  id: z.string(),
+  productId: z.string(),
+  quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+});
+
+export const zDeleteCartItemPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Item deleted successfully
+ */
+export const zDeleteCartItemResponse = z.object({
+  success: z.boolean(),
+});
+
+export const zUpdateCartItemBody = zUpdateCartItemRequest;
+
+export const zUpdateCartItemPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Item quantity updated successfully
+ */
+export const zUpdateCartItemResponse = z.object({
+  id: z.string(),
+  productId: z.string(),
+  quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
+});
+
+export const zCheckoutPreviewBody = zCheckoutPreviewRequest;
+
+/**
+ * Calculated checkout totals
+ */
+export const zCheckoutPreviewResponse2 = zCheckoutPreviewResponse;
+
+/**
+ * List of buyer orders
+ */
+export const zListBuyerOrdersResponse = zOrderListResponse;
+
+export const zCreateOrderBody = zCreateOrderRequest;
+
+/**
+ * Order successfully created
+ */
+export const zCreateOrderResponse = zOrderResponse;
+
+/**
+ * Buyer expense report details
+ */
+export const zGetBuyerExpenseReportResponse = zBuyerReportResponse;
+
+export const zGetBuyerOrderDetailPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Buyer order details
+ */
+export const zGetBuyerOrderDetailResponse = zOrderResponse;
+
+/**
+ * List of seller store orders
+ */
+export const zListSellerOrdersResponse = zOrderListResponse;
+
+/**
+ * Seller income report details
+ */
+export const zGetSellerIncomeReportResponse = zSellerReportResponse;
+
+export const zGetSellerOrderDetailPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Seller incoming order details
+ */
+export const zGetSellerOrderDetailResponse = zOrderResponse;
+
+export const zProcessSellerOrderBody = zProcessOrderRequest;
+
+export const zProcessSellerOrderPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Updated order details
+ */
+export const zProcessSellerOrderResponse = zOrderResponse;
+
+export const zSetSellerProductStockBody = zSetStock;
+
+export const zSetSellerProductStockPath = z.object({
+  productId: z
+    .uuid()
+    .regex(
+      /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/,
+    ),
+});
+
+/**
+ * Stock updated
+ */
+export const zSetSellerProductStockResponse = zStockResponse;
+
+export const zValidateDiscountCodeBody = zValidateDiscountRequest;
 
 /**
  * Discount code validation result
  */
-export const zValidateDiscountCodeResponse = z.object({
-  type: z.enum(['voucher', 'promo']),
-  code: z.string(),
-  discountAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  description: z.string(),
-});
+export const zValidateDiscountCodeResponse = zValidateDiscountResponse;
 
 /**
  * Driver statistics and jobs history
  */
-export const zGetDriverStatsResponse = z.object({
-  totalEarnings: z.int().gte(-9007199254740991).lte(9007199254740991),
-  completedJobsCount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  activeJobs: z.array(zDeliveryJobResponse),
-  completedJobs: z.array(zDeliveryJobResponse),
-});
+export const zGetDriverStatsResponse = zDriverStatsResponse;
 
 export const zGetDriverJobHistoryQuery = z.object({
   page: z.int().gte(1).lte(9007199254740991).optional().default(1),
@@ -1327,15 +1109,12 @@ export const zGetDriverJobHistoryQuery = z.object({
 /**
  * Driver completed job history
  */
-export const zGetDriverJobHistoryResponse = z.object({
-  jobs: z.array(zDeliveryJobResponse),
-  total: z.int().gte(-9007199254740991).lte(9007199254740991),
-});
+export const zGetDriverJobHistoryResponse = zDriverJobHistoryResponse;
 
 /**
  * List of available delivery jobs
  */
-export const zListAvailableJobsResponse = z.array(zDeliveryJobResponse);
+export const zListAvailableJobsResponse = zDeliveryJobListResponse;
 
 export const zGetDriverJobDetailPath = z.object({
   id: z
@@ -1348,30 +1127,7 @@ export const zGetDriverJobDetailPath = z.object({
 /**
  * Details of the delivery job
  */
-export const zGetDriverJobDetailResponse = z.object({
-  id: z.string(),
-  orderId: z.string(),
-  driverId: z.union([z.string(), z.unknown()]),
-  status: z.string(),
-  deliveryFee: z.int().gte(-9007199254740991).lte(9007199254740991),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  storeName: z.string(),
-  deliveryMethod: z.string(),
-  addressSnapshot: zAddressResponse,
-  totalAmount: z.int().gte(-9007199254740991).lte(9007199254740991),
-  items: z
-    .array(
-      z.object({
-        id: z.string(),
-        productId: z.union([z.string(), z.unknown()]),
-        productName: z.string(),
-        productPrice: z.int().gte(-9007199254740991).lte(9007199254740991),
-        quantity: z.int().gte(-9007199254740991).lte(9007199254740991),
-      }),
-    )
-    .optional(),
-});
+export const zGetDriverJobDetailResponse = zDeliveryJobResponse;
 
 export const zTakeDeliveryJobPath = z.object({
   id: z
@@ -1384,10 +1140,7 @@ export const zTakeDeliveryJobPath = z.object({
 /**
  * Job taken successfully
  */
-export const zTakeDeliveryJobResponse = z.object({
-  success: z.boolean(),
-  message: z.string(),
-});
+export const zTakeDeliveryJobResponse = zDriverActionSuccessResponse;
 
 export const zCompleteDeliveryJobPath = z.object({
   id: z
@@ -1400,15 +1153,71 @@ export const zCompleteDeliveryJobPath = z.object({
 /**
  * Job completed successfully
  */
-export const zCompleteDeliveryJobResponse = z.object({
-  success: z.boolean(),
-  message: z.string(),
+export const zCompleteDeliveryJobResponse = zDriverActionSuccessResponse;
+
+/**
+ * List of vouchers
+ */
+export const zListVouchersResponse = zVoucherListResponse;
+
+export const zCreateVoucherBody = zCreateVoucherRequest;
+
+/**
+ * Voucher created successfully
+ */
+export const zCreateVoucherResponse = zVoucherResponse;
+
+export const zGetVoucherPath = z.object({
+  id: z.string(),
 });
+
+/**
+ * Voucher details
+ */
+export const zGetVoucherResponse = zVoucherResponse;
+
+/**
+ * List of promos
+ */
+export const zListPromosResponse = zPromoListResponse;
+
+export const zCreatePromoBody = zCreatePromoRequest;
+
+/**
+ * Promo created successfully
+ */
+export const zCreatePromoResponse = zPromoResponse;
+
+export const zGetPromoPath = z.object({
+  id: z.string(),
+});
+
+/**
+ * Promo details
+ */
+export const zGetPromoResponse = zPromoResponse;
+
+/**
+ * Dashboard statistics fetched successfully
+ */
+export const zGetDashboardStatsResponse = zDashboardStatsResponse;
+
+/**
+ * Overdue orders processed successfully
+ */
+export const zProcessOverdueOrdersResponse = zProcessOverdueResponse;
+
+export const zSimulateTimeBody = zSimulateTimeRequest;
+
+/**
+ * System time offset updated successfully
+ */
+export const zSimulateTimeResponse2 = zSimulateTimeResponse;
 
 /**
  * List of provinces
  */
-export const zGetProvincesResponse = z.array(zLocationItem);
+export const zGetProvincesResponse = zLocationList;
 
 export const zGetCitiesQuery = z.object({
   provinceId: z.string(),
@@ -1417,7 +1226,7 @@ export const zGetCitiesQuery = z.object({
 /**
  * List of cities
  */
-export const zGetCitiesResponse = z.array(zLocationItem);
+export const zGetCitiesResponse = zLocationList;
 
 export const zGetDistrictsQuery = z.object({
   cityId: z.string(),
@@ -1426,4 +1235,4 @@ export const zGetDistrictsQuery = z.object({
 /**
  * List of districts
  */
-export const zGetDistrictsResponse = z.array(zLocationItem);
+export const zGetDistrictsResponse = zLocationList;

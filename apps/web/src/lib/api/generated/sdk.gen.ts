@@ -126,8 +126,6 @@ import type {
   GetWalletTransactionsData,
   GetWalletTransactionsErrors,
   GetWalletTransactionsResponses,
-  HealthCheckData,
-  HealthCheckResponses,
   ListAvailableJobsData,
   ListAvailableJobsErrors,
   ListAvailableJobsResponses,
@@ -197,6 +195,9 @@ import type {
   SetDefaultAddressData,
   SetDefaultAddressErrors,
   SetDefaultAddressResponses,
+  SetSellerProductStockData,
+  SetSellerProductStockErrors,
+  SetSellerProductStockResponses,
   SimulateTimeData,
   SimulateTimeErrors,
   SimulateTimeResponses,
@@ -249,17 +250,6 @@ export type Options<
    */
   meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
-
-/**
- * Health check
- */
-export const healthCheck = <ThrowOnError extends boolean = false>(
-  options?: Options<HealthCheckData, ThrowOnError>,
-): RequestResult<HealthCheckResponses, unknown, ThrowOnError> =>
-  (options?.client ?? client).get<HealthCheckResponses, unknown, ThrowOnError>({
-    url: '/api/health',
-    ...options,
-  });
 
 /**
  * Register a new user account
@@ -420,6 +410,148 @@ export const selectActiveRole = <ThrowOnError extends boolean = false>(
   });
 
 /**
+ * Generate pre-signed URL for avatar upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
+ */
+export const presignUserAvatar = <ThrowOnError extends boolean = false>(
+  options: Options<PresignUserAvatarData, ThrowOnError>,
+): RequestResult<PresignUserAvatarResponses, PresignUserAvatarErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    PresignUserAvatarResponses,
+    PresignUserAvatarErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/users/me/avatar/presign',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Update current user profile info
+ *
+ * Update profile information (e.g. name, avatarKey) for the logged-in user.
+ */
+export const updateUserProfile = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateUserProfileData, ThrowOnError>,
+): RequestResult<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError> =>
+  (options.client ?? client).put<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError>(
+    {
+      security: [
+        {
+          in: 'cookie',
+          name: '__session',
+          type: 'apiKey',
+        },
+      ],
+      url: '/api/users/me',
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    },
+  );
+
+/**
+ * Private endpoint accessible only by Admin role
+ */
+export const privateAdminEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateAdminEndpointData, ThrowOnError>,
+): RequestResult<PrivateAdminEndpointResponses, PrivateAdminEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateAdminEndpointResponses,
+    PrivateAdminEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/admin',
+    ...options,
+  });
+
+/**
+ * Private endpoint accessible only by Seller role
+ */
+export const privateSellerEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateSellerEndpointData, ThrowOnError>,
+): RequestResult<PrivateSellerEndpointResponses, PrivateSellerEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateSellerEndpointResponses,
+    PrivateSellerEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/seller',
+    ...options,
+  });
+
+/**
+ * Private endpoint accessible only by Buyer role
+ */
+export const privateBuyerEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateBuyerEndpointData, ThrowOnError>,
+): RequestResult<PrivateBuyerEndpointResponses, PrivateBuyerEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateBuyerEndpointResponses,
+    PrivateBuyerEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/buyer',
+    ...options,
+  });
+
+/**
+ * Private endpoint accessible only by Driver role
+ */
+export const privateDriverEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateDriverEndpointData, ThrowOnError>,
+): RequestResult<PrivateDriverEndpointResponses, PrivateDriverEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateDriverEndpointResponses,
+    PrivateDriverEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/driver',
+    ...options,
+  });
+
+/**
  * List products (public)
  */
 export const listProducts = <ThrowOnError extends boolean = false>(
@@ -514,6 +646,28 @@ export const submitProductReview = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+/**
+ * Get all product reviews submitted by current user
+ */
+export const getMyProductReviews = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyProductReviewsData, ThrowOnError>,
+): RequestResult<GetMyProductReviewsResponses, GetMyProductReviewsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetMyProductReviewsResponses,
+    GetMyProductReviewsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/products/reviews/me',
+    ...options,
   });
 
 /**
@@ -635,131 +789,6 @@ export const updateSellerProduct = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * List all public application reviews with pagination
- */
-export const listReviews = <ThrowOnError extends boolean = false>(
-  options?: Options<ListReviewsData, ThrowOnError>,
-): RequestResult<ListReviewsResponses, ListReviewsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<ListReviewsResponses, ListReviewsErrors, ThrowOnError>({
-    url: '/api/reviews',
-    ...options,
-  });
-
-/**
- * Submit a new application review (public/guest)
- */
-export const submitReview = <ThrowOnError extends boolean = false>(
-  options: Options<SubmitReviewData, ThrowOnError>,
-): RequestResult<SubmitReviewResponses, SubmitReviewErrors, ThrowOnError> =>
-  (options.client ?? client).post<SubmitReviewResponses, SubmitReviewErrors, ThrowOnError>({
-    url: '/api/reviews',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Get application reviews statistics (total count and average rating)
- */
-export const getReviewsStats = <ThrowOnError extends boolean = false>(
-  options?: Options<GetReviewsStatsData, ThrowOnError>,
-): RequestResult<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError>({
-    url: '/api/reviews/stats',
-    ...options,
-  });
-
-/**
- * Private endpoint accessible only by Admin role
- */
-export const privateAdminEndpoint = <ThrowOnError extends boolean = false>(
-  options?: Options<PrivateAdminEndpointData, ThrowOnError>,
-): RequestResult<PrivateAdminEndpointResponses, PrivateAdminEndpointErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    PrivateAdminEndpointResponses,
-    PrivateAdminEndpointErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/private/admin',
-    ...options,
-  });
-
-/**
- * Private endpoint accessible only by Seller role
- */
-export const privateSellerEndpoint = <ThrowOnError extends boolean = false>(
-  options?: Options<PrivateSellerEndpointData, ThrowOnError>,
-): RequestResult<PrivateSellerEndpointResponses, PrivateSellerEndpointErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    PrivateSellerEndpointResponses,
-    PrivateSellerEndpointErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/private/seller',
-    ...options,
-  });
-
-/**
- * Private endpoint accessible only by Buyer role
- */
-export const privateBuyerEndpoint = <ThrowOnError extends boolean = false>(
-  options?: Options<PrivateBuyerEndpointData, ThrowOnError>,
-): RequestResult<PrivateBuyerEndpointResponses, PrivateBuyerEndpointErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    PrivateBuyerEndpointResponses,
-    PrivateBuyerEndpointErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/private/buyer',
-    ...options,
-  });
-
-/**
- * Private endpoint accessible only by Driver role
- */
-export const privateDriverEndpoint = <ThrowOnError extends boolean = false>(
-  options?: Options<PrivateDriverEndpointData, ThrowOnError>,
-): RequestResult<PrivateDriverEndpointResponses, PrivateDriverEndpointErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    PrivateDriverEndpointResponses,
-    PrivateDriverEndpointErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/private/driver',
-    ...options,
-  });
-
-/**
  * Create a new store
  *
  * Create a new store for the currently authenticated seller.
@@ -874,26 +903,24 @@ export const presignStoreLogo = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Generate pre-signed URL for avatar upload
- *
- * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
+ * List all public application reviews with pagination
  */
-export const presignUserAvatar = <ThrowOnError extends boolean = false>(
-  options: Options<PresignUserAvatarData, ThrowOnError>,
-): RequestResult<PresignUserAvatarResponses, PresignUserAvatarErrors, ThrowOnError> =>
-  (options.client ?? client).post<
-    PresignUserAvatarResponses,
-    PresignUserAvatarErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/users/me/avatar/presign',
+export const listReviews = <ThrowOnError extends boolean = false>(
+  options?: Options<ListReviewsData, ThrowOnError>,
+): RequestResult<ListReviewsResponses, ListReviewsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListReviewsResponses, ListReviewsErrors, ThrowOnError>({
+    url: '/api/reviews',
+    ...options,
+  });
+
+/**
+ * Submit a new application review (public/guest)
+ */
+export const submitReview = <ThrowOnError extends boolean = false>(
+  options: Options<SubmitReviewData, ThrowOnError>,
+): RequestResult<SubmitReviewResponses, SubmitReviewErrors, ThrowOnError> =>
+  (options.client ?? client).post<SubmitReviewResponses, SubmitReviewErrors, ThrowOnError>({
+    url: '/api/reviews',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -902,50 +929,13 @@ export const presignUserAvatar = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Update current user profile info
- *
- * Update profile information (e.g. name, avatarKey) for the logged-in user.
+ * Get application reviews statistics (total count and average rating)
  */
-export const updateUserProfile = <ThrowOnError extends boolean = false>(
-  options: Options<UpdateUserProfileData, ThrowOnError>,
-): RequestResult<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError> =>
-  (options.client ?? client).put<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError>(
-    {
-      security: [
-        {
-          in: 'cookie',
-          name: '__session',
-          type: 'apiKey',
-        },
-      ],
-      url: '/api/users/me',
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    },
-  );
-
-/**
- * Get all product reviews submitted by current user
- */
-export const getMyProductReviews = <ThrowOnError extends boolean = false>(
-  options?: Options<GetMyProductReviewsData, ThrowOnError>,
-): RequestResult<GetMyProductReviewsResponses, GetMyProductReviewsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    GetMyProductReviewsResponses,
-    GetMyProductReviewsErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/users/me/product-reviews',
+export const getReviewsStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetReviewsStatsData, ThrowOnError>,
+): RequestResult<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetReviewsStatsResponses, GetReviewsStatsErrors, ThrowOnError>({
+    url: '/api/reviews/stats',
     ...options,
   });
 
@@ -1404,6 +1394,184 @@ export const processSellerOrder = <ThrowOnError extends boolean = false>(
   });
 
 /**
+ * Set the stock of a product owned by the logged-in Seller
+ *
+ * Commerce owns stock. The catalog shows a read model of it that catches up within a few seconds.
+ */
+export const setSellerProductStock = <ThrowOnError extends boolean = false>(
+  options: Options<SetSellerProductStockData, ThrowOnError>,
+): RequestResult<SetSellerProductStockResponses, SetSellerProductStockErrors, ThrowOnError> =>
+  (options.client ?? client).put<
+    SetSellerProductStockResponses,
+    SetSellerProductStockErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/inventory/{productId}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Validate a voucher or promo code for buyer checkout
+ */
+export const validateDiscountCode = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateDiscountCodeData, ThrowOnError>,
+): RequestResult<ValidateDiscountCodeResponses, ValidateDiscountCodeErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    ValidateDiscountCodeResponses,
+    ValidateDiscountCodeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/discounts/validate',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get stats, earnings and jobs history for the logged-in driver
+ */
+export const getDriverStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDriverStatsData, ThrowOnError>,
+): RequestResult<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/me/stats',
+    ...options,
+  });
+
+/**
+ * Get paginated history of completed delivery jobs for the logged-in driver
+ */
+export const getDriverJobHistory = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDriverJobHistoryData, ThrowOnError>,
+): RequestResult<GetDriverJobHistoryResponses, GetDriverJobHistoryErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetDriverJobHistoryResponses,
+    GetDriverJobHistoryErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/me/history',
+    ...options,
+  });
+
+/**
+ * List available delivery jobs for drivers
+ */
+export const listAvailableJobs = <ThrowOnError extends boolean = false>(
+  options?: Options<ListAvailableJobsData, ThrowOnError>,
+): RequestResult<ListAvailableJobsResponses, ListAvailableJobsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListAvailableJobsResponses,
+    ListAvailableJobsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs',
+    ...options,
+  });
+
+/**
+ * Get details of a specific delivery job
+ */
+export const getDriverJobDetail = <ThrowOnError extends boolean = false>(
+  options: Options<GetDriverJobDetailData, ThrowOnError>,
+): RequestResult<GetDriverJobDetailResponses, GetDriverJobDetailErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetDriverJobDetailResponses,
+    GetDriverJobDetailErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}',
+    ...options,
+  });
+
+/**
+ * Take a pending delivery job
+ */
+export const takeDeliveryJob = <ThrowOnError extends boolean = false>(
+  options: Options<TakeDeliveryJobData, ThrowOnError>,
+): RequestResult<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError> =>
+  (options.client ?? client).post<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}/take',
+    ...options,
+  });
+
+/**
+ * Complete a taken delivery job
+ */
+export const completeDeliveryJob = <ThrowOnError extends boolean = false>(
+  options: Options<CompleteDeliveryJobData, ThrowOnError>,
+): RequestResult<CompleteDeliveryJobResponses, CompleteDeliveryJobErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    CompleteDeliveryJobResponses,
+    CompleteDeliveryJobErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__session',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}/complete',
+    ...options,
+  });
+
+/**
  * List all discount vouchers
  */
 export const listVouchers = <ThrowOnError extends boolean = false>(
@@ -1583,156 +1751,6 @@ export const simulateTime = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  });
-
-/**
- * Validate a voucher or promo code for buyer checkout
- */
-export const validateDiscountCode = <ThrowOnError extends boolean = false>(
-  options: Options<ValidateDiscountCodeData, ThrowOnError>,
-): RequestResult<ValidateDiscountCodeResponses, ValidateDiscountCodeErrors, ThrowOnError> =>
-  (options.client ?? client).post<
-    ValidateDiscountCodeResponses,
-    ValidateDiscountCodeErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/discounts/validate',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Get stats, earnings and jobs history for the logged-in driver
- */
-export const getDriverStats = <ThrowOnError extends boolean = false>(
-  options?: Options<GetDriverStatsData, ThrowOnError>,
-): RequestResult<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/me/stats',
-    ...options,
-  });
-
-/**
- * Get paginated history of completed delivery jobs for the logged-in driver
- */
-export const getDriverJobHistory = <ThrowOnError extends boolean = false>(
-  options?: Options<GetDriverJobHistoryData, ThrowOnError>,
-): RequestResult<GetDriverJobHistoryResponses, GetDriverJobHistoryErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    GetDriverJobHistoryResponses,
-    GetDriverJobHistoryErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/me/history',
-    ...options,
-  });
-
-/**
- * List available delivery jobs for drivers
- */
-export const listAvailableJobs = <ThrowOnError extends boolean = false>(
-  options?: Options<ListAvailableJobsData, ThrowOnError>,
-): RequestResult<ListAvailableJobsResponses, ListAvailableJobsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    ListAvailableJobsResponses,
-    ListAvailableJobsErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/jobs',
-    ...options,
-  });
-
-/**
- * Get details of a specific delivery job
- */
-export const getDriverJobDetail = <ThrowOnError extends boolean = false>(
-  options: Options<GetDriverJobDetailData, ThrowOnError>,
-): RequestResult<GetDriverJobDetailResponses, GetDriverJobDetailErrors, ThrowOnError> =>
-  (options.client ?? client).get<
-    GetDriverJobDetailResponses,
-    GetDriverJobDetailErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/jobs/{id}',
-    ...options,
-  });
-
-/**
- * Take a pending delivery job
- */
-export const takeDeliveryJob = <ThrowOnError extends boolean = false>(
-  options: Options<TakeDeliveryJobData, ThrowOnError>,
-): RequestResult<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError> =>
-  (options.client ?? client).post<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/jobs/{id}/take',
-    ...options,
-  });
-
-/**
- * Complete a taken delivery job
- */
-export const completeDeliveryJob = <ThrowOnError extends boolean = false>(
-  options: Options<CompleteDeliveryJobData, ThrowOnError>,
-): RequestResult<CompleteDeliveryJobResponses, CompleteDeliveryJobErrors, ThrowOnError> =>
-  (options.client ?? client).post<
-    CompleteDeliveryJobResponses,
-    CompleteDeliveryJobErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/jobs/{id}/complete',
-    ...options,
   });
 
 /**

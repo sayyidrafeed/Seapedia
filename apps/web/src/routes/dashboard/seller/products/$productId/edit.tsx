@@ -1,6 +1,10 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { updateSellerProduct, presignProductImage } from '@/lib/api/generated';
+import {
+  updateSellerProduct,
+  presignProductImage,
+  setSellerProductStock,
+} from '@/lib/api/generated';
 import {
   getSellerProductByIdOptions,
   listSellerProductsQueryKey,
@@ -40,12 +44,24 @@ function EditProductPage() {
           name: values.name,
           description: values.description || null,
           price: values.price,
-          stock: values.stock,
           imageKey: values.imageKey || null,
         },
       });
       if (error) {
         throw new Error((error as { error?: string }).error || t('seller.products.editFailed'));
+      }
+
+      // Stock is owned by the commerce service, not by the product record.
+      if (values.stock !== product?.stock) {
+        const { error: stockError } = await setSellerProductStock({
+          path: { productId },
+          body: { stock: values.stock },
+        });
+        if (stockError) {
+          throw new Error(
+            (stockError as { error?: string }).error || t('seller.products.editFailed'),
+          );
+        }
       }
       return data;
     },
@@ -55,6 +71,11 @@ function EditProductPage() {
       queryClient.invalidateQueries({
         queryKey: getSellerProductByIdQueryKey({ path: { id: productId } }),
       });
+      // The list shows the catalog's copy of stock, which catches up with commerce within seconds.
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() }),
+        3000,
+      );
       navigate({ to: '/dashboard/seller/products' });
     },
     onError: (error: Error) => {

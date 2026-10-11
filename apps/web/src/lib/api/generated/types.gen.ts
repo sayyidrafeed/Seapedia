@@ -4,6 +4,240 @@ export type ClientOptions = {
   baseUrl: 'http://localhost:3001' | (string & {});
 };
 
+export type Success = {
+  success: boolean;
+};
+
+export type Error = {
+  error: string;
+};
+
+export type RegisterInput = {
+  username: string;
+  email: string;
+  password: string;
+  name?: string;
+};
+
+export type LoginInput = {
+  username: string;
+  password: string;
+};
+
+export type UserResponse = {
+  id: string;
+  username: string;
+  email: string;
+  name: unknown;
+  avatarKey: unknown;
+  avatarUrl: unknown;
+  isOnboarded: boolean;
+  createdAt: string;
+};
+
+export type FinancialSummary = {
+  buyer?: {
+    balance: number;
+  };
+  seller?: {
+    income: number;
+  };
+  driver?: {
+    earnings: number;
+  };
+};
+
+export type OnboardInput = {
+  roles: Array<'buyer' | 'seller' | 'driver'>;
+};
+
+export type SessionResponse = {
+  userId: string;
+  activeRole: string;
+  roles: Array<string>;
+};
+
+export type SelectRoleInput = {
+  role: 'admin' | 'seller' | 'buyer' | 'driver';
+};
+
+export type PresignResponse = {
+  uploadUrl: string;
+  objectKey: string;
+  publicUrl: string;
+};
+
+export type PresignRequest = {
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+};
+
+export type UpdateProfileInput = {
+  name?: string;
+  avatarKey?: string | unknown;
+};
+
+export type PrivateMessage = {
+  message: string;
+  activeRole: string;
+};
+
+export type ProductListResponse = {
+  products: Array<Product>;
+  total: number;
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  description: unknown;
+  price: number;
+  currency?: string;
+  /**
+   * Read model of commerce inventory. Change it via PUT /api/seller/inventory/{productId}.
+   */
+  stock: number;
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  slug: string;
+  imageKey: unknown;
+  imageUrl: unknown;
+  rating?: string;
+  reviewCount?: number;
+  soldCount?: number;
+  storeRating?: string;
+  storeReviewCount?: number;
+  storeLogoKey?: unknown;
+  storeLogoUrl?: unknown;
+  storeTotalProducts?: number;
+};
+
+export type ProductReviewResponse = {
+  id: string;
+  productId: string;
+  buyerId: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type SubmitProductReview = {
+  rating: number;
+  comment: string;
+};
+
+export type ProductReviewListResponse = {
+  reviews: Array<ProductReviewResponse>;
+  total: number;
+};
+
+export type SellerProductListResponse = {
+  products: Array<SellerProductResponse>;
+  total: number;
+};
+
+export type SellerProductResponse = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: unknown;
+  price: number;
+  /**
+   * Read model of commerce inventory. Change it via PUT /api/seller/inventory/{productId}.
+   */
+  stock: number;
+  imageKey: unknown;
+  imageUrl: unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateProduct = {
+  name: string;
+  description?: unknown;
+  price: number;
+  imageKey?: string | unknown;
+};
+
+export type UpdateProduct = {
+  name?: string;
+  description?: unknown;
+  price?: number;
+  imageKey?: string | unknown;
+};
+
+export type StoreResponse = {
+  id: string;
+  sellerId: string;
+  name: string;
+  slug: string;
+  description: unknown;
+  logoKey: unknown;
+  logoUrl: unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateStoreInput = {
+  name: string;
+  description?: string;
+  logoKey?: string | unknown;
+};
+
+export type UpdateStoreInput = {
+  name?: string;
+  description?: string;
+  logoKey?: string | unknown;
+};
+
+export type ReviewList = Array<Review>;
+
+export type Review = {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type ReviewStats = {
+  totalReviews: number;
+  averageRating: number;
+};
+
+export type SubmitReviewInput = {
+  reviewerName: string;
+  rating: number;
+  comment: string;
+};
+
+export type WalletResponse = {
+  id: string;
+  userId: string;
+  balance: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WalletTransactionResponse = {
+  id: string;
+  walletId: string;
+  amount: number;
+  type: string;
+  status: string;
+  reference: string;
+  createdAt: string;
+};
+
+export type TopUpRequest = {
+  amount: number;
+};
+
+export type WalletTransactionsList = Array<WalletTransactionResponse>;
+
+export type AddressListResponse = Array<AddressResponse>;
+
 export type AddressResponse = {
   id: string;
   userId: string;
@@ -20,6 +254,80 @@ export type AddressResponse = {
   updatedAt: string;
 };
 
+export type AddressRequest = {
+  label: string;
+  recipientName: string;
+  phoneNumber: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  fullAddress: string;
+  isDefault?: boolean;
+};
+
+export type CartSummaryResponse = {
+  id: string;
+  buyerId: string;
+  storeId: unknown;
+  storeName: unknown;
+  storeSlug: unknown;
+  items: Array<{
+    id: string;
+    productId: string;
+    quantity: number;
+    product: {
+      id: string;
+      name: string;
+      slug: string;
+      price: number;
+      stock: number;
+    };
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  subtotal: number;
+  totalItems: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CartItemRequest = {
+  productId: string;
+  quantity: number;
+};
+
+export type UpdateCartItemRequest = {
+  quantity: number;
+};
+
+export type CheckoutPreviewResponse = {
+  items: Array<{
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    total: number;
+  }>;
+  subtotal: number;
+  discountAmount: number;
+  discountCode: unknown;
+  discountType: unknown;
+  deliveryFee: number;
+  taxBase: number;
+  ppn: number;
+  totalAmount: number;
+  deliveryMethod: string;
+  address: AddressResponse | unknown;
+  storeId: unknown;
+  storeName: unknown;
+};
+
+export type CheckoutPreviewRequest = {
+  deliveryMethod: 'instant' | 'next_day' | 'regular';
+  discountCode?: string;
+};
+
 export type OrderResponse = {
   id: string;
   buyerId: string;
@@ -28,8 +336,8 @@ export type OrderResponse = {
   deliveryMethod: string;
   subtotal: number;
   discountAmount: number;
-  discountCode: string | unknown;
-  discountType: string | unknown;
+  discountCode: unknown;
+  discountType: unknown;
   deliveryFee: number;
   ppn: number;
   totalAmount: number;
@@ -39,7 +347,7 @@ export type OrderResponse = {
   updatedAt: string;
   items: Array<{
     id: string;
-    productId: string | unknown;
+    productId: unknown;
     productName: string;
     productPrice: number;
     quantity: number;
@@ -47,73 +355,98 @@ export type OrderResponse = {
   statusHistory?: Array<{
     id: string;
     status: string;
-    note: string | unknown;
+    note: unknown;
     createdAt: string;
   }>;
 };
 
-export type Product = {
-  id: string;
-  name: string;
-  description: string | unknown;
-  price: number;
-  currency?: string;
-  stock: number;
-  storeId: string;
-  storeName: string;
-  storeSlug: string;
-  slug: string;
-  imageKey: string | unknown;
-  imageUrl: string | unknown;
-  rating?: string;
-  reviewCount?: number;
-  soldCount?: number;
-  storeRating?: string;
-  storeReviewCount?: number;
-  storeLogoKey?: string | unknown;
-  storeLogoUrl?: string | unknown;
-  storeTotalProducts?: number;
+export type CreateOrderRequest = {
+  deliveryMethod: 'instant' | 'next_day' | 'regular';
+  addressId: string;
+  discountCode?: string;
 };
 
-export type ProductReviewResponse = {
-  id: string;
+export type OrderListResponse = Array<OrderResponse>;
+
+export type BuyerReportResponse = {
+  totalSpending: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  orders: Array<OrderResponse>;
+};
+
+export type OrderDetailResponse = OrderResponse;
+
+export type SellerReportResponse = {
+  totalIncome: number;
+  totalOrders: number;
+  averageRevenue: number;
+  orders: Array<OrderResponse>;
+};
+
+export type ProcessOrderRequest = {
+  note?: string;
+};
+
+export type StockResponse = {
   productId: string;
-  buyerId: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
+  stock: number;
 };
 
-export type SellerProductResponse = {
-  id: string;
-  storeId: string;
-  name: string;
-  description: string | unknown;
-  price: number;
+export type SetStock = {
   stock: number;
-  imageKey: string | unknown;
-  imageUrl: string | unknown;
+};
+
+export type ValidateDiscountResponse = {
+  type: 'voucher' | 'promo';
+  code: string;
+  discountAmount: number;
+  description: string;
+};
+
+export type ValidateDiscountRequest = {
+  code: string;
+  subtotal: number;
+};
+
+export type DriverStatsResponse = {
+  totalEarnings: number;
+  completedJobsCount: number;
+  activeJobs: Array<DeliveryJobResponse>;
+  completedJobs: Array<DeliveryJobResponse>;
+};
+
+export type DeliveryJobResponse = {
+  id: string;
+  orderId: string;
+  driverId: unknown;
+  status: string;
+  deliveryFee: number;
   createdAt: string;
   updatedAt: string;
+  storeName: string;
+  deliveryMethod: string;
+  addressSnapshot: AddressResponse;
+  totalAmount: number;
+  items?: Array<{
+    id: string;
+    productId: unknown;
+    productName: string;
+    productPrice: number;
+    quantity: number;
+  }>;
 };
 
-export type Review = {
-  id: string;
-  reviewerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
+export type DriverJobHistoryResponse = {
+  jobs: Array<DeliveryJobResponse>;
+  total: number;
 };
 
-export type WalletTransactionResponse = {
-  id: string;
-  walletId: string;
-  amount: number;
-  type: string;
-  status: string;
-  reference: string;
-  createdAt: string;
+export type DeliveryJobListResponse = Array<DeliveryJobResponse>;
+
+export type DriverActionSuccessResponse = {
+  success: boolean;
+  message: string;
 };
 
 export type VoucherResponse = {
@@ -127,6 +460,16 @@ export type VoucherResponse = {
   updatedAt: string;
 };
 
+export type CreateVoucherRequest = {
+  code: string;
+  discountAmount: number;
+  minOrderAmount?: number;
+  expiresAt: string;
+  remainingUsage: number;
+};
+
+export type VoucherListResponse = Array<VoucherResponse>;
+
 export type PromoResponse = {
   id: string;
   code: string;
@@ -138,57 +481,88 @@ export type PromoResponse = {
   updatedAt: string;
 };
 
-export type DeliveryJobResponse = {
-  id: string;
-  orderId: string;
-  driverId: string | unknown;
-  status: string;
-  deliveryFee: number;
-  createdAt: string;
-  updatedAt: string;
-  storeName: string;
-  deliveryMethod: string;
-  addressSnapshot: AddressResponse;
-  totalAmount: number;
-  items?: Array<{
-    id: string;
-    productId: string | unknown;
-    productName: string;
-    productPrice: number;
-    quantity: number;
+export type CreatePromoRequest = {
+  code: string;
+  discountPercent: number;
+  maxDiscountAmount?: number | unknown;
+  minOrderAmount?: number;
+  expiresAt: string;
+};
+
+export type PromoListResponse = Array<PromoResponse>;
+
+export type DashboardStatsResponse = {
+  users: {
+    total: number;
+    roles: {
+      admin: number;
+      buyer: number;
+      seller: number;
+      driver: number;
+    };
+  };
+  stores: {
+    total: number;
+  };
+  products: {
+    total: number;
+  };
+  orders: {
+    total: number;
+    statuses: {
+      sedang_dikemas: number;
+      menunggu_pengirim: number;
+      sedang_dikirim: number;
+      pesanan_selesai: number;
+      dikembalikan: number;
+    };
+  };
+  discounts: {
+    vouchers: number;
+    promos: number;
+  };
+  deliveries: {
+    total: number;
+    statuses: {
+      pending: number;
+      taken: number;
+      completed: number;
+    };
+  };
+  overdueOrders: {
+    total: number;
+  };
+};
+
+export type ProcessOverdueResponse = {
+  processedCount: number;
+  results: Array<{
+    orderId: string;
+    buyerId: string;
+    refundAmount: number;
+    itemsRestored: number;
+    note: string;
   }>;
 };
+
+export type SimulateTimeResponse = {
+  newOffsetHours: number;
+  effectiveTime: string;
+};
+
+export type SimulateTimeRequest = {
+  hoursToAdvance: number;
+};
+
+export type LocationList = Array<LocationItem>;
 
 export type LocationItem = {
   id: string;
   name: string;
 };
 
-export type HealthCheckData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/health';
-};
-
-export type HealthCheckResponses = {
-  /**
-   * Service is healthy
-   */
-  200: {
-    success: boolean;
-  };
-};
-
-export type HealthCheckResponse = HealthCheckResponses[keyof HealthCheckResponses];
-
 export type RegisterUserData = {
-  body: {
-    username: string;
-    email: string;
-    password: string;
-    name?: string;
-  };
+  body: RegisterInput;
   path?: never;
   query?: never;
   url: '/api/auth/register';
@@ -198,21 +572,15 @@ export type RegisterUserErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Conflict
    */
-  409: {
-    error: string;
-  };
+  409: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type RegisterUserError = RegisterUserErrors[keyof RegisterUserErrors];
@@ -221,18 +589,13 @@ export type RegisterUserResponses = {
   /**
    * Registration successful
    */
-  201: {
-    success: boolean;
-  };
+  201: Success;
 };
 
 export type RegisterUserResponse = RegisterUserResponses[keyof RegisterUserResponses];
 
 export type LoginUserData = {
-  body: {
-    username: string;
-    password: string;
-  };
+  body: LoginInput;
   path?: never;
   query?: never;
   url: '/api/auth/login';
@@ -242,15 +605,11 @@ export type LoginUserErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type LoginUserError = LoginUserErrors[keyof LoginUserErrors];
@@ -259,9 +618,7 @@ export type LoginUserResponses = {
   /**
    * Login successful
    */
-  200: {
-    success: boolean;
-  };
+  200: Success;
 };
 
 export type LoginUserResponse = LoginUserResponses[keyof LoginUserResponses];
@@ -277,15 +634,11 @@ export type LogoutUserErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type LogoutUserError = LogoutUserErrors[keyof LogoutUserErrors];
@@ -294,9 +647,7 @@ export type LogoutUserResponses = {
   /**
    * Logout successful
    */
-  200: {
-    success: boolean;
-  };
+  200: Success;
 };
 
 export type LogoutUserResponse = LogoutUserResponses[keyof LogoutUserResponses];
@@ -312,15 +663,11 @@ export type GetCurrentUserErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetCurrentUserError = GetCurrentUserErrors[keyof GetCurrentUserErrors];
@@ -329,16 +676,7 @@ export type GetCurrentUserResponses = {
   /**
    * Current user details
    */
-  200: {
-    id: string;
-    username: string;
-    email: string;
-    name: string | unknown;
-    avatarKey: string | unknown;
-    avatarUrl: string | unknown;
-    isOnboarded: boolean;
-    createdAt: string;
-  };
+  200: UserResponse;
 };
 
 export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
@@ -354,15 +692,11 @@ export type GetCurrentUserFinancialSummaryErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetCurrentUserFinancialSummaryError =
@@ -372,26 +706,14 @@ export type GetCurrentUserFinancialSummaryResponses = {
   /**
    * Current user financial summary
    */
-  200: {
-    buyer?: {
-      balance: number;
-    };
-    seller?: {
-      income: number;
-    };
-    driver?: {
-      earnings: number;
-    };
-  };
+  200: FinancialSummary;
 };
 
 export type GetCurrentUserFinancialSummaryResponse =
   GetCurrentUserFinancialSummaryResponses[keyof GetCurrentUserFinancialSummaryResponses];
 
 export type OnboardUserData = {
-  body: {
-    roles: Array<'buyer' | 'seller' | 'driver'>;
-  };
+  body: OnboardInput;
   path?: never;
   query?: never;
   url: '/api/auth/onboard';
@@ -401,21 +723,15 @@ export type OnboardUserErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type OnboardUserError = OnboardUserErrors[keyof OnboardUserErrors];
@@ -424,9 +740,7 @@ export type OnboardUserResponses = {
   /**
    * Onboarding successful
    */
-  200: {
-    success: boolean;
-  };
+  200: Success;
 };
 
 export type OnboardUserResponse = OnboardUserResponses[keyof OnboardUserResponses];
@@ -442,15 +756,11 @@ export type GetCurrentSessionErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetCurrentSessionError = GetCurrentSessionErrors[keyof GetCurrentSessionErrors];
@@ -459,20 +769,14 @@ export type GetCurrentSessionResponses = {
   /**
    * Current session information
    */
-  200: {
-    userId: string;
-    activeRole: string;
-    roles: Array<string>;
-  };
+  200: SessionResponse;
 };
 
 export type GetCurrentSessionResponse =
   GetCurrentSessionResponses[keyof GetCurrentSessionResponses];
 
 export type SelectActiveRoleData = {
-  body: {
-    role: 'admin' | 'seller' | 'buyer' | 'driver';
-  };
+  body: SelectRoleInput;
   path?: never;
   query?: never;
   url: '/api/auth/select-role';
@@ -482,27 +786,19 @@ export type SelectActiveRoleErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type SelectActiveRoleError = SelectActiveRoleErrors[keyof SelectActiveRoleErrors];
@@ -511,12 +807,218 @@ export type SelectActiveRoleResponses = {
   /**
    * Role updated successfully
    */
-  200: {
-    success: boolean;
-  };
+  200: Success;
 };
 
 export type SelectActiveRoleResponse = SelectActiveRoleResponses[keyof SelectActiveRoleResponses];
+
+export type PresignUserAvatarData = {
+  body: PresignRequest;
+  path?: never;
+  query?: never;
+  url: '/api/users/me/avatar/presign';
+};
+
+export type PresignUserAvatarErrors = {
+  /**
+   * Bad Request
+   */
+  400: Error;
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type PresignUserAvatarError = PresignUserAvatarErrors[keyof PresignUserAvatarErrors];
+
+export type PresignUserAvatarResponses = {
+  /**
+   * Presigned URL generated successfully
+   */
+  200: PresignResponse;
+};
+
+export type PresignUserAvatarResponse =
+  PresignUserAvatarResponses[keyof PresignUserAvatarResponses];
+
+export type UpdateUserProfileData = {
+  body: UpdateProfileInput;
+  path?: never;
+  query?: never;
+  url: '/api/users/me';
+};
+
+export type UpdateUserProfileErrors = {
+  /**
+   * Bad Request
+   */
+  400: Error;
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type UpdateUserProfileError = UpdateUserProfileErrors[keyof UpdateUserProfileErrors];
+
+export type UpdateUserProfileResponses = {
+  /**
+   * Profile updated successfully
+   */
+  200: UserResponse;
+};
+
+export type UpdateUserProfileResponse =
+  UpdateUserProfileResponses[keyof UpdateUserProfileResponses];
+
+export type PrivateAdminEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/admin';
+};
+
+export type PrivateAdminEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type PrivateAdminEndpointError =
+  PrivateAdminEndpointErrors[keyof PrivateAdminEndpointErrors];
+
+export type PrivateAdminEndpointResponses = {
+  /**
+   * Private admin endpoint message
+   */
+  200: PrivateMessage;
+};
+
+export type PrivateAdminEndpointResponse =
+  PrivateAdminEndpointResponses[keyof PrivateAdminEndpointResponses];
+
+export type PrivateSellerEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/seller';
+};
+
+export type PrivateSellerEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type PrivateSellerEndpointError =
+  PrivateSellerEndpointErrors[keyof PrivateSellerEndpointErrors];
+
+export type PrivateSellerEndpointResponses = {
+  /**
+   * Private seller endpoint message
+   */
+  200: PrivateMessage;
+};
+
+export type PrivateSellerEndpointResponse =
+  PrivateSellerEndpointResponses[keyof PrivateSellerEndpointResponses];
+
+export type PrivateBuyerEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/buyer';
+};
+
+export type PrivateBuyerEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type PrivateBuyerEndpointError =
+  PrivateBuyerEndpointErrors[keyof PrivateBuyerEndpointErrors];
+
+export type PrivateBuyerEndpointResponses = {
+  /**
+   * Private buyer endpoint message
+   */
+  200: PrivateMessage;
+};
+
+export type PrivateBuyerEndpointResponse =
+  PrivateBuyerEndpointResponses[keyof PrivateBuyerEndpointResponses];
+
+export type PrivateDriverEndpointData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/private/driver';
+};
+
+export type PrivateDriverEndpointErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type PrivateDriverEndpointError =
+  PrivateDriverEndpointErrors[keyof PrivateDriverEndpointErrors];
+
+export type PrivateDriverEndpointResponses = {
+  /**
+   * Private driver endpoint message
+   */
+  200: PrivateMessage;
+};
+
+export type PrivateDriverEndpointResponse =
+  PrivateDriverEndpointResponses[keyof PrivateDriverEndpointResponses];
 
 export type ListProductsData = {
   body?: never;
@@ -536,15 +1038,11 @@ export type ListProductsErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ListProductsError = ListProductsErrors[keyof ListProductsErrors];
@@ -553,10 +1051,7 @@ export type ListProductsResponses = {
   /**
    * Products list
    */
-  200: {
-    products: Array<Product>;
-    total: number;
-  };
+  200: ProductListResponse;
 };
 
 export type ListProductsResponse = ListProductsResponses[keyof ListProductsResponses];
@@ -572,17 +1067,21 @@ export type GetProductByIdData = {
 
 export type GetProductByIdErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetProductByIdError = GetProductByIdErrors[keyof GetProductByIdErrors];
@@ -591,28 +1090,7 @@ export type GetProductByIdResponses = {
   /**
    * Product details
    */
-  200: {
-    id: string;
-    name: string;
-    description: string | unknown;
-    price: number;
-    currency?: string;
-    stock: number;
-    storeId: string;
-    storeName: string;
-    storeSlug: string;
-    slug: string;
-    imageKey: string | unknown;
-    imageUrl: string | unknown;
-    rating?: string;
-    reviewCount?: number;
-    soldCount?: number;
-    storeRating?: string;
-    storeReviewCount?: number;
-    storeLogoKey?: string | unknown;
-    storeLogoUrl?: string | unknown;
-    storeTotalProducts?: number;
-  };
+  200: Product;
 };
 
 export type GetProductByIdResponse = GetProductByIdResponses[keyof GetProductByIdResponses];
@@ -629,17 +1107,21 @@ export type GetProductBySlugData = {
 
 export type GetProductBySlugErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetProductBySlugError = GetProductBySlugErrors[keyof GetProductBySlugErrors];
@@ -648,36 +1130,13 @@ export type GetProductBySlugResponses = {
   /**
    * Product details
    */
-  200: {
-    id: string;
-    name: string;
-    description: string | unknown;
-    price: number;
-    currency?: string;
-    stock: number;
-    storeId: string;
-    storeName: string;
-    storeSlug: string;
-    slug: string;
-    imageKey: string | unknown;
-    imageUrl: string | unknown;
-    rating?: string;
-    reviewCount?: number;
-    soldCount?: number;
-    storeRating?: string;
-    storeReviewCount?: number;
-    storeLogoKey?: string | unknown;
-    storeLogoUrl?: string | unknown;
-    storeTotalProducts?: number;
-  };
+  200: Product;
 };
 
 export type GetProductBySlugResponse = GetProductBySlugResponses[keyof GetProductBySlugResponses];
 
 export type PresignProductImageData = {
-  body: {
-    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
-  };
+  body: PresignRequest;
   path?: never;
   query?: never;
   url: '/api/products/image/presign';
@@ -687,27 +1146,19 @@ export type PresignProductImageErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type PresignProductImageError = PresignProductImageErrors[keyof PresignProductImageErrors];
@@ -716,11 +1167,7 @@ export type PresignProductImageResponses = {
   /**
    * Presigned URL generated successfully
    */
-  200: {
-    uploadUrl: string;
-    objectKey: string;
-    publicUrl: string;
-  };
+  200: PresignResponse;
 };
 
 export type PresignProductImageResponse =
@@ -745,15 +1192,11 @@ export type GetProductReviewsErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetProductReviewsError = GetProductReviewsErrors[keyof GetProductReviewsErrors];
@@ -762,20 +1205,14 @@ export type GetProductReviewsResponses = {
   /**
    * Product reviews list
    */
-  200: {
-    reviews: Array<ProductReviewResponse>;
-    total: number;
-  };
+  200: ProductReviewListResponse;
 };
 
 export type GetProductReviewsResponse =
   GetProductReviewsResponses[keyof GetProductReviewsResponses];
 
 export type SubmitProductReviewData = {
-  body: {
-    rating: number;
-    comment: string;
-  };
+  body: SubmitProductReview;
   path: {
     id: string;
   };
@@ -787,33 +1224,23 @@ export type SubmitProductReviewErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type SubmitProductReviewError = SubmitProductReviewErrors[keyof SubmitProductReviewErrors];
@@ -822,19 +1249,55 @@ export type SubmitProductReviewResponses = {
   /**
    * Review submitted successfully
    */
-  201: {
-    id: string;
-    productId: string;
-    buyerId: string;
-    reviewerName: string;
-    rating: number;
-    comment: string;
-    createdAt: string;
-  };
+  201: ProductReviewResponse;
 };
 
 export type SubmitProductReviewResponse =
   SubmitProductReviewResponses[keyof SubmitProductReviewResponses];
+
+export type GetMyProductReviewsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  };
+  url: '/api/products/reviews/me';
+};
+
+export type GetMyProductReviewsErrors = {
+  /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type GetMyProductReviewsError = GetMyProductReviewsErrors[keyof GetMyProductReviewsErrors];
+
+export type GetMyProductReviewsResponses = {
+  /**
+   * User product reviews list
+   */
+  200: ProductReviewListResponse;
+};
+
+export type GetMyProductReviewsResponse =
+  GetMyProductReviewsResponses[keyof GetMyProductReviewsResponses];
 
 export type ListSellerProductsData = {
   body?: never;
@@ -851,23 +1314,25 @@ export type ListSellerProductsData = {
 
 export type ListSellerProductsErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ListSellerProductsError = ListSellerProductsErrors[keyof ListSellerProductsErrors];
@@ -876,23 +1341,14 @@ export type ListSellerProductsResponses = {
   /**
    * Products list
    */
-  200: {
-    products: Array<SellerProductResponse>;
-    total: number;
-  };
+  200: SellerProductListResponse;
 };
 
 export type ListSellerProductsResponse =
   ListSellerProductsResponses[keyof ListSellerProductsResponses];
 
 export type CreateSellerProductData = {
-  body: {
-    name: string;
-    description?: string | unknown;
-    price: number;
-    stock: number;
-    imageKey?: string | unknown;
-  };
+  body: CreateProduct;
   path?: never;
   query?: never;
   url: '/api/seller/products';
@@ -902,27 +1358,19 @@ export type CreateSellerProductErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type CreateSellerProductError = CreateSellerProductErrors[keyof CreateSellerProductErrors];
@@ -931,18 +1379,7 @@ export type CreateSellerProductResponses = {
   /**
    * Product created successfully
    */
-  200: {
-    id: string;
-    storeId: string;
-    name: string;
-    description: string | unknown;
-    price: number;
-    stock: number;
-    imageKey: string | unknown;
-    imageUrl: string | unknown;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: SellerProductResponse;
 };
 
 export type CreateSellerProductResponse =
@@ -959,29 +1396,29 @@ export type DeleteSellerProductData = {
 
 export type DeleteSellerProductErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type DeleteSellerProductError = DeleteSellerProductErrors[keyof DeleteSellerProductErrors];
@@ -1009,29 +1446,29 @@ export type GetSellerProductByIdData = {
 
 export type GetSellerProductByIdErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetSellerProductByIdError =
@@ -1041,31 +1478,14 @@ export type GetSellerProductByIdResponses = {
   /**
    * Product details
    */
-  200: {
-    id: string;
-    storeId: string;
-    name: string;
-    description: string | unknown;
-    price: number;
-    stock: number;
-    imageKey: string | unknown;
-    imageUrl: string | unknown;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: SellerProductResponse;
 };
 
 export type GetSellerProductByIdResponse =
   GetSellerProductByIdResponses[keyof GetSellerProductByIdResponses];
 
 export type UpdateSellerProductData = {
-  body: {
-    name?: string;
-    description?: string | unknown;
-    price?: number;
-    stock?: number;
-    imageKey?: string | unknown;
-  };
+  body: UpdateProduct;
   path: {
     id: string;
   };
@@ -1077,33 +1497,23 @@ export type UpdateSellerProductErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type UpdateSellerProductError = UpdateSellerProductErrors[keyof UpdateSellerProductErrors];
@@ -1112,311 +1522,14 @@ export type UpdateSellerProductResponses = {
   /**
    * Product updated successfully
    */
-  200: {
-    id: string;
-    storeId: string;
-    name: string;
-    description: string | unknown;
-    price: number;
-    stock: number;
-    imageKey: string | unknown;
-    imageUrl: string | unknown;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: SellerProductResponse;
 };
 
 export type UpdateSellerProductResponse =
   UpdateSellerProductResponses[keyof UpdateSellerProductResponses];
 
-export type ListReviewsData = {
-  body?: never;
-  path?: never;
-  query?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sortBy?: string;
-    order?: 'asc' | 'desc';
-  };
-  url: '/api/reviews';
-};
-
-export type ListReviewsErrors = {
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type ListReviewsError = ListReviewsErrors[keyof ListReviewsErrors];
-
-export type ListReviewsResponses = {
-  /**
-   * List of app reviews
-   */
-  200: Array<Review>;
-};
-
-export type ListReviewsResponse = ListReviewsResponses[keyof ListReviewsResponses];
-
-export type SubmitReviewData = {
-  body: {
-    reviewerName: string;
-    rating: number;
-    comment: string;
-  };
-  path?: never;
-  query?: never;
-  url: '/api/reviews';
-};
-
-export type SubmitReviewErrors = {
-  /**
-   * Bad Request
-   */
-  400: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type SubmitReviewError = SubmitReviewErrors[keyof SubmitReviewErrors];
-
-export type SubmitReviewResponses = {
-  /**
-   * Review submitted successfully
-   */
-  201: {
-    id: string;
-    reviewerName: string;
-    rating: number;
-    comment: string;
-    createdAt: string;
-  };
-};
-
-export type SubmitReviewResponse = SubmitReviewResponses[keyof SubmitReviewResponses];
-
-export type GetReviewsStatsData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/reviews/stats';
-};
-
-export type GetReviewsStatsErrors = {
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type GetReviewsStatsError = GetReviewsStatsErrors[keyof GetReviewsStatsErrors];
-
-export type GetReviewsStatsResponses = {
-  /**
-   * Review statistics
-   */
-  200: {
-    totalReviews: number;
-    averageRating: number;
-  };
-};
-
-export type GetReviewsStatsResponse = GetReviewsStatsResponses[keyof GetReviewsStatsResponses];
-
-export type PrivateAdminEndpointData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/private/admin';
-};
-
-export type PrivateAdminEndpointErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type PrivateAdminEndpointError =
-  PrivateAdminEndpointErrors[keyof PrivateAdminEndpointErrors];
-
-export type PrivateAdminEndpointResponses = {
-  /**
-   * Private admin endpoint message
-   */
-  200: {
-    message: string;
-    activeRole: string;
-  };
-};
-
-export type PrivateAdminEndpointResponse =
-  PrivateAdminEndpointResponses[keyof PrivateAdminEndpointResponses];
-
-export type PrivateSellerEndpointData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/private/seller';
-};
-
-export type PrivateSellerEndpointErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type PrivateSellerEndpointError =
-  PrivateSellerEndpointErrors[keyof PrivateSellerEndpointErrors];
-
-export type PrivateSellerEndpointResponses = {
-  /**
-   * Private seller endpoint message
-   */
-  200: {
-    message: string;
-    activeRole: string;
-  };
-};
-
-export type PrivateSellerEndpointResponse =
-  PrivateSellerEndpointResponses[keyof PrivateSellerEndpointResponses];
-
-export type PrivateBuyerEndpointData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/private/buyer';
-};
-
-export type PrivateBuyerEndpointErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type PrivateBuyerEndpointError =
-  PrivateBuyerEndpointErrors[keyof PrivateBuyerEndpointErrors];
-
-export type PrivateBuyerEndpointResponses = {
-  /**
-   * Private buyer endpoint message
-   */
-  200: {
-    message: string;
-    activeRole: string;
-  };
-};
-
-export type PrivateBuyerEndpointResponse =
-  PrivateBuyerEndpointResponses[keyof PrivateBuyerEndpointResponses];
-
-export type PrivateDriverEndpointData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/private/driver';
-};
-
-export type PrivateDriverEndpointErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type PrivateDriverEndpointError =
-  PrivateDriverEndpointErrors[keyof PrivateDriverEndpointErrors];
-
-export type PrivateDriverEndpointResponses = {
-  /**
-   * Private driver endpoint message
-   */
-  200: {
-    message: string;
-    activeRole: string;
-  };
-};
-
-export type PrivateDriverEndpointResponse =
-  PrivateDriverEndpointResponses[keyof PrivateDriverEndpointResponses];
-
 export type CreateStoreData = {
-  body: {
-    name: string;
-    description?: string;
-    logoKey?: string | unknown;
-  };
+  body: CreateStoreInput;
   path?: never;
   query?: never;
   url: '/api/stores';
@@ -1426,21 +1539,15 @@ export type CreateStoreErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Conflict
    */
-  409: {
-    error: string;
-  };
+  409: Error;
 };
 
 export type CreateStoreError = CreateStoreErrors[keyof CreateStoreErrors];
@@ -1449,17 +1556,7 @@ export type CreateStoreResponses = {
   /**
    * Store created successfully
    */
-  200: {
-    id: string;
-    sellerId: string;
-    name: string;
-    slug: string;
-    description: string | unknown;
-    logoKey: string | unknown;
-    logoUrl: string | unknown;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: StoreResponse;
 };
 
 export type CreateStoreResponse = CreateStoreResponses[keyof CreateStoreResponses];
@@ -1475,15 +1572,11 @@ export type GetCurrentSellerStoreErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
 };
 
 export type GetCurrentSellerStoreError =
@@ -1493,28 +1586,14 @@ export type GetCurrentSellerStoreResponses = {
   /**
    * Store found
    */
-  200: {
-    id: string;
-    sellerId: string;
-    name: string;
-    slug: string;
-    description: string | unknown;
-    logoKey: string | unknown;
-    logoUrl: string | unknown;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: StoreResponse;
 };
 
 export type GetCurrentSellerStoreResponse =
   GetCurrentSellerStoreResponses[keyof GetCurrentSellerStoreResponses];
 
 export type UpdateCurrentSellerStoreData = {
-  body: {
-    name?: string;
-    description?: string;
-    logoKey?: string | unknown;
-  };
+  body: UpdateStoreInput;
   path?: never;
   query?: never;
   url: '/api/stores/me';
@@ -1524,27 +1603,19 @@ export type UpdateCurrentSellerStoreErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Conflict
    */
-  409: {
-    error: string;
-  };
+  409: Error;
 };
 
 export type UpdateCurrentSellerStoreError =
@@ -1554,17 +1625,7 @@ export type UpdateCurrentSellerStoreResponses = {
   /**
    * Store updated successfully
    */
-  200: {
-    id: string;
-    sellerId: string;
-    name: string;
-    slug: string;
-    description: string | unknown;
-    logoKey: string | unknown;
-    logoUrl: string | unknown;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: StoreResponse;
 };
 
 export type UpdateCurrentSellerStoreResponse =
@@ -1581,11 +1642,17 @@ export type GetPublicStoreInfoData = {
 
 export type GetPublicStoreInfoErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
 };
 
 export type GetPublicStoreInfoError = GetPublicStoreInfoErrors[keyof GetPublicStoreInfoErrors];
@@ -1594,26 +1661,14 @@ export type GetPublicStoreInfoResponses = {
   /**
    * Store found
    */
-  200: {
-    id: string;
-    sellerId: string;
-    name: string;
-    slug: string;
-    description: string | unknown;
-    logoKey: string | unknown;
-    logoUrl: string | unknown;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: StoreResponse;
 };
 
 export type GetPublicStoreInfoResponse =
   GetPublicStoreInfoResponses[keyof GetPublicStoreInfoResponses];
 
 export type PresignStoreLogoData = {
-  body: {
-    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
-  };
+  body: PresignRequest;
   path: {
     storeId: string;
   };
@@ -1625,33 +1680,23 @@ export type PresignStoreLogoErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type PresignStoreLogoError = PresignStoreLogoErrors[keyof PresignStoreLogoErrors];
@@ -1660,114 +1705,12 @@ export type PresignStoreLogoResponses = {
   /**
    * Presigned URL generated successfully
    */
-  200: {
-    uploadUrl: string;
-    objectKey: string;
-    publicUrl: string;
-  };
+  200: PresignResponse;
 };
 
 export type PresignStoreLogoResponse = PresignStoreLogoResponses[keyof PresignStoreLogoResponses];
 
-export type PresignUserAvatarData = {
-  body: {
-    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
-  };
-  path?: never;
-  query?: never;
-  url: '/api/users/me/avatar/presign';
-};
-
-export type PresignUserAvatarErrors = {
-  /**
-   * Bad Request
-   */
-  400: {
-    error: string;
-  };
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type PresignUserAvatarError = PresignUserAvatarErrors[keyof PresignUserAvatarErrors];
-
-export type PresignUserAvatarResponses = {
-  /**
-   * Presigned URL generated successfully
-   */
-  200: {
-    uploadUrl: string;
-    objectKey: string;
-    publicUrl: string;
-  };
-};
-
-export type PresignUserAvatarResponse =
-  PresignUserAvatarResponses[keyof PresignUserAvatarResponses];
-
-export type UpdateUserProfileData = {
-  body: {
-    name?: string;
-    avatarKey?: string | unknown;
-  };
-  path?: never;
-  query?: never;
-  url: '/api/users/me';
-};
-
-export type UpdateUserProfileErrors = {
-  /**
-   * Bad Request
-   */
-  400: {
-    error: string;
-  };
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type UpdateUserProfileError = UpdateUserProfileErrors[keyof UpdateUserProfileErrors];
-
-export type UpdateUserProfileResponses = {
-  /**
-   * Profile updated successfully
-   */
-  200: {
-    id: string;
-    username: string;
-    email: string;
-    name: string | unknown;
-    avatarKey: string | unknown;
-    avatarUrl: string | unknown;
-    isOnboarded: boolean;
-    createdAt: string;
-  };
-};
-
-export type UpdateUserProfileResponse =
-  UpdateUserProfileResponses[keyof UpdateUserProfileResponses];
-
-export type GetMyProductReviewsData = {
+export type ListReviewsData = {
   body?: never;
   path?: never;
   query?: {
@@ -1777,38 +1720,88 @@ export type GetMyProductReviewsData = {
     sortBy?: string;
     order?: 'asc' | 'desc';
   };
-  url: '/api/users/me/product-reviews';
+  url: '/api/reviews';
 };
 
-export type GetMyProductReviewsErrors = {
+export type ListReviewsErrors = {
   /**
-   * Unauthorized
+   * Validation Error
    */
-  401: {
-    error: string;
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
   };
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
-export type GetMyProductReviewsError = GetMyProductReviewsErrors[keyof GetMyProductReviewsErrors];
+export type ListReviewsError = ListReviewsErrors[keyof ListReviewsErrors];
 
-export type GetMyProductReviewsResponses = {
+export type ListReviewsResponses = {
   /**
-   * User product reviews list
+   * List of app reviews
    */
-  200: {
-    reviews: Array<ProductReviewResponse>;
-    total: number;
-  };
+  200: ReviewList;
 };
 
-export type GetMyProductReviewsResponse =
-  GetMyProductReviewsResponses[keyof GetMyProductReviewsResponses];
+export type ListReviewsResponse = ListReviewsResponses[keyof ListReviewsResponses];
+
+export type SubmitReviewData = {
+  body: SubmitReviewInput;
+  path?: never;
+  query?: never;
+  url: '/api/reviews';
+};
+
+export type SubmitReviewErrors = {
+  /**
+   * Bad Request
+   */
+  400: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type SubmitReviewError = SubmitReviewErrors[keyof SubmitReviewErrors];
+
+export type SubmitReviewResponses = {
+  /**
+   * Review submitted successfully
+   */
+  201: Review;
+};
+
+export type SubmitReviewResponse = SubmitReviewResponses[keyof SubmitReviewResponses];
+
+export type GetReviewsStatsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/reviews/stats';
+};
+
+export type GetReviewsStatsErrors = {
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type GetReviewsStatsError = GetReviewsStatsErrors[keyof GetReviewsStatsErrors];
+
+export type GetReviewsStatsResponses = {
+  /**
+   * Review statistics
+   */
+  200: ReviewStats;
+};
+
+export type GetReviewsStatsResponse = GetReviewsStatsResponses[keyof GetReviewsStatsResponses];
 
 export type GetBuyerWalletData = {
   body?: never;
@@ -1821,21 +1814,15 @@ export type GetBuyerWalletErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetBuyerWalletError = GetBuyerWalletErrors[keyof GetBuyerWalletErrors];
@@ -1844,21 +1831,13 @@ export type GetBuyerWalletResponses = {
   /**
    * Wallet details
    */
-  200: {
-    id: string;
-    userId: string;
-    balance: number;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: WalletResponse;
 };
 
 export type GetBuyerWalletResponse = GetBuyerWalletResponses[keyof GetBuyerWalletResponses];
 
 export type TopUpWalletData = {
-  body: {
-    amount: number;
-  };
+  body: TopUpRequest;
   path?: never;
   query?: never;
   url: '/api/buyers/wallet/topup';
@@ -1868,27 +1847,19 @@ export type TopUpWalletErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type TopUpWalletError = TopUpWalletErrors[keyof TopUpWalletErrors];
@@ -1897,15 +1868,7 @@ export type TopUpWalletResponses = {
   /**
    * Wallet topped up successfully
    */
-  200: {
-    id: string;
-    walletId: string;
-    amount: number;
-    type: string;
-    status: string;
-    reference: string;
-    createdAt: string;
-  };
+  200: WalletTransactionResponse;
 };
 
 export type TopUpWalletResponse = TopUpWalletResponses[keyof TopUpWalletResponses];
@@ -1921,21 +1884,15 @@ export type GetWalletTransactionsErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetWalletTransactionsError =
@@ -1945,7 +1902,7 @@ export type GetWalletTransactionsResponses = {
   /**
    * List of transactions
    */
-  200: Array<WalletTransactionResponse>;
+  200: WalletTransactionsList;
 };
 
 export type GetWalletTransactionsResponse =
@@ -1962,21 +1919,15 @@ export type GetAddressesErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetAddressesError = GetAddressesErrors[keyof GetAddressesErrors];
@@ -1985,23 +1936,13 @@ export type GetAddressesResponses = {
   /**
    * List of addresses
    */
-  200: Array<AddressResponse>;
+  200: AddressListResponse;
 };
 
 export type GetAddressesResponse = GetAddressesResponses[keyof GetAddressesResponses];
 
 export type CreateAddressData = {
-  body: {
-    label: string;
-    recipientName: string;
-    phoneNumber: string;
-    province: string;
-    city: string;
-    district: string;
-    postalCode: string;
-    fullAddress: string;
-    isDefault?: boolean;
-  };
+  body: AddressRequest;
   path?: never;
   query?: never;
   url: '/api/buyers/addresses';
@@ -2011,27 +1952,19 @@ export type CreateAddressErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type CreateAddressError = CreateAddressErrors[keyof CreateAddressErrors];
@@ -2040,21 +1973,7 @@ export type CreateAddressResponses = {
   /**
    * Address created
    */
-  201: {
-    id: string;
-    userId: string;
-    label: string;
-    recipientName: string;
-    phoneNumber: string;
-    province: string;
-    city: string;
-    district: string;
-    postalCode: string;
-    fullAddress: string;
-    isDefault: boolean;
-    createdAt: string;
-    updatedAt: string;
-  };
+  201: AddressResponse;
 };
 
 export type CreateAddressResponse = CreateAddressResponses[keyof CreateAddressResponses];
@@ -2072,27 +1991,19 @@ export type DeleteAddressErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type DeleteAddressError = DeleteAddressErrors[keyof DeleteAddressErrors];
@@ -2109,17 +2020,7 @@ export type DeleteAddressResponses = {
 export type DeleteAddressResponse = DeleteAddressResponses[keyof DeleteAddressResponses];
 
 export type UpdateAddressData = {
-  body: {
-    label: string;
-    recipientName: string;
-    phoneNumber: string;
-    province: string;
-    city: string;
-    district: string;
-    postalCode: string;
-    fullAddress: string;
-    isDefault?: boolean;
-  };
+  body: AddressRequest;
   path: {
     id: string;
   };
@@ -2131,33 +2032,23 @@ export type UpdateAddressErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type UpdateAddressError = UpdateAddressErrors[keyof UpdateAddressErrors];
@@ -2166,21 +2057,7 @@ export type UpdateAddressResponses = {
   /**
    * Address updated
    */
-  200: {
-    id: string;
-    userId: string;
-    label: string;
-    recipientName: string;
-    phoneNumber: string;
-    province: string;
-    city: string;
-    district: string;
-    postalCode: string;
-    fullAddress: string;
-    isDefault: boolean;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: AddressResponse;
 };
 
 export type UpdateAddressResponse = UpdateAddressResponses[keyof UpdateAddressResponses];
@@ -2198,27 +2075,19 @@ export type SetDefaultAddressErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type SetDefaultAddressError = SetDefaultAddressErrors[keyof SetDefaultAddressErrors];
@@ -2246,21 +2115,15 @@ export type ClearCartErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ClearCartError = ClearCartErrors[keyof ClearCartErrors];
@@ -2287,21 +2150,15 @@ export type GetBuyerCartErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetBuyerCartError = GetBuyerCartErrors[keyof GetBuyerCartErrors];
@@ -2310,40 +2167,13 @@ export type GetBuyerCartResponses = {
   /**
    * Cart summary details
    */
-  200: {
-    id: string;
-    buyerId: string;
-    storeId: string | unknown;
-    storeName: string | unknown;
-    storeSlug: string | unknown;
-    items: Array<{
-      id: string;
-      productId: string;
-      quantity: number;
-      product: {
-        id: string;
-        name: string;
-        slug: string;
-        price: number;
-        stock: number;
-      };
-      createdAt: string;
-      updatedAt: string;
-    }>;
-    subtotal: number;
-    totalItems: number;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: CartSummaryResponse;
 };
 
 export type GetBuyerCartResponse = GetBuyerCartResponses[keyof GetBuyerCartResponses];
 
 export type AddCartItemData = {
-  body: {
-    productId: string;
-    quantity: number;
-  };
+  body: CartItemRequest;
   path?: never;
   query?: never;
   url: '/api/buyers/cart/items';
@@ -2353,33 +2183,23 @@ export type AddCartItemErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Conflict
    */
-  409: {
-    error: string;
-  };
+  409: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type AddCartItemError = AddCartItemErrors[keyof AddCartItemErrors];
@@ -2410,27 +2230,19 @@ export type DeleteCartItemErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type DeleteCartItemError = DeleteCartItemErrors[keyof DeleteCartItemErrors];
@@ -2447,9 +2259,7 @@ export type DeleteCartItemResponses = {
 export type DeleteCartItemResponse = DeleteCartItemResponses[keyof DeleteCartItemResponses];
 
 export type UpdateCartItemData = {
-  body: {
-    quantity: number;
-  };
+  body: UpdateCartItemRequest;
   path: {
     id: string;
   };
@@ -2461,33 +2271,23 @@ export type UpdateCartItemErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type UpdateCartItemError = UpdateCartItemErrors[keyof UpdateCartItemErrors];
@@ -2506,10 +2306,7 @@ export type UpdateCartItemResponses = {
 export type UpdateCartItemResponse = UpdateCartItemResponses[keyof UpdateCartItemResponses];
 
 export type CheckoutPreviewData = {
-  body: {
-    deliveryMethod: 'instant' | 'next_day' | 'regular';
-    discountCode?: string;
-  };
+  body: CheckoutPreviewRequest;
   path?: never;
   query?: never;
   url: '/api/orders/preview';
@@ -2519,27 +2316,19 @@ export type CheckoutPreviewErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type CheckoutPreviewError = CheckoutPreviewErrors[keyof CheckoutPreviewErrors];
@@ -2548,30 +2337,10 @@ export type CheckoutPreviewResponses = {
   /**
    * Calculated checkout totals
    */
-  200: {
-    items: Array<{
-      productId: string;
-      name: string;
-      price: number;
-      quantity: number;
-      total: number;
-    }>;
-    subtotal: number;
-    discountAmount: number;
-    discountCode: string | unknown;
-    discountType: string | unknown;
-    deliveryFee: number;
-    taxBase: number;
-    ppn: number;
-    totalAmount: number;
-    deliveryMethod: string;
-    address: AddressResponse | unknown;
-    storeId: string | unknown;
-    storeName: string | unknown;
-  };
+  200: CheckoutPreviewResponse;
 };
 
-export type CheckoutPreviewResponse = CheckoutPreviewResponses[keyof CheckoutPreviewResponses];
+export type CheckoutPreviewResponse2 = CheckoutPreviewResponses[keyof CheckoutPreviewResponses];
 
 export type ListBuyerOrdersData = {
   body?: never;
@@ -2584,21 +2353,15 @@ export type ListBuyerOrdersErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ListBuyerOrdersError = ListBuyerOrdersErrors[keyof ListBuyerOrdersErrors];
@@ -2607,17 +2370,13 @@ export type ListBuyerOrdersResponses = {
   /**
    * List of buyer orders
    */
-  200: Array<OrderResponse>;
+  200: OrderListResponse;
 };
 
 export type ListBuyerOrdersResponse = ListBuyerOrdersResponses[keyof ListBuyerOrdersResponses];
 
 export type CreateOrderData = {
-  body: {
-    deliveryMethod: 'instant' | 'next_day' | 'regular';
-    addressId: string;
-    discountCode?: string;
-  };
+  body: CreateOrderRequest;
   path?: never;
   query?: never;
   url: '/api/orders';
@@ -2627,33 +2386,23 @@ export type CreateOrderErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type CreateOrderError = CreateOrderErrors[keyof CreateOrderErrors];
@@ -2662,37 +2411,7 @@ export type CreateOrderResponses = {
   /**
    * Order successfully created
    */
-  200: {
-    id: string;
-    buyerId: string;
-    storeId: string;
-    storeName: string;
-    deliveryMethod: string;
-    subtotal: number;
-    discountAmount: number;
-    discountCode: string | unknown;
-    discountType: string | unknown;
-    deliveryFee: number;
-    ppn: number;
-    totalAmount: number;
-    status: string;
-    addressSnapshot: AddressResponse;
-    createdAt: string;
-    updatedAt: string;
-    items: Array<{
-      id: string;
-      productId: string | unknown;
-      productName: string;
-      productPrice: number;
-      quantity: number;
-    }>;
-    statusHistory?: Array<{
-      id: string;
-      status: string;
-      note: string | unknown;
-      createdAt: string;
-    }>;
-  };
+  200: OrderResponse;
 };
 
 export type CreateOrderResponse = CreateOrderResponses[keyof CreateOrderResponses];
@@ -2708,21 +2427,15 @@ export type GetBuyerExpenseReportErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetBuyerExpenseReportError =
@@ -2732,12 +2445,7 @@ export type GetBuyerExpenseReportResponses = {
   /**
    * Buyer expense report details
    */
-  200: {
-    totalSpending: number;
-    totalOrders: number;
-    averageOrderValue: number;
-    orders: Array<OrderResponse>;
-  };
+  200: BuyerReportResponse;
 };
 
 export type GetBuyerExpenseReportResponse =
@@ -2756,27 +2464,19 @@ export type GetBuyerOrderDetailErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetBuyerOrderDetailError = GetBuyerOrderDetailErrors[keyof GetBuyerOrderDetailErrors];
@@ -2802,21 +2502,15 @@ export type ListSellerOrdersErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ListSellerOrdersError = ListSellerOrdersErrors[keyof ListSellerOrdersErrors];
@@ -2825,7 +2519,7 @@ export type ListSellerOrdersResponses = {
   /**
    * List of seller store orders
    */
-  200: Array<OrderResponse>;
+  200: OrderListResponse;
 };
 
 export type ListSellerOrdersResponse = ListSellerOrdersResponses[keyof ListSellerOrdersResponses];
@@ -2841,21 +2535,15 @@ export type GetSellerIncomeReportErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetSellerIncomeReportError =
@@ -2865,12 +2553,7 @@ export type GetSellerIncomeReportResponses = {
   /**
    * Seller income report details
    */
-  200: {
-    totalIncome: number;
-    totalOrders: number;
-    averageRevenue: number;
-    orders: Array<OrderResponse>;
-  };
+  200: SellerReportResponse;
 };
 
 export type GetSellerIncomeReportResponse =
@@ -2889,27 +2572,19 @@ export type GetSellerOrderDetailErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetSellerOrderDetailError =
@@ -2926,9 +2601,7 @@ export type GetSellerOrderDetailResponse =
   GetSellerOrderDetailResponses[keyof GetSellerOrderDetailResponses];
 
 export type ProcessSellerOrderData = {
-  body: {
-    note?: string;
-  };
+  body: ProcessOrderRequest;
   path: {
     id: string;
   };
@@ -2940,39 +2613,27 @@ export type ProcessSellerOrderErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Conflict
    */
-  409: {
-    error: string;
-  };
+  409: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ProcessSellerOrderError = ProcessSellerOrderErrors[keyof ProcessSellerOrderErrors];
@@ -2987,502 +2648,53 @@ export type ProcessSellerOrderResponses = {
 export type ProcessSellerOrderResponse =
   ProcessSellerOrderResponses[keyof ProcessSellerOrderResponses];
 
-export type ListVouchersData = {
-  body?: never;
-  path?: never;
+export type SetSellerProductStockData = {
+  body: SetStock;
+  path: {
+    productId: string;
+  };
   query?: never;
-  url: '/api/admin/vouchers';
+  url: '/api/seller/inventory/{productId}';
 };
 
-export type ListVouchersErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type ListVouchersError = ListVouchersErrors[keyof ListVouchersErrors];
-
-export type ListVouchersResponses = {
-  /**
-   * List of vouchers
-   */
-  200: Array<VoucherResponse>;
-};
-
-export type ListVouchersResponse = ListVouchersResponses[keyof ListVouchersResponses];
-
-export type CreateVoucherData = {
-  body: {
-    code: string;
-    discountAmount: number;
-    minOrderAmount?: number;
-    expiresAt: string;
-    remainingUsage: number;
-  };
-  path?: never;
-  query?: never;
-  url: '/api/admin/vouchers';
-};
-
-export type CreateVoucherErrors = {
+export type SetSellerProductStockErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type CreateVoucherError = CreateVoucherErrors[keyof CreateVoucherErrors];
-
-export type CreateVoucherResponses = {
-  /**
-   * Voucher created successfully
-   */
-  200: {
-    id: string;
-    code: string;
-    discountAmount: number;
-    minOrderAmount: number;
-    expiresAt: string;
-    remainingUsage: number;
-    createdAt: string;
-    updatedAt: string;
-  };
-};
-
-export type CreateVoucherResponse = CreateVoucherResponses[keyof CreateVoucherResponses];
-
-export type GetVoucherData = {
-  body?: never;
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: '/api/admin/vouchers/{id}';
-};
-
-export type GetVoucherErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
-export type GetVoucherError = GetVoucherErrors[keyof GetVoucherErrors];
+export type SetSellerProductStockError =
+  SetSellerProductStockErrors[keyof SetSellerProductStockErrors];
 
-export type GetVoucherResponses = {
+export type SetSellerProductStockResponses = {
   /**
-   * Voucher details
+   * Stock updated
    */
-  200: {
-    id: string;
-    code: string;
-    discountAmount: number;
-    minOrderAmount: number;
-    expiresAt: string;
-    remainingUsage: number;
-    createdAt: string;
-    updatedAt: string;
-  };
+  200: StockResponse;
 };
 
-export type GetVoucherResponse = GetVoucherResponses[keyof GetVoucherResponses];
-
-export type ListPromosData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/admin/promos';
-};
-
-export type ListPromosErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type ListPromosError = ListPromosErrors[keyof ListPromosErrors];
-
-export type ListPromosResponses = {
-  /**
-   * List of promos
-   */
-  200: Array<PromoResponse>;
-};
-
-export type ListPromosResponse = ListPromosResponses[keyof ListPromosResponses];
-
-export type CreatePromoData = {
-  body: {
-    code: string;
-    discountPercent: number;
-    maxDiscountAmount?: number | unknown;
-    minOrderAmount?: number;
-    expiresAt: string;
-  };
-  path?: never;
-  query?: never;
-  url: '/api/admin/promos';
-};
-
-export type CreatePromoErrors = {
-  /**
-   * Bad Request
-   */
-  400: {
-    error: string;
-  };
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type CreatePromoError = CreatePromoErrors[keyof CreatePromoErrors];
-
-export type CreatePromoResponses = {
-  /**
-   * Promo created successfully
-   */
-  200: {
-    id: string;
-    code: string;
-    discountPercent: number;
-    maxDiscountAmount: number | unknown;
-    minOrderAmount: number;
-    expiresAt: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-};
-
-export type CreatePromoResponse = CreatePromoResponses[keyof CreatePromoResponses];
-
-export type GetPromoData = {
-  body?: never;
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: '/api/admin/promos/{id}';
-};
-
-export type GetPromoErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Not Found
-   */
-  404: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type GetPromoError = GetPromoErrors[keyof GetPromoErrors];
-
-export type GetPromoResponses = {
-  /**
-   * Promo details
-   */
-  200: {
-    id: string;
-    code: string;
-    discountPercent: number;
-    maxDiscountAmount: number | unknown;
-    minOrderAmount: number;
-    expiresAt: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-};
-
-export type GetPromoResponse = GetPromoResponses[keyof GetPromoResponses];
-
-export type GetDashboardStatsData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/admin/dashboard';
-};
-
-export type GetDashboardStatsErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type GetDashboardStatsError = GetDashboardStatsErrors[keyof GetDashboardStatsErrors];
-
-export type GetDashboardStatsResponses = {
-  /**
-   * Dashboard statistics fetched successfully
-   */
-  200: {
-    users: {
-      total: number;
-      roles: {
-        admin: number;
-        buyer: number;
-        seller: number;
-        driver: number;
-      };
-    };
-    stores: {
-      total: number;
-    };
-    products: {
-      total: number;
-    };
-    orders: {
-      total: number;
-      statuses: {
-        sedang_dikemas: number;
-        menunggu_pengirim: number;
-        sedang_dikirim: number;
-        pesanan_selesai: number;
-        dikembalikan: number;
-      };
-    };
-    discounts: {
-      vouchers: number;
-      promos: number;
-    };
-    deliveries: {
-      total: number;
-      statuses: {
-        pending: number;
-        taken: number;
-        completed: number;
-      };
-    };
-    overdueOrders: {
-      total: number;
-    };
-  };
-};
-
-export type GetDashboardStatsResponse =
-  GetDashboardStatsResponses[keyof GetDashboardStatsResponses];
-
-export type ProcessOverdueOrdersData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: '/api/admin/dashboard/overdue/process';
-};
-
-export type ProcessOverdueOrdersErrors = {
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type ProcessOverdueOrdersError =
-  ProcessOverdueOrdersErrors[keyof ProcessOverdueOrdersErrors];
-
-export type ProcessOverdueOrdersResponses = {
-  /**
-   * Overdue orders processed successfully
-   */
-  200: {
-    processedCount: number;
-    results: Array<{
-      orderId: string;
-      buyerId: string;
-      refundAmount: number;
-      itemsRestored: number;
-      note: string;
-    }>;
-  };
-};
-
-export type ProcessOverdueOrdersResponse =
-  ProcessOverdueOrdersResponses[keyof ProcessOverdueOrdersResponses];
-
-export type SimulateTimeData = {
-  body: {
-    hoursToAdvance: number;
-  };
-  path?: never;
-  query?: never;
-  url: '/api/admin/dashboard/time/simulate';
-};
-
-export type SimulateTimeErrors = {
-  /**
-   * Bad Request
-   */
-  400: {
-    error: string;
-  };
-  /**
-   * Unauthorized
-   */
-  401: {
-    error: string;
-  };
-  /**
-   * Forbidden
-   */
-  403: {
-    error: string;
-  };
-  /**
-   * Internal Server Error
-   */
-  500: {
-    error: string;
-  };
-};
-
-export type SimulateTimeError = SimulateTimeErrors[keyof SimulateTimeErrors];
-
-export type SimulateTimeResponses = {
-  /**
-   * System time offset updated successfully
-   */
-  200: {
-    newOffsetHours: number;
-    effectiveTime: string;
-  };
-};
-
-export type SimulateTimeResponse = SimulateTimeResponses[keyof SimulateTimeResponses];
+export type SetSellerProductStockResponse =
+  SetSellerProductStockResponses[keyof SetSellerProductStockResponses];
 
 export type ValidateDiscountCodeData = {
-  body: {
-    code: string;
-    subtotal: number;
-  };
+  body: ValidateDiscountRequest;
   path?: never;
   query?: never;
   url: '/api/discounts/validate';
@@ -3492,33 +2704,23 @@ export type ValidateDiscountCodeErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ValidateDiscountCodeError =
@@ -3528,12 +2730,7 @@ export type ValidateDiscountCodeResponses = {
   /**
    * Discount code validation result
    */
-  200: {
-    type: 'voucher' | 'promo';
-    code: string;
-    discountAmount: number;
-    description: string;
-  };
+  200: ValidateDiscountResponse;
 };
 
 export type ValidateDiscountCodeResponse =
@@ -3550,21 +2747,15 @@ export type GetDriverStatsErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetDriverStatsError = GetDriverStatsErrors[keyof GetDriverStatsErrors];
@@ -3573,12 +2764,7 @@ export type GetDriverStatsResponses = {
   /**
    * Driver statistics and jobs history
    */
-  200: {
-    totalEarnings: number;
-    completedJobsCount: number;
-    activeJobs: Array<DeliveryJobResponse>;
-    completedJobs: Array<DeliveryJobResponse>;
-  };
+  200: DriverStatsResponse;
 };
 
 export type GetDriverStatsResponse = GetDriverStatsResponses[keyof GetDriverStatsResponses];
@@ -3598,23 +2784,25 @@ export type GetDriverJobHistoryData = {
 
 export type GetDriverJobHistoryErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetDriverJobHistoryError = GetDriverJobHistoryErrors[keyof GetDriverJobHistoryErrors];
@@ -3623,10 +2811,7 @@ export type GetDriverJobHistoryResponses = {
   /**
    * Driver completed job history
    */
-  200: {
-    jobs: Array<DeliveryJobResponse>;
-    total: number;
-  };
+  200: DriverJobHistoryResponse;
 };
 
 export type GetDriverJobHistoryResponse =
@@ -3643,21 +2828,15 @@ export type ListAvailableJobsErrors = {
   /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type ListAvailableJobsError = ListAvailableJobsErrors[keyof ListAvailableJobsErrors];
@@ -3666,7 +2845,7 @@ export type ListAvailableJobsResponses = {
   /**
    * List of available delivery jobs
    */
-  200: Array<DeliveryJobResponse>;
+  200: DeliveryJobListResponse;
 };
 
 export type ListAvailableJobsResponse =
@@ -3683,29 +2862,29 @@ export type GetDriverJobDetailData = {
 
 export type GetDriverJobDetailErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetDriverJobDetailError = GetDriverJobDetailErrors[keyof GetDriverJobDetailErrors];
@@ -3714,26 +2893,7 @@ export type GetDriverJobDetailResponses = {
   /**
    * Details of the delivery job
    */
-  200: {
-    id: string;
-    orderId: string;
-    driverId: string | unknown;
-    status: string;
-    deliveryFee: number;
-    createdAt: string;
-    updatedAt: string;
-    storeName: string;
-    deliveryMethod: string;
-    addressSnapshot: AddressResponse;
-    totalAmount: number;
-    items?: Array<{
-      id: string;
-      productId: string | unknown;
-      productName: string;
-      productPrice: number;
-      quantity: number;
-    }>;
-  };
+  200: DeliveryJobResponse;
 };
 
 export type GetDriverJobDetailResponse =
@@ -3750,35 +2910,33 @@ export type TakeDeliveryJobData = {
 
 export type TakeDeliveryJobErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Conflict
    */
-  409: {
-    error: string;
-  };
+  409: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type TakeDeliveryJobError = TakeDeliveryJobErrors[keyof TakeDeliveryJobErrors];
@@ -3787,10 +2945,7 @@ export type TakeDeliveryJobResponses = {
   /**
    * Job taken successfully
    */
-  200: {
-    success: boolean;
-    message: string;
-  };
+  200: DriverActionSuccessResponse;
 };
 
 export type TakeDeliveryJobResponse = TakeDeliveryJobResponses[keyof TakeDeliveryJobResponses];
@@ -3806,35 +2961,33 @@ export type CompleteDeliveryJobData = {
 
 export type CompleteDeliveryJobErrors = {
   /**
+   * Validation Error
+   */
+  400: {
+    success: false;
+    error: Array<unknown>;
+    data: unknown;
+  };
+  /**
    * Unauthorized
    */
-  401: {
-    error: string;
-  };
+  401: Error;
   /**
    * Forbidden
    */
-  403: {
-    error: string;
-  };
+  403: Error;
   /**
    * Not Found
    */
-  404: {
-    error: string;
-  };
+  404: Error;
   /**
    * Conflict
    */
-  409: {
-    error: string;
-  };
+  409: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type CompleteDeliveryJobError = CompleteDeliveryJobErrors[keyof CompleteDeliveryJobErrors];
@@ -3843,14 +2996,335 @@ export type CompleteDeliveryJobResponses = {
   /**
    * Job completed successfully
    */
-  200: {
-    success: boolean;
-    message: string;
-  };
+  200: DriverActionSuccessResponse;
 };
 
 export type CompleteDeliveryJobResponse =
   CompleteDeliveryJobResponses[keyof CompleteDeliveryJobResponses];
+
+export type ListVouchersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/vouchers';
+};
+
+export type ListVouchersErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type ListVouchersError = ListVouchersErrors[keyof ListVouchersErrors];
+
+export type ListVouchersResponses = {
+  /**
+   * List of vouchers
+   */
+  200: VoucherListResponse;
+};
+
+export type ListVouchersResponse = ListVouchersResponses[keyof ListVouchersResponses];
+
+export type CreateVoucherData = {
+  body: CreateVoucherRequest;
+  path?: never;
+  query?: never;
+  url: '/api/admin/vouchers';
+};
+
+export type CreateVoucherErrors = {
+  /**
+   * Bad Request
+   */
+  400: Error;
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type CreateVoucherError = CreateVoucherErrors[keyof CreateVoucherErrors];
+
+export type CreateVoucherResponses = {
+  /**
+   * Voucher created successfully
+   */
+  200: VoucherResponse;
+};
+
+export type CreateVoucherResponse = CreateVoucherResponses[keyof CreateVoucherResponses];
+
+export type GetVoucherData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/admin/vouchers/{id}';
+};
+
+export type GetVoucherErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Not Found
+   */
+  404: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type GetVoucherError = GetVoucherErrors[keyof GetVoucherErrors];
+
+export type GetVoucherResponses = {
+  /**
+   * Voucher details
+   */
+  200: VoucherResponse;
+};
+
+export type GetVoucherResponse = GetVoucherResponses[keyof GetVoucherResponses];
+
+export type ListPromosData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/promos';
+};
+
+export type ListPromosErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type ListPromosError = ListPromosErrors[keyof ListPromosErrors];
+
+export type ListPromosResponses = {
+  /**
+   * List of promos
+   */
+  200: PromoListResponse;
+};
+
+export type ListPromosResponse = ListPromosResponses[keyof ListPromosResponses];
+
+export type CreatePromoData = {
+  body: CreatePromoRequest;
+  path?: never;
+  query?: never;
+  url: '/api/admin/promos';
+};
+
+export type CreatePromoErrors = {
+  /**
+   * Bad Request
+   */
+  400: Error;
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type CreatePromoError = CreatePromoErrors[keyof CreatePromoErrors];
+
+export type CreatePromoResponses = {
+  /**
+   * Promo created successfully
+   */
+  200: PromoResponse;
+};
+
+export type CreatePromoResponse = CreatePromoResponses[keyof CreatePromoResponses];
+
+export type GetPromoData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/admin/promos/{id}';
+};
+
+export type GetPromoErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Not Found
+   */
+  404: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type GetPromoError = GetPromoErrors[keyof GetPromoErrors];
+
+export type GetPromoResponses = {
+  /**
+   * Promo details
+   */
+  200: PromoResponse;
+};
+
+export type GetPromoResponse = GetPromoResponses[keyof GetPromoResponses];
+
+export type GetDashboardStatsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/dashboard';
+};
+
+export type GetDashboardStatsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type GetDashboardStatsError = GetDashboardStatsErrors[keyof GetDashboardStatsErrors];
+
+export type GetDashboardStatsResponses = {
+  /**
+   * Dashboard statistics fetched successfully
+   */
+  200: DashboardStatsResponse;
+};
+
+export type GetDashboardStatsResponse =
+  GetDashboardStatsResponses[keyof GetDashboardStatsResponses];
+
+export type ProcessOverdueOrdersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/admin/dashboard/overdue/process';
+};
+
+export type ProcessOverdueOrdersErrors = {
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type ProcessOverdueOrdersError =
+  ProcessOverdueOrdersErrors[keyof ProcessOverdueOrdersErrors];
+
+export type ProcessOverdueOrdersResponses = {
+  /**
+   * Overdue orders processed successfully
+   */
+  200: ProcessOverdueResponse;
+};
+
+export type ProcessOverdueOrdersResponse =
+  ProcessOverdueOrdersResponses[keyof ProcessOverdueOrdersResponses];
+
+export type SimulateTimeData = {
+  body: SimulateTimeRequest;
+  path?: never;
+  query?: never;
+  url: '/api/admin/dashboard/time/simulate';
+};
+
+export type SimulateTimeErrors = {
+  /**
+   * Bad Request
+   */
+  400: Error;
+  /**
+   * Unauthorized
+   */
+  401: Error;
+  /**
+   * Forbidden
+   */
+  403: Error;
+  /**
+   * Internal Server Error
+   */
+  500: Error;
+};
+
+export type SimulateTimeError = SimulateTimeErrors[keyof SimulateTimeErrors];
+
+export type SimulateTimeResponses = {
+  /**
+   * System time offset updated successfully
+   */
+  200: SimulateTimeResponse;
+};
+
+export type SimulateTimeResponse2 = SimulateTimeResponses[keyof SimulateTimeResponses];
 
 export type GetProvincesData = {
   body?: never;
@@ -3863,9 +3337,7 @@ export type GetProvincesErrors = {
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetProvincesError = GetProvincesErrors[keyof GetProvincesErrors];
@@ -3874,7 +3346,7 @@ export type GetProvincesResponses = {
   /**
    * List of provinces
    */
-  200: Array<LocationItem>;
+  200: LocationList;
 };
 
 export type GetProvincesResponse = GetProvincesResponses[keyof GetProvincesResponses];
@@ -3892,15 +3364,11 @@ export type GetCitiesErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetCitiesError = GetCitiesErrors[keyof GetCitiesErrors];
@@ -3909,7 +3377,7 @@ export type GetCitiesResponses = {
   /**
    * List of cities
    */
-  200: Array<LocationItem>;
+  200: LocationList;
 };
 
 export type GetCitiesResponse = GetCitiesResponses[keyof GetCitiesResponses];
@@ -3927,15 +3395,11 @@ export type GetDistrictsErrors = {
   /**
    * Bad Request
    */
-  400: {
-    error: string;
-  };
+  400: Error;
   /**
    * Internal Server Error
    */
-  500: {
-    error: string;
-  };
+  500: Error;
 };
 
 export type GetDistrictsError = GetDistrictsErrors[keyof GetDistrictsErrors];
@@ -3944,7 +3408,7 @@ export type GetDistrictsResponses = {
   /**
    * List of districts
    */
-  200: Array<LocationItem>;
+  200: LocationList;
 };
 
 export type GetDistrictsResponse = GetDistrictsResponses[keyof GetDistrictsResponses];

@@ -31,7 +31,7 @@ bun install
 bun run dev
 ```
 
-The dev server starts on [http://localhost:5173](http://localhost:5173). The backend must be running on the URL configured in `VITE_API_URL` (default `http://localhost:8787`).
+The dev server starts on [http://localhost:5173](http://localhost:5173). The backend must be running on the URL configured in `VITE_API_URL` (default `http://localhost:3001`, the API gateway).
 
 ## Environment Variables
 

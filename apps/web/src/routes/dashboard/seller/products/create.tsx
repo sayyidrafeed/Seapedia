@@ -1,7 +1,11 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { listSellerProductsQueryKey } from '@/lib/api/generated/@tanstack/react-query.gen';
-import { createSellerProduct, presignProductImage } from '@/lib/api/generated';
+import {
+  createSellerProduct,
+  presignProductImage,
+  setSellerProductStock,
+} from '@/lib/api/generated';
 import { ProductForm } from '@/components/products/product-form';
 import type { ProductFormValues } from '@/components/products/product-form';
 import { toast } from 'sonner';
@@ -46,18 +50,33 @@ function CreateProductPage() {
           name: values.name,
           description: values.description || null,
           price: values.price,
-          stock: values.stock,
           imageKey: imageKey || null,
         },
       });
       if (error) {
         throw new Error((error as { error?: string }).error || t('seller.products.createFailed'));
       }
+
+      // Stock is owned by the commerce service, not by the product record.
+      const { error: stockError } = await setSellerProductStock({
+        path: { productId: data.id },
+        body: { stock: values.stock },
+      });
+      if (stockError) {
+        throw new Error(
+          (stockError as { error?: string }).error || t('seller.products.createFailed'),
+        );
+      }
       return data;
     },
     onSuccess: () => {
       toast.success(t('seller.products.createSuccess'));
       queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() });
+      // The list shows the catalog's copy of stock, which catches up with commerce within seconds.
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: listSellerProductsQueryKey() }),
+        3000,
+      );
       navigate({ to: '/dashboard/seller/products' });
     },
     onError: (error: Error) => {
