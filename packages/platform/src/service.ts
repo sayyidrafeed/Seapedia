@@ -2,24 +2,27 @@ import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { requestId } from 'hono/request-id';
 import { generateSpecs } from 'hono-openapi';
+import type { SessionDenylist } from './auth/denylist';
+import { authenticate } from './auth/middleware';
+import type { TokenVerifier } from './auth/tokens';
 import { DomainError } from './errors';
 import { factory, type ServiceEnv } from './factory';
-import { requireInternal } from './internal-auth';
 import { UpstreamError } from './internal-client';
 import { hoistDefs } from './openapi';
 import { requestContext } from './request-context';
 
 export type ServiceAppOptions = {
   name: string;
-  internalToken: string;
+  verifier: TokenVerifier;
+  denylist: SessionDenylist;
 };
 
 /**
- * Base Hono app for a domain service: request id, error mapping, and the internal-only guard.
- * `/health` stays open for container healthchecks; everything else requires the service token,
- * so the gateway (or a peer service) is the only way in.
+ * Base Hono app for a service: request id, error mapping, and user authentication from the
+ * access token. Authorization is per route: `requireSession` / `requireRole` for users,
+ * `requireServiceScope` for `/internal/*` routes called by other services.
  */
-export function createServiceApp({ name, internalToken }: ServiceAppOptions) {
+export function createServiceApp({ name, verifier, denylist }: ServiceAppOptions) {
   const app = factory.createApp();
 
   app.onError((err, c) => {
@@ -40,12 +43,12 @@ export function createServiceApp({ name, internalToken }: ServiceAppOptions) {
 
   app.use('*', requestId(), requestContext);
   app.get('/health', (c) => c.json({ status: 'ok', service: name }));
-  app.use('*', requireInternal(internalToken));
+  app.use('*', authenticate(verifier, denylist));
 
   return app;
 }
 
-/** Serves this service's public OpenAPI document, consumed and merged by the gateway. */
+/** Serves this service's public OpenAPI document (merged into the public contract by scripts/openapi.ts). */
 export function serviceSpec(app: Hono<ServiceEnv>, title: string) {
   return async () => {
     const spec = await generateSpecs(app, {
@@ -54,7 +57,7 @@ export function serviceSpec(app: Hono<ServiceEnv>, title: string) {
         info: { title, version: '1.0.0' },
         components: {
           securitySchemes: {
-            cookieAuth: { type: 'apiKey', in: 'cookie', name: '__session' },
+            cookieAuth: { type: 'apiKey', in: 'cookie', name: '__access' },
           },
         },
       },
