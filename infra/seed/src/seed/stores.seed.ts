@@ -1,8 +1,8 @@
-import { storeRefs, stores } from '../schema';
+import { storeRefs } from '../schema';
 import type { Dbs } from '../dbs';
 import { rawStores } from './data/stores.data';
 
-export async function seedStores({ catalog: tx, commerce }: Dbs, userMap: Map<string, string>) {
+export async function seedStores({ catalog, commerce }: Dbs, userMap: Map<string, string>) {
   console.log('Seeding stores...');
 
   const storeMap = new Map<string, string>();
@@ -16,32 +16,26 @@ export async function seedStores({ catalog: tx, commerce }: Dbs, userMap: Map<st
 
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - raw.createdAtDaysAgo);
+    const id = crypto.randomUUID();
 
-    const [insertedStore] = await tx
-      .insert(stores)
-      .values({
-        sellerId,
-        name: raw.name,
-        slug: raw.slug,
-        description: raw.description,
-        logoKey: raw.logoUrl,
-        rating: '0.00',
-        reviewCount: 0,
-        totalProducts: 0,
-        createdAt,
-        updatedAt: createdAt,
-      })
-      .returning();
-
-    storeMap.set(raw.slug, insertedStore.id);
-
-    // Commerce's replica, normally filled from catalog's outbox.
-    await commerce.insert(storeRefs).values({
-      id: insertedStore.id,
+    await catalog.collection<{ _id: string } & Record<string, unknown>>('stores').insertOne({
+      _id: id,
       sellerId,
-      name: insertedStore.name,
-      slug: insertedStore.slug,
+      name: raw.name,
+      slug: raw.slug,
+      description: raw.description,
+      logoKey: raw.logoUrl,
+      rating: 0,
+      reviewCount: 0,
+      totalProducts: 0,
+      version: 1,
+      createdAt,
+      updatedAt: createdAt,
     });
+
+    // Commerce's replica, normally filled from `catalog.store.upserted`.
+    await commerce.insert(storeRefs).values({ id, sellerId, name: raw.name, slug: raw.slug, version: 1 });
+    storeMap.set(raw.slug, id);
   }
 
   console.log(`Seeded ${rawStores.length} stores successfully.`);

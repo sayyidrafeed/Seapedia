@@ -10,7 +10,6 @@ COPY package.json bun.lock ./
 COPY apps/web/package.json apps/web/
 COPY packages/platform/package.json packages/platform/
 COPY infra/seed/package.json infra/seed/
-COPY services/gateway/package.json services/gateway/
 COPY services/identity/package.json services/identity/
 COPY services/catalog/package.json services/catalog/
 COPY services/commerce/package.json services/commerce/

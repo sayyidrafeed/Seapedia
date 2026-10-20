@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
-import { eq, avg, count } from 'drizzle-orm';
-import { productReviews, appReview, products, stores, orders, orderItems } from '../schema';
+import { eq } from 'drizzle-orm';
+import { orders, orderItems } from '../schema';
 import type { Dbs } from '../dbs';
 
 const positiveComments = [
@@ -110,16 +110,15 @@ const appReviewsData = [
 ];
 
 export async function seedReviews(
-  { catalog: tx, commerce }: Dbs,
+  { catalog, commerce }: Dbs,
   displayNames: Map<string, string>,
   _productMap: Map<string, string>,
   _orderMap: Map<string, string>,
 ) {
   console.log('Seeding product reviews and app reviews...');
 
-  // 1. Clean up existing reviews
-  await tx.delete(productReviews);
-  await tx.delete(appReview);
+  type Doc = { _id: string } & Record<string, unknown>;
+  const productReviews = catalog.collection<Doc>('product_reviews');
 
   // 2. Fetch completed orders
   const completedOrders = await commerce
@@ -134,6 +133,15 @@ export async function seedReviews(
 
     for (const item of items) {
       if (!item.productId) continue;
+
+      // catalog's review gate, normally filled from `commerce.order.completed`.
+      await catalog
+        .collection<Doc>('purchases')
+        .updateOne(
+          { _id: `${order.buyerId}:${item.productId}` },
+          { $setOnInsert: { buyerId: order.buyerId, productId: item.productId, at: order.createdAt } },
+          { upsert: true },
+        );
 
       // Unique constraint: 1 review per buyer per product
       const uniqKey = `${order.buyerId}_${item.productId}`;
@@ -163,7 +171,8 @@ export async function seedReviews(
       const createdAt = new Date(order.createdAt);
       createdAt.setDate(createdAt.getDate() + 2); // Reviewed 2 days after order
 
-      await tx.insert(productReviews).values({
+      await productReviews.insertOne({
+        _id: crypto.randomUUID(),
         productId: item.productId,
         buyerId: order.buyerId,
         reviewerName: displayNames.get(order.buyerId) ?? 'Pembeli',
@@ -174,53 +183,30 @@ export async function seedReviews(
     }
   }
 
-  // 3. Update products rating and reviewCount
-  const productReviewsSummary = await tx
-    .select({
-      productId: productReviews.productId,
-      avgRating: avg(productReviews.rating),
-      totalReviews: count(productReviews.id),
-    })
-    .from(productReviews)
-    .groupBy(productReviews.productId);
-
-  for (const summary of productReviewsSummary) {
-    if (!summary.productId) continue;
-    const avgVal = parseFloat(summary.avgRating || '0.00').toFixed(2);
-    const countVal = summary.totalReviews || 0;
-
-    await tx
-      .update(products)
-      .set({
-        rating: avgVal,
-        reviewCount: countVal,
-      })
-      .where(eq(products.id, summary.productId));
+  // 3. Product and store ratings from the reviews
+  const rounded = (n: number) => Number(n.toFixed(2));
+  const byProduct = await productReviews
+    .aggregate<{ _id: string; avg: number; total: number }>([
+      { $group: { _id: '$productId', avg: { $avg: '$rating' }, total: { $sum: 1 } } },
+    ])
+    .toArray();
+  for (const p of byProduct) {
+    await catalog
+      .collection<Doc>('products')
+      .updateOne({ _id: p._id }, { $set: { rating: rounded(p.avg), reviewCount: p.total } });
   }
 
-  // 4. Update stores rating and reviewCount
-  const storeReviewsSummary = await tx
-    .select({
-      storeId: products.storeId,
-      avgRating: avg(productReviews.rating),
-      totalReviews: count(productReviews.id),
-    })
-    .from(productReviews)
-    .innerJoin(products, eq(productReviews.productId, products.id))
-    .groupBy(products.storeId);
-
-  for (const summary of storeReviewsSummary) {
-    if (!summary.storeId) continue;
-    const avgVal = parseFloat(summary.avgRating || '0.00').toFixed(2);
-    const countVal = summary.totalReviews || 0;
-
-    await tx
-      .update(stores)
-      .set({
-        rating: avgVal,
-        reviewCount: countVal,
-      })
-      .where(eq(stores.id, summary.storeId));
+  const byStore = await productReviews
+    .aggregate<{ _id: string; avg: number; total: number }>([
+      { $lookup: { from: 'products', localField: 'productId', foreignField: '_id', as: 'product' } },
+      { $unwind: '$product' },
+      { $group: { _id: '$product.storeId', avg: { $avg: '$rating' }, total: { $sum: 1 } } },
+    ])
+    .toArray();
+  for (const st of byStore) {
+    await catalog
+      .collection<Doc>('stores')
+      .updateOne({ _id: st._id }, { $set: { rating: rounded(st.avg), reviewCount: st.total } });
   }
 
   // 5. Seed App Reviews
@@ -228,7 +214,8 @@ export async function seedReviews(
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 20));
 
-    await tx.insert(appReview).values({
+    await catalog.collection<Doc>('app_reviews').insertOne({
+      _id: crypto.randomUUID(),
       reviewerName: rawReview.reviewerName,
       rating: rawReview.rating,
       comment: rawReview.comment,

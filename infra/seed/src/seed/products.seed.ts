@@ -1,16 +1,14 @@
-import { eq } from 'drizzle-orm';
-import { inventory, productRefs, products, stores } from '../schema';
+import { inventory, productRefs } from '../schema';
 import type { Dbs } from '../dbs';
 import { rawProducts } from './data/products.data';
 
-export async function seedProducts({ catalog: tx, commerce }: Dbs, storeMap: Map<string, string>) {
+export async function seedProducts({ catalog, commerce }: Dbs, storeMap: Map<string, string>) {
   console.log('Seeding products...');
 
   const productMap = new Map<string, string>();
-  const storeProductCounts = new Map<string, number>();
-
-  const productsToInsert: (typeof products.$inferInsert)[] = [];
-  const validRawProducts: typeof rawProducts = [];
+  const counts = new Map<string, number>();
+  const createdAt = new Date();
+  createdAt.setDate(createdAt.getDate() - 20);
 
   for (const raw of rawProducts) {
     const storeId = storeMap.get(raw.storeSlug);
@@ -18,62 +16,46 @@ export async function seedProducts({ catalog: tx, commerce }: Dbs, storeMap: Map
       console.warn(`Store ${raw.storeSlug} not found for product ${raw.name}. Skipping.`);
       continue;
     }
+    const id = crypto.randomUUID();
 
-    const createdAt = new Date();
-    createdAt.setDate(createdAt.getDate() - 20); // 20 days ago
-
-    productsToInsert.push({
+    await catalog.collection<{ _id: string } & Record<string, unknown>>('products').insertOne({
+      _id: id,
       storeId,
       name: raw.name,
       slug: raw.slug,
       description: raw.description,
       price: raw.price,
-      stock: raw.stock,
       imageKey: raw.imageUrl,
-      rating: '0.00', // Will be calculated and updated during review seed
+      rating: 0, // set by the review seed
       reviewCount: 0,
-      soldCount: 0, // Will be calculated during order seed
+      soldCount: 0, // set from completed orders at the end
+      stock: raw.stock,
+      stockVersion: 1,
+      version: 1,
       createdAt,
       updatedAt: createdAt,
     });
-    validRawProducts.push(raw);
+
+    // Commerce owns stock and replicates the catalog fields checkout needs.
+    await commerce.insert(productRefs).values({
+      id,
+      storeId,
+      name: raw.name,
+      slug: raw.slug,
+      price: raw.price,
+      imageKey: raw.imageUrl,
+      version: 1,
+    });
+    await commerce.insert(inventory).values({ productId: id, stock: raw.stock, version: 1 });
+
+    productMap.set(raw.slug, id);
+    counts.set(storeId, (counts.get(storeId) ?? 0) + 1);
   }
 
-  if (productsToInsert.length > 0) {
-    const insertedProducts = await tx.insert(products).values(productsToInsert).returning();
-
-    for (let i = 0; i < insertedProducts.length; i++) {
-      const inserted = insertedProducts[i];
-      const raw = validRawProducts[i];
-      productMap.set(raw.slug, inserted.id);
-
-      // Commerce owns stock and keeps a replica of the catalog fields it needs.
-      await commerce.insert(productRefs).values({
-        id: inserted.id,
-        storeId: inserted.storeId,
-        name: inserted.name,
-        slug: inserted.slug,
-        price: inserted.price,
-        imageKey: inserted.imageKey,
-      });
-      await commerce.insert(inventory).values({ productId: inserted.id, stock: raw.stock });
-
-      // Track total products per store
-      const currentCount = storeProductCounts.get(inserted.storeId) || 0;
-      storeProductCounts.set(inserted.storeId, currentCount + 1);
-    }
+  for (const [storeId, totalProducts] of counts) {
+    await catalog.collection<{ _id: string } & Record<string, unknown>>('stores').updateOne({ _id: storeId }, { $set: { totalProducts } });
   }
 
-  // Update store totalProducts count
-  for (const [storeId, count] of storeProductCounts.entries()) {
-    await tx
-      .update(stores)
-      .set({
-        totalProducts: count,
-      })
-      .where(eq(stores.id, storeId));
-  }
-
-  console.log(`Seeded ${productsToInsert.length} products successfully.`);
+  console.log(`Seeded ${productMap.size} products successfully.`);
   return productMap;
 }

@@ -6,13 +6,12 @@ COPY package.json bun.lock ./
 COPY apps/web/package.json apps/web/
 COPY packages/platform/package.json packages/platform/
 COPY infra/seed/package.json infra/seed/
-COPY services/gateway/package.json services/gateway/
 COPY services/identity/package.json services/identity/
 COPY services/catalog/package.json services/catalog/
 COPY services/commerce/package.json services/commerce/
 COPY services/search/package.json services/search/
 RUN bun install --frozen-lockfile --production --filter @seapedia/seed --filter @seapedia/identity \
-  --filter @seapedia/catalog --filter @seapedia/commerce
+  --filter @seapedia/commerce
 
 FROM oven/bun:1.4.2-alpine
 WORKDIR /repo
@@ -21,7 +20,6 @@ COPY tsconfig.base.json ./
 COPY packages/platform packages/platform
 # The seed writes each service's tables, so it needs their schema definitions (only those).
 COPY services/identity/src/db/schema services/identity/src/db/schema
-COPY services/catalog/src/db/schema services/catalog/src/db/schema
 COPY services/commerce/src/db/schema services/commerce/src/db/schema
 COPY infra/seed infra/seed
 WORKDIR /repo/infra/seed

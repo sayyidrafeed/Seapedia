@@ -13,6 +13,7 @@
   "dependencies": {
     "@seapedia/platform": "workspace:*",
     "drizzle-orm": "^0.45.2",
+    "mongodb": "^7.7.0",
     "postgres": "^3.4.9",
     "zod": "^4.4.3"
   },

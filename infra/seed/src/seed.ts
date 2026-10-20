@@ -1,6 +1,10 @@
+import { createServiceTokenProvider } from '@seapedia/platform/auth';
+import { createResolver } from '@seapedia/platform/consul';
+import { createInternalClient } from '@seapedia/platform/internal-client';
 import { sql } from 'drizzle-orm';
-import { connections, type Dbs, type Tx } from './dbs';
-import { inventory, orderItems, orders, products, systemTimeOffset } from './schema';
+import { z } from 'zod';
+import { connections, env, type Dbs, type Tx } from './dbs';
+import { orderItems, orders, systemTimeOffset } from './schema';
 import { rawUsers } from './seed/data/users.data';
 import {
   seedUsers,
@@ -14,8 +18,10 @@ import {
   seedCarts,
 } from './seed/index';
 
+const CATALOG_COLLECTIONS = ['stores', 'products', 'product_reviews', 'app_reviews', 'users', 'purchases', 'outbox', 'inbox'];
+
 /** Seeding starts clean: every service table is emptied (migration history is untouched). */
-async function wipe(tx: Tx) {
+async function wipePostgres(tx: Tx) {
   const tables = await tx.execute<{ tablename: string }>(
     sql`select tablename from pg_tables where schemaname = 'public'`,
   );
@@ -24,19 +30,8 @@ async function wipe(tx: Tx) {
   await tx.execute(sql.raw(`truncate table ${names} restart identity cascade`));
 }
 
-/**
- * Catalog shows read models of commerce data (stock, sold counts). At runtime the outbox keeps
- * them in step; the seed writes them directly from commerce's final state.
- */
-async function syncReadModels({ catalog, commerce }: Dbs) {
-  const stock = await commerce.select().from(inventory);
-  for (const row of stock) {
-    await catalog
-      .update(products)
-      .set({ stock: row.stock })
-      .where(sql`${products.id} = ${row.productId}`);
-  }
-
+/** Catalog's sold counts are a read model of commerce's completed orders. */
+async function syncSoldCounts({ catalog, commerce }: Dbs) {
   const sold = await commerce
     .select({
       productId: orderItems.productId,
@@ -46,16 +41,15 @@ async function syncReadModels({ catalog, commerce }: Dbs) {
     .innerJoin(orders, sql`${orders.id} = ${orderItems.orderId}`)
     .where(sql`${orders.status} = 'pesanan_selesai' and ${orderItems.productId} is not null`)
     .groupBy(orderItems.productId);
+  const products = catalog.collection<{ _id: string } & Record<string, unknown>>('products');
   for (const row of sold) {
-    await catalog
-      .update(products)
-      .set({ soldCount: row.soldCount })
-      .where(sql`${products.id} = ${row.productId}`);
+    if (row.productId) await products.updateOne({ _id: row.productId }, { $set: { soldCount: row.soldCount } });
   }
 }
 
 async function seed(dbs: Dbs) {
-  await Promise.all([wipe(dbs.identity), wipe(dbs.catalog), wipe(dbs.commerce)]);
+  await Promise.all([wipePostgres(dbs.identity), wipePostgres(dbs.commerce)]);
+  await Promise.all(CATALOG_COLLECTIONS.map((name) => dbs.catalog.collection(name).deleteMany({})));
 
   const userMap = await seedUsers(dbs);
   const displayNames = new Map(
@@ -73,38 +67,44 @@ async function seed(dbs: Dbs) {
   await seedDelivery(dbs, orderMap, userMap);
   await seedReviews(dbs, displayNames, productMap, orderMap);
   await seedCarts(dbs, userMap, productMap, storeMap);
-  await dbs.commerce
-    .insert(systemTimeOffset)
-    .values({ id: 1, offsetSeconds: 0 })
-    .onConflictDoNothing();
-  await syncReadModels(dbs);
+  await dbs.commerce.insert(systemTimeOffset).values({ id: 1, offsetSeconds: 0 }).onConflictDoNothing();
+  await syncSoldCounts(dbs);
 }
 
-/** The seed bypasses catalog's outbox, so the search index is rebuilt from scratch. */
+/**
+ * The seed bypasses catalog's outbox, so the search index is rebuilt from scratch. The seed is a
+ * client of its own (`seed`, scope `search:reindex`), found through Consul like any service.
+ */
 async function rebuildSearchIndex() {
-  const url = process.env.SEARCH_REINDEX_URL;
-  if (!url) {
-    console.log('SEARCH_REINDEX_URL not set: rebuild the search index with POST /search/reindex.');
+  if (!env.CONSUL_HTTP_ADDR || !env.SEED_CLIENT_SECRET) {
+    console.log('CONSUL_HTTP_ADDR / SEED_CLIENT_SECRET not set: rebuild the index with POST /search/reindex.');
     return;
   }
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${process.env.INTERNAL_API_TOKEN ?? ''}` },
+  const resolver = createResolver(env.CONSUL_HTTP_ADDR);
+  const search = createInternalClient({
+    service: 'search',
+    resolver,
+    tokens: createServiceTokenProvider({
+      identityUrl: () => resolver.resolve('identity'),
+      clientId: 'seed',
+      clientSecret: env.SEED_CLIENT_SECRET,
+    }),
+    scope: 'search:reindex',
+    timeoutMs: 120_000,
   });
-  if (!res.ok) throw new Error(`search reindex failed: ${res.status} ${await res.text()}`);
-  console.log('Search index rebuilt:', await res.text());
+  const result = await search.post('/search/reindex', z.object({ documents: z.number() }));
+  console.log(`Search index rebuilt: ${result.documents} documents.`);
 }
 
-const { identity, catalog, commerce } = connections;
+const { identity, commerce, catalog } = connections;
 let exitCode = 0;
 try {
-  console.log('Seeding identity, catalog and commerce databases...');
-  // Nested transactions, one per database: a failure anywhere rolls back all three.
+  console.log('Seeding identity (Postgres), catalog (MongoDB) and commerce (Postgres)...');
+  await catalog.connect();
+  // One transaction per Postgres database; a failure rolls both back (catalog is wiped again on rerun).
   await identity.db.transaction((identityTx) =>
-    catalog.db.transaction((catalogTx) =>
-      commerce.db.transaction((commerceTx) =>
-        seed({ identity: identityTx, catalog: catalogTx, commerce: commerceTx }),
-      ),
+    commerce.db.transaction((commerceTx) =>
+      seed({ identity: identityTx, commerce: commerceTx, catalog: catalog.db() }),
     ),
   );
   console.log('Seed complete.');
@@ -113,6 +113,6 @@ try {
   console.error('Seeding failed:', error);
   exitCode = 1;
 } finally {
-  await Promise.all([identity.client.end(), catalog.client.end(), commerce.client.end()]);
+  await Promise.all([identity.client.end(), commerce.client.end(), catalog.close()]);
 }
 process.exit(exitCode);

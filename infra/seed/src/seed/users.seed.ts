@@ -1,8 +1,8 @@
-import { users, userRole, activeSession } from '../schema';
+import { users, userRole, userRefs } from '../schema';
 import { rawUsers } from './data/users.data';
 import type { Dbs } from '../dbs';
 
-export async function seedUsers({ identity: tx }: Dbs) {
+export async function seedUsers({ identity: tx, commerce, catalog }: Dbs) {
   console.log('Seeding users...');
 
   const userMap = new Map<string, string>();
@@ -39,13 +39,11 @@ export async function seedUsers({ identity: tx }: Dbs) {
       });
     }
 
-    // Seed active session (primary role is the first one)
-    await tx.insert(activeSession).values({
-      userId: insertedUser.id,
-      activeRole: raw.roles[0],
-      createdAt,
-      updatedAt: createdAt,
-    });
+    // Replicas, normally filled from `identity.user.registered`.
+    await commerce.insert(userRefs).values({ id: insertedUser.id, roles: raw.roles, version: 1 });
+    await catalog
+      .collection<{ _id: string } & Record<string, unknown>>('users')
+      .insertOne({ _id: insertedUser.id, displayName: raw.name ?? raw.username, version: 1 });
   }
 
   console.log(`Seeded ${rawUsers.length} users successfully.`);
