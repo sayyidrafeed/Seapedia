@@ -1,22 +1,17 @@
 # commerce
 
 Owns money and fulfilment: wallets, addresses, carts, orders, discounts, delivery jobs, the admin
-dashboard, and product stock. Database: `commerce`.
+dashboard, and product stock. Store: Postgres (`commerce-db`).
 
-Stock lives here (`inventory`) so checkout reserves stock, debits the wallet, applies the voucher,
-and creates the order in one local transaction. `product_refs` and `store_refs` are replicas of
-catalog data, fed by catalog's outbox, so carts and order history work while catalog is down. If a
-product is not replicated yet, `CatalogRefs.ensureProduct` reads it from catalog once.
+Stock lives here (`inventory`), so checkout reserves stock, debits the wallet, applies the
+voucher and creates the order in one local transaction. Replicas from events: `product_refs`,
+`store_refs` (catalog) and `user_refs` (identity), so carts, order history and the admin dashboard
+never call another service. A product not replicated yet answers 409 `PRODUCT_SYNCING`.
 
-| Public (`/api`)                                            | Internal (`/internal`)                                 |
-| ---------------------------------------------------------- | ------------------------------------------------------ |
-| `buyers/*` wallet, addresses, cart                         | `GET inventory?productIds=`                            |
-| `orders/*`, `seller/orders/*`                              | `GET sales?productIds=` units sold in completed orders |
-| `seller/inventory/:productId` set stock                    | `GET purchases/check` review gate for catalog          |
-| `discounts/validate`, `driver/*`, `admin/*`, `locations/*` | `GET/POST outbox/:consumer`                            |
+Public routes (via Kong): `/api/buyers`, `/api/orders`, `/api/seller/orders`,
+`/api/seller/inventory/:productId`, `/api/discounts`, `/api/driver`, `/api/admin`,
+`/api/locations`. No service-to-service routes.
 
-Events published (outbox): `inventory` (checkout, restock, overdue return) and `sales` (order
-completed), consumed by catalog. Events consumed: catalog's `product` and `store`.
-
-Calls: identity and catalog `stats` for the admin dashboard (503 if either is down).
-Env: see `.env.example`.
+Publishes: `commerce.inventory.changed` (checkout, restock, overdue return),
+`commerce.order.completed` (delivery completed). Consumes: `catalog.product.*`,
+`catalog.store.upserted`, `identity.user.*`. Config (Consul): `deliveryFees`.

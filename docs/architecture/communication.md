@@ -1,67 +1,63 @@
 # Communication
 
-## Gateway and identity
+## Choreography over RabbitMQ
 
-The browser talks only to the gateway. The gateway removes any identity headers the client sent,
-resolves the `__session` cookie with identity (`POST /internal/sessions/introspect`), and forwards
-the request to the owning service with:
+Services react to each other's events; nothing orchestrates them. All events go to the topic
+exchange `seapedia.events` with routing key `<service>.<entity>.<event>`, as an envelope:
 
-| Header | Value |
-| --- | --- |
-| `x-user-id`, `x-session-id`, `x-active-role` | the resolved session, absent for anonymous requests |
-| `authorization` | `Bearer <INTERNAL_API_TOKEN>` |
-| `x-request-id` | generated or passed through, logged by every service |
+```json
+{ "id": "uuid", "type": "catalog.product.upserted", "source": "catalog",
+  "occurredAt": "2026-10-20T10:00:00Z", "version": 7, "data": { "...": "full current state" } }
+```
 
-Introspection results are cached for `SESSION_CACHE_TTL_MS` (5 s). The gateway drops a token's
-entry whenever identity handles a non-GET request with that cookie (login, logout, role switch,
-onboarding), so those take effect on the next request. A session deleted some other way stays
-usable for at most the TTL.
+Events carry the producer's full current state (event-carried state transfer), so consumers never
+call the producer back.
 
-Services reject any request without the internal token (`requireInternal`), so the identity
-headers can only come from the gateway or another service. `requireSession` and `requireRole`
-read those headers; each service decides authorization itself.
+| Event | Producer | Consumers and their reaction |
+| --- | --- | --- |
+| `identity.user.registered`, `identity.user.updated` | identity | catalog: display-name replica · commerce: `user_refs` |
+| `identity.session.revoked` | identity | every service instance: deny that session's access tokens |
+| `catalog.store.upserted` | catalog | commerce: `store_refs` · search: store lookup + rename in documents |
+| `catalog.product.upserted` | catalog | commerce: `product_refs` + `inventory` row · search: index document |
+| `catalog.product.deleted` | catalog | commerce: drop ref (cascades cart items) · search: tombstone |
+| `commerce.inventory.changed` | commerce | catalog: stock read model |
+| `commerce.order.completed` | commerce | catalog: purchases (review gate) + sold counts → `catalog.product.upserted` |
 
-## Internal calls
+### Delivery
 
-Services call each other with `createInternalClient` (`packages/platform`): bearer token, timeout,
-`x-request-id` propagation, and Zod validation of the response. Internal routes live under
-`/internal/*`, are hidden from OpenAPI, and the gateway never routes them.
+- **Transactional outbox.** A producer writes the event into its own `outbox` (Postgres table or
+  Mongo collection) in the same transaction as the change. A relay in the producer process
+  publishes pending events with **publisher confirms** and only then marks them published. No
+  change is lost and no event is sent for a rolled-back change.
+- **At-least-once.** Each consuming service has one durable queue (`identity` excepted: it consumes
+  nothing). Messages are acked after the handler commits.
+- **Retries without fan-out.** A failed message is dead-lettered to `seapedia.retry` →
+  `<queue>.retry` (TTL 5 s) → `seapedia.redeliver` → back to the same queue only. After 5 attempts
+  it is moved to `<queue>.parked` for inspection.
+- **Idempotent consumers.** Version guards and the inbox (see
+  [data ownership](./data-ownership.md#ordering-and-duplicates)) make redeliveries and reordering
+  harmless.
+- **Session revocations** use an exclusive, auto-deleted queue per instance, so every replica of
+  every service updates its in-memory denylist.
+
+Producers keep working when RabbitMQ is down: events wait in their outbox and are published when
+the broker returns.
+
+## Synchronous calls (the only ones)
 
 | Caller | Callee | Call | If the callee is down |
 | --- | --- | --- | --- |
-| gateway | identity | `POST /internal/sessions/introspect` | requests carrying a session cookie get 503 (after the 5 s cache); anonymous browsing still works |
-| catalog | search | `GET /search/products` | catalog searches with ILIKE instead |
-| catalog | commerce | `GET /internal/purchases/check` | posting a review fails with 503 |
-| catalog | identity | `GET /internal/users` | posting a review fails with 503 |
-| commerce | catalog | `GET /internal/products`, `GET /internal/stores` | only a product never seen before fails to add to a cart |
-| commerce | identity, catalog | `GET .../stats` | the admin dashboard returns 503 |
+| browser | Kong → services | `/api/*` | that service's routes return 502/503 |
+| Kong | Consul DNS | resolve `<service>.service.consul` | routing fails |
+| catalog | search | `GET /search/products` (scope `search:query`, client-side discovery) | catalog searches its own data (regex) |
+| search (reindex) | catalog | `GET /internal/search/documents/export` (scope `catalog:export`) | reindex retries; incremental sync continues from events |
+| services | identity | `POST /oauth/token` (client credentials, cached ~5 min) | the service-to-service call above fails |
 
-## Events: transactional outbox with pull
+Everything else (review gate, reviewer names, admin counts, stock, prices) is answered from local
+replicas.
 
-A producer writes its event into its own `outbox` table in the same database transaction as the
-change, one row per subscribed consumer. A consumer polls `GET /internal/outbox/<consumer>`,
-applies the batch, then acknowledges it with `POST /internal/outbox/<consumer>/ack`, which deletes
-those rows.
+## Service-to-service HTTP
 
-| Producer | Topic | Entity | Consumers | Consumer action |
-| --- | --- | --- | --- | --- |
-| catalog | `product` | product id | search, commerce | re-read the product; upsert, or delete if catalog no longer has it |
-| catalog | `store` | store id | search, commerce | re-read the store (search re-indexes all its products) |
-| commerce | `inventory` | product id | catalog | copy current stock into `products.stock` |
-| commerce | `sales` | product id | catalog | copy units sold in completed orders into `products.sold_count` |
-
-Properties that follow from this design:
-
-- **No lost events.** The event commits or rolls back with the change. There is no window where
-  the database changed but publishing failed.
-- **At-least-once delivery.** A consumer acks only after it applied the batch. A crash in between
-  replays the batch.
-- **Idempotent, order-independent handlers.** Events carry only an id. The consumer always fetches
-  the producer's current state, so a replayed or reordered event writes the same result.
-- **No skipped events.** Rows are acked by id, not by a "last seen id" checkpoint, so a
-  transaction that commits after a higher id was already read is still delivered.
-- **One reader per consumer.** Run a single replica of each consuming service's loop.
-
-Without a broker, a consumer that is down simply accumulates rows in the producer's outbox and
-catches up when it returns. The search index also has a full rebuild (`POST /search/reindex`) for
-bootstrap, mapping changes, or drift.
+Internal routes live under `/internal/*` or a service's own internal prefix, are hidden from
+OpenAPI, are never routed by Kong, and require a service token with the right scope
+(`requireServiceScope`). See [security](./security.md#service-to-service).

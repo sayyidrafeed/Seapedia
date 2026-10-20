@@ -9,20 +9,25 @@ Conventions shared by every service in `services/`. Repository-wide boundary rul
 - Hono on Bun. No Express.
 - Zod validates every HTTP boundary, including responses from other services
   (`createInternalClient(...).get(path, schema)`).
-- Build apps with `createServiceApp` (`@seapedia/platform/service`): it adds request ids, error
-  mapping, and the internal-token guard. Only `/health` is reachable without the token.
-- Identity comes from the gateway as headers. Use `requireSession` and `requireRole` from
-  `@seapedia/platform/internal-auth`; never parse the session cookie in a domain service.
-- Do not add Redis, a message broker, or Sentry unless explicitly requested.
+- Build apps with `createServiceApp` (`@seapedia/platform/service`): request ids, error mapping,
+  and access-token verification (`authenticate`). Shared infrastructure (verifier, denylist,
+  RabbitMQ, Consul resolver, service tokens) comes from `createRuntime` in `src/runtime.ts`.
+- Authorize with `requireSession` / `requireRole` (users) and `requireServiceScope` (services)
+  from `@seapedia/platform/auth`.
+- Configuration: secrets and addresses in `src/env.ts`; tunables in `src/config.ts` (Consul KV,
+  read through `config.get()` so changes apply live).
+- Do not add Redis or Sentry unless explicitly requested.
 
 ## Service layout
 
 ```
 src/
-  index.ts        Bun.serve entrypoint (+ outbox consumer loop, if the service consumes events)
-  app.ts          route mounting: public /api/*, internal /internal/*, /openapi.json
-  env.ts          @t3-oss/env-core validation
-  db/             Drizzle client, schema, migrate.ts (services with a database)
+  index.ts        startup: runtime.start (serve + Consul registration), outbox relay, consumers
+  app.ts          route mounting: public /api/*, internal routes, /openapi.json
+  env.ts          secrets and bootstrap addresses (@t3-oss/env-core)
+  config.ts       Consul KV configuration schema
+  runtime.ts      createRuntime(<service>, env)
+  db/             data store client and schema (Drizzle + migrations, or MongoDB + setup.ts)
   modules/<feature>/
     <feature>.routes.ts            public routes
     <feature>.internal.routes.ts   internal routes (describeRoute({ hide: true }))
@@ -41,24 +46,28 @@ test/setup.ts     test env (bunfig.toml preloads it)
 - Cross-module imports go through `<feature>.index.ts`.
 - Services throw `DomainError` subclasses; `createServiceApp` maps them to JSON. A failing peer
   (`UpstreamError`) becomes 503.
+- Event handlers must be idempotent: guard replica writes by `version`, and record non-idempotent
+  effects in the inbox in the same transaction.
 - Derive types from Drizzle tables or Zod schemas.
 
 ## OpenAPI rules
 
 - Every public route has `describeRoute` with a stable `operationId`.
-- The gateway merges the services' `/openapi.json`; a path or schema name defined twice with a
-  different shape fails the merge. Keep schema ids (`.meta({ id })`) unique across services.
-- The web SDK is generated from the gateway: `cd apps/web && rtk bun run openapi:generate`.
+- `scripts/openapi.ts` merges the services' `/openapi.json` into `apps/web/public/openapi.json`;
+  a path or schema name defined twice with a different shape fails the merge. Keep schema ids
+  (`.meta({ id })`) unique across services.
+- The web SDK is generated from that file: `cd apps/web && rtk bun run openapi:generate`.
 
 ## Database rules
 
-- Each service owns one Postgres database; never reference another service's tables.
-- Schema files live in `src/db/schema/` and are re-exported from `src/db/schema/index.ts`.
-- `rtk bun run db:generate` creates a migration; `bun run start` applies pending migrations.
+- Each service owns its data store server; never reference another service's data.
+- Postgres services: schema in `src/db/schema/`, `rtk bun run db:generate` creates a migration,
+  `bun run start` applies it. catalog (MongoDB): document types in `src/db/index.ts`, indexes in
+  `src/db/setup.ts`.
 
 ## Checklist
 
 - [ ] `rtk bun run check`, `rtk bun run fl`, `rtk bun test` pass.
-- [ ] New public route added to `services/gateway/src/routes.ts`.
-- [ ] Writes that other services depend on enqueue an outbox event in the same transaction.
-- [ ] `/openapi.json` still merges at the gateway.
+- [ ] New public route added to `infra/kong/kong.yml.tmpl`.
+- [ ] Writes that other services depend on enqueue a full-state, versioned event in the same transaction.
+- [ ] `bun scripts/openapi.ts` still merges.

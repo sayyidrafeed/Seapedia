@@ -1,6 +1,6 @@
 # 0001: Split the modular monolith into four domain services and a gateway
 
-Status: accepted (2026-10)
+Status: accepted (2026-10); storage changed by [0008](./0008-polyglot-persistence.md)
 
 ## Context
 

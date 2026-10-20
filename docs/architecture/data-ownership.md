@@ -1,42 +1,55 @@
 # Data ownership
 
-Every table has exactly one owner. Other services never query it; they ask the owner, or keep a
-replica that the owner's events keep current.
+Every piece of data has exactly one owner. Other services never query it; they keep a replica fed
+by the owner's events.
 
-| Service | Tables |
-| --- | --- |
-| identity | `users`, `user_role`, `active_session` |
-| catalog | `stores`, `products`, `product_reviews`, `app_review`, `outbox` |
-| commerce | `wallets`, `wallet_transactions`, `addresses`, `carts`, `cart_items`, `orders`, `order_items`, `order_status_history`, `vouchers`, `promos`, `delivery_jobs`, `system_time_offset`, `inventory`, `product_refs`, `store_refs`, `outbox` |
-| search | Elasticsearch alias `products` |
+| Service | Store | Data |
+| --- | --- | --- |
+| identity | Postgres `identity-db` | `users`, `user_role`, `sessions`, `refresh_tokens`, `outbox` |
+| catalog | MongoDB `catalog-db` | `stores`, `products`, `product_reviews`, `app_reviews`, replicas `users`, `purchases`; `outbox`, `inbox` |
+| commerce | Postgres `commerce-db` | wallets, addresses, carts, orders, discounts, delivery jobs, `inventory`; replicas `product_refs`, `store_refs`, `user_refs`; `outbox`, `inbox` |
+| search | Elasticsearch | `products` alias (documents + tombstones), `products_stores` lookup |
 
-User ids appear in catalog (`stores.seller_id`, `product_reviews.buyer_id`) and commerce
-(`orders.buyer_id`, `wallets.user_id`, ...) as plain UUIDs with no foreign key, because identity's
-table lives in another database.
+Catalog is document-shaped and read-heavy, so it uses MongoDB (a single-node replica set, which
+multi-document transactions need). Money and stock need relational ACID, so commerce uses
+Postgres. Identity is relational with uniqueness constraints. Search is a read model in
+Elasticsearch. See [ADR 0008](./decisions/0008-polyglot-persistence.md).
+
+User ids appear in catalog and commerce as plain ids; there are no cross-database foreign keys.
 
 ## Replicas and read models
 
-| Copy | Lives in | Owner | Kept current by | Used for |
+| Copy | Lives in | Owner | Fed by | Used for |
 | --- | --- | --- | --- | --- |
-| `product_refs` (name, slug, price, image, store) | commerce | catalog | `product` events | cart, checkout prices, order snapshots |
-| `store_refs` (name, slug, seller) | commerce | catalog | `store` events | seller ownership checks, store names on orders |
-| `products.stock` | catalog | commerce (`inventory`) | `inventory` events | showing stock on product pages |
-| `products.sold_count` | catalog | commerce (completed orders) | `sales` events | showing sales, search ranking |
-| `product_reviews.reviewer_name` | catalog | identity | snapshot when the review is written | review lists |
-| search documents | Elasticsearch | catalog | `product` and `store` events, full reindex | ranking search results |
+| `product_refs` (name, slug, price, image, store) | commerce | catalog | `catalog.product.upserted` / `deleted` | cart, checkout prices, order snapshots |
+| `store_refs` (name, slug, seller) | commerce | catalog | `catalog.store.upserted` | seller ownership checks, store names on orders |
+| `user_refs` (roles) | commerce | identity | `identity.user.*` | admin dashboard user counts |
+| `products.stock` | catalog | commerce | `commerce.inventory.changed` | stock shown on product pages |
+| `products.soldCount`, `purchases` | catalog | commerce | `commerce.order.completed` | sales shown and ranked; the review gate |
+| `users` (display name) | catalog | identity | `identity.user.*` | reviewer names |
+| search documents | Elasticsearch | catalog | `catalog.product.*`, `catalog.store.upserted`, reindex | ranking search results |
 
-Replicas are eventually consistent. With the default 2 s poll interval, a change reaches its
-consumers within a few seconds. The consequences are deliberate:
+Replicas are eventually consistent: a change reaches consumers once the producer's relay publishes
+it (polled every `outboxIntervalMs`, 500 ms by default) and the consumer applies it. Deliberate
+consequences:
 
-- Checkout charges `product_refs.price`. A price change applies to checkouts once replicated.
-- The stock and sold counts catalog shows can lag commerce by a few seconds. Checkout always uses
-  commerce's `inventory`, so the lag never oversells.
-- Search results carry only ids. Catalog loads price and stock from its own tables, so a result is
-  never shown with a stale price. A product deleted moments ago is dropped during that load.
+- Checkout charges `product_refs.price`; a price change applies to checkouts once replicated.
+- Stock and sold counts shown by catalog can lag commerce briefly. Checkout always uses commerce's
+  `inventory`, so the lag never oversells.
+- A product created a moment ago may not be in commerce yet: setting its stock or adding it to a
+  cart answers 409 `PRODUCT_SYNCING`, and the web app retries.
+- Search results are ids only; catalog loads price and stock from its own data for each page.
+
+## Ordering and duplicates
+
+Events carry the producer's entity `version`. Every replica write applies only if the incoming
+version is newer (`setWhere version < incoming` in Postgres, a version-guarded scripted upsert in
+Elasticsearch). Counter-style effects (`order.completed` increments sold counts) record the event
+id in an `inbox` in the same transaction and skip redeliveries. Product deletions are kept as
+tombstones in search so a late, older upsert cannot resurrect them.
 
 ## Deleting data
 
-Catalog deletes a product, then publishes a `product` event. Commerce sees that catalog no longer
-returns it and deletes its `product_refs` row, which cascades to `inventory` and `cart_items`;
-`order_items.product_id` becomes null, and the order keeps its name and price snapshot. Search
-removes the document. No code path deletes users or stores today.
+Catalog deletes a product and publishes `catalog.product.deleted`. Commerce deletes its
+`product_refs` row, cascading to `inventory` and `cart_items`; `order_items.product_id` becomes
+null and the order keeps its name and price snapshot. Search marks the document deleted.

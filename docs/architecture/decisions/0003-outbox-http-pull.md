@@ -1,6 +1,6 @@
 # 0003: Transactional outbox, pulled over HTTP, instead of a message broker
 
-Status: accepted (2026-10)
+Status: superseded by [0006](./0006-rabbitmq-choreography.md)
 
 ## Context
 

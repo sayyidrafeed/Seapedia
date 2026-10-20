@@ -1,8 +1,8 @@
 # Database Schema Reference
 
-SEAPEDIA uses PostgreSQL with Drizzle ORM, one database per service. Each service keeps its schema in `services/<service>/src/db/schema/`: identity owns users, roles and sessions; catalog owns stores, products and reviews; commerce owns everything else, plus `inventory`, `product_refs` and `store_refs`. Relationships below that cross services are logical only: the columns hold ids but there is no foreign key. See [architecture/data-ownership.md](./architecture/data-ownership.md).
+Each service owns its data store: identity and commerce use PostgreSQL (Drizzle ORM, schema in `services/<service>/src/db/schema/`), catalog uses MongoDB (document types in `services/catalog/src/db/index.ts`; ids are UUID strings in `_id`, ratings are numbers formatted as `"4.50"` by the API). The relational tables below describe the original model; catalog's tables are now MongoDB collections with the same fields. Relationships that cross services are logical only. See [architecture/data-ownership.md](./architecture/data-ownership.md).
 
-Since the split, `products.stock` in catalog is a read model of commerce's `inventory`, and `product_reviews` stores a `reviewer_name` snapshot.
+Since the split, `products.stock` and `products.soldCount` in catalog are read models of commerce data, `product_reviews` stores a `reviewer_name` snapshot, and `active_session` was replaced by per-device `sessions` and rotating `refresh_tokens`.
 
 ## Entity Relationship Diagram
 

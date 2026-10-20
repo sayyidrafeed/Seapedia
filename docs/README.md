@@ -9,7 +9,7 @@ Welcome to the SEAPEDIA documentation. SEAPEDIA is a multi-role e-commerce platf
 | Component | URL |
 |-----------|-----|
 | Frontend | [seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) |
-| API gateway | [api-seapedia.sayyidrafee.com](https://api-seapedia.sayyidrafee.com) |
+| API gateway (Kong) | [api-seapedia.sayyidrafee.com](https://api-seapedia.sayyidrafee.com) |
 | API Docs (Scalar) | [api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
 
 ## Documentation Index
@@ -29,7 +29,9 @@ Welcome to the SEAPEDIA documentation. SEAPEDIA is a multi-role e-commerce platf
 |----------|-------------|
 | [architecture/overview.md](./architecture/overview.md) | Services, data stores, and how they connect |
 | [architecture/data-ownership.md](./architecture/data-ownership.md) | Which service owns which table; replicas and read models |
-| [architecture/communication.md](./architecture/communication.md) | Gateway, internal calls, transactional outbox, failure behaviour |
+| [architecture/communication.md](./architecture/communication.md) | Events on RabbitMQ, the remaining synchronous calls, failure behaviour |
+| [architecture/security.md](./architecture/security.md) | Tokens, sessions, Kong and service authorization, broker permissions |
+| [architecture/platform.md](./architecture/platform.md) | Consul configuration and service discovery |
 | [architecture/decisions/](./architecture/decisions/) | Architecture decision records |
 | [AUTH.md](./AUTH.md) | Authentication system, JWT sessions, multi-role model, and role selection |
 | [BUSINESS-RULES.md](./BUSINESS-RULES.md) | Core business rules, financial calculations, and constraints |
@@ -88,14 +90,14 @@ seapedia/
 │           ├── auth/       # Auth context + route guards
 │           ├── query/      # TanStack Query client
 │           └── i18n/       # i18next (EN/ID locales)
-├── services/               # gateway, identity, catalog, commerce, search
+├── services/               # identity, catalog, commerce, search
 │   └── <service>/src/
 │       ├── modules/        # Feature slices owned by that service
-│       └── db/schema/      # That service's tables (own database)
+│       └── db/             # That service's own data store
 ├── packages/platform/      # Technical code shared by services
-├── infra/                  # Postgres bootstrap, seed tool
+├── infra/                  # Kong, Consul, RabbitMQ, MongoDB bootstrap, seed tool
 ├── docs/                   # This documentation
-├── docker-compose.yml      # Dev infrastructure (Postgres, Elasticsearch)
+├── docker-compose.yml      # Dev infrastructure + Kong
 └── docker-compose.prod.yml # Every service from its production image
 ```
 

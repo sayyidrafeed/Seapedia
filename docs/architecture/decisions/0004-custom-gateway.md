@@ -1,6 +1,6 @@
 # 0004: A small Hono gateway instead of an off-the-shelf proxy
 
-Status: accepted (2026-10)
+Status: superseded by [0007](./0007-kong-gateway.md)
 
 ## Context
 

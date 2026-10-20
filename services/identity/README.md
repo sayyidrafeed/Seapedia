@@ -1,14 +1,15 @@
 # identity
 
-Owns accounts, roles, and sessions. Database: `identity` (`users`, `user_role`, `active_session`).
+Owns accounts, roles, sessions, and every token in the system. Store: Postgres (`identity-db`):
+`users`, `user_role`, `sessions` (one per device), `refresh_tokens` (hashed, rotated), `outbox`.
 
-It issues the `__session` cookie (HS256 JWT holding user and session ids) and is the only service
-that validates it, through the introspection endpoint the gateway calls.
+| Public (via Kong) | Service-to-service |
+| --- | --- |
+| `POST /api/auth/register`, `login`, `refresh`, `logout` | `POST /oauth/token`: client credentials → scoped service token (policy in `modules/oauth/oauth.policy.ts`) |
+| `GET /api/auth/me`, `session`, `me/financial-summary`; `POST /api/auth/select-role`, `onboard` | |
+| `/api/users/me` profile and avatar upload; `/api/private/*` role demo | |
+| `GET /.well-known/jwks.json` | |
 
-| Public (`/api`)                                                 | Internal (`/internal`)                                                          |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `auth/*` register, login, logout, onboard, session, select-role | `POST sessions/introspect` token to `{ active, userId, sessionId, activeRole }` |
-| `users/me` profile and avatar upload                            | `GET users?ids=` display names (no emails)                                      |
-| `private/*` role-guard demo endpoints                           | `GET users/stats` counts for the admin dashboard                                |
-
-Events: none published, none consumed. Env: see `.env.example`.
+Publishes: `identity.user.registered`, `identity.user.updated`, `identity.session.revoked`.
+Consumes: nothing. Config (Consul): token lifetimes. Secrets: `JWT_PRIVATE_KEY`, the other
+services' client secrets (`SERVICE_CLIENT_SECRETS`). See `docs/architecture/security.md`.

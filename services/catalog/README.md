@@ -1,22 +1,20 @@
 # catalog
 
-Owns stores, products, product reviews, and app reviews. Database: `catalog`.
+Owns stores, products, product reviews and app reviews. Store: MongoDB (`catalog-db`, single-node
+replica set for transactions); indexes are ensured at startup (`src/db/setup.ts`).
 
-Two columns are read models of commerce data: `products.stock` (from the `inventory` event) and
-`products.soldCount` (from the `sales` event). Catalog never decides stock.
+Replicas it keeps from events: `users` (reviewer names, from identity), `purchases` (review gate,
+from `commerce.order.completed`), and on `products`: `stock` (from `commerce.inventory.changed`)
+and `soldCount` (from `commerce.order.completed`, deduped by `inbox`).
 
-| Public (`/api`)                                                                         | Internal (`/internal`)                                                  |
-| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `products` listing, detail, image upload; `products/:id/reviews`, `products/reviews/me` | `GET products?ids=` fields commerce replicates                          |
-| `seller/products` CRUD for the seller's store                                           | `GET stores?ids=`                                                       |
-| `stores` create, update, public profile                                                 | `GET search/documents`, `GET search/documents/export` search projection |
-| `reviews` app reviews                                                                   | `GET stats`, `GET/POST outbox/:consumer`                                |
+| Public (via Kong) | Service-to-service |
+| --- | --- |
+| `/api/products` listing, detail, image upload; `/api/products/:id/reviews`, `/api/products/reviews/me` | `GET /internal/search/documents/export` (scope `catalog:export`, for search reindex) |
+| `/api/seller/products` CRUD | |
+| `/api/stores`, `/api/reviews` | |
 
-Product search sends free-text queries to the search service and loads the ranked ids from its own
-database. If search is unset or fails within `SEARCH_TIMEOUT_MS`, the same query runs as ILIKE.
+Free-text listing queries call search (scope `search:query`, client-side discovery) for ranked
+ids and load them from MongoDB; if search is off (`config/catalog/searchEnabled`) or slower than
+`searchTimeoutMs`, the same query runs as a regex on MongoDB.
 
-Events published (outbox): `product`, `store`, consumed by search and commerce.
-Events consumed: commerce's `inventory` and `sales`.
-
-Calls: commerce `GET /internal/purchases/check` (review gate), identity `GET /internal/users`
-(reviewer name snapshot). Env: see `.env.example`.
+Publishes: `catalog.store.upserted`, `catalog.product.upserted`, `catalog.product.deleted`.

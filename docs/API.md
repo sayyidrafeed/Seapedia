@@ -1,6 +1,6 @@
 # API Reference
 
-SEAPEDIA's public API is served by the API gateway, which routes each `/api` prefix to the service that owns it (identity, catalog, or commerce). The gateway merges the services' OpenAPI documents into one contract, shown in Scalar. Services validate every request with Zod. Internal service-to-service routes (`/internal/*`) are not reachable through the gateway; see [architecture/communication.md](./architecture/communication.md).
+SEAPEDIA's public API is served by Kong, which routes each `/api` prefix to the service that owns it (identity, catalog, or commerce). `scripts/openapi.ts` merges the services' OpenAPI documents into one contract, shown in Scalar at `/docs` on the web app. Services validate every request with Zod. Internal service-to-service routes (`/internal/*`) are not reachable through the gateway; see [architecture/communication.md](./architecture/communication.md).
 
 ## Base URLs
 
@@ -13,14 +13,14 @@ SEAPEDIA's public API is served by the API gateway, which routes each `/api` pre
 
 | Format | URL |
 |--------|-----|
-| Scalar UI | `/docs` |
-| OpenAPI JSON | `/openapi.json` |
+| Scalar UI | `/docs` (web app) |
+| OpenAPI JSON | `/openapi.json` (web app) |
 
 ## Authentication
 
-All protected endpoints require the `__session` cookie (HttpOnly JWT).
-1. The gateway asks identity to verify the JWT signature, expiry, and that the session still exists in `active_session`.
-2. The owning service checks that the active role matches the endpoint.
+Protected endpoints require the `__access` cookie (RS256 JWT, 10 minutes); refresh it with `POST /api/auth/refresh` (uses the `__refresh` cookie).
+1. Kong verifies the token's signature and expiry.
+2. The owning service verifies it again, checks the session has not been revoked, then checks the active role and ownership.
 
 ## Endpoint Overview
 
@@ -204,7 +204,7 @@ All errors follow a consistent format:
 ## Request/Response Format
 
 - Content-Type: `application/json`
-- Authentication: Cookie-based (`__session`)
+- Authentication: cookie-based (`__access`, refreshed with `__refresh`)
 - Currency: IDR (integer, no decimals)
 - Timestamps: ISO 8601 format
 - IDs: UUID v4

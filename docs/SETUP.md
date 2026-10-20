@@ -2,79 +2,76 @@
 
 Two ways to run Seapedia locally:
 
-- **Development**: Postgres and Elasticsearch in Docker, the apps on the host with hot reload.
-- **Production-like**: every service built from its production image, with the memory limits
-  planned for the server. Use this before deploying.
+- **Production-like**: every service, Kong, and the infrastructure from their production images,
+  with the memory limits planned for the server. Use this to verify before deploying.
+- **Development**: infrastructure and Kong in Docker, the services on the host with hot reload.
 
-Deployment to the server is in [DEPLOYMENT.md](./DEPLOYMENT.md). The architecture is in
+Deployment is in [DEPLOYMENT.md](./DEPLOYMENT.md); the architecture in
 [architecture/overview.md](./architecture/overview.md).
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) 1.4.2 (the version in `.github/workflows/ci.yml` and the Dockerfiles)
-- Docker with Compose v2, and at least 3 GB of memory for Docker (Elasticsearch uses about 0.9 GB)
+- [Bun](https://bun.sh) 1.4.2 (the version in CI and the Dockerfiles)
+- Docker with Compose v2, with at least 4 GB of memory for Docker
+
+## Production-like stack
+
+```bash
+bun install
+bun scripts/generate-secrets.ts > .env.prod.local        # random secrets + RS256 key pair
+docker compose -f docker-compose.prod.yml --env-file .env.prod.local up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.prod.local --profile tools run --rm seed
+bun run smoke                                            # end-to-end checks through Kong
+bun run smoke -- --resilience                            # also stops RabbitMQ, Elasticsearch, catalog
+```
+
+| What | URL |
+| --- | --- |
+| Web app (and `/docs`) | http://localhost:8080 (`WEB_PORT`) |
+| API through Kong | http://localhost:3001 |
+| Consul UI | http://localhost:8500 |
+| RabbitMQ management | http://localhost:15672 (user `admin`, password `RABBITMQ_ADMIN_PASSWORD`) |
 
 ## Development
 
 ```bash
 bun install
-docker compose up -d                 # Postgres (identity, catalog, commerce databases) + Elasticsearch
-for d in services/* infra/seed apps/web; do cp -n "$d/.env.example" "$d/.env"; done
-bun run dev                          # all services and the web app, with hot reload
+bun scripts/generate-secrets.ts --dev      # writes services/*/.env, infra/seed/.env, infra/kong/.env once
+docker compose up -d                       # Consul, RabbitMQ, 2× Postgres, MongoDB, Elasticsearch, Kong
+for s in identity commerce; do (cd services/$s && bun run db:migrate); done
+bun run dev                                # identity, catalog, commerce, search, web with hot reload
+bun run seed                               # demo data; wipes the databases, rebuilds the search index
 ```
 
-`bun run dev` starts each service's `bun --hot src/index.ts` and the Vite dev server:
+Services register in Consul as `host.docker.internal`, so Kong (in Docker) reaches them on the host.
+The web app runs at http://localhost:5173 and calls Kong at http://localhost:3001.
 
-| App | URL |
-| --- | --- |
-| Web | http://localhost:5173 |
-| Gateway (public API, `/docs`) | http://localhost:3001 |
-| identity, catalog, commerce, search | ports 4001 to 4004 (internal, require the token) |
+Demo accounts are in [SEED-DATA.md](./SEED-DATA.md); every password is `password123`.
 
-Databases start empty. Each service applies its migrations with `bun run start`; in development,
-run them once, then seed:
+`--dev` never overwrites an existing `.env`. A `.env` left over from the old monolith (for example
+`services/commerce/.env`) must be moved away first, or it keeps the old settings.
+
+## Configuration
+
+Secrets and bootstrap addresses come from each service's environment (`src/env.ts`,
+`.env.example`). Tunables come from Consul KV and apply without a restart:
 
 ```bash
-for s in identity catalog commerce; do (cd services/$s && bun run db:migrate); done
-bun run seed      # wipes the three databases, inserts demo data, rebuilds the search index
+docker compose exec consul consul kv get -recurse config/
+docker compose exec consul consul kv put config/catalog/searchEnabled false   # search falls back to MongoDB
+docker compose exec consul consul kv put config/commerce/deliveryFees '{"instant":35000,"next_day":15000,"regular":10000}'
 ```
 
-Demo accounts are listed in [SEED-DATA.md](./SEED-DATA.md); every password is `password123`.
+See [architecture/platform.md](./architecture/platform.md).
 
-To work without Elasticsearch, leave `SEARCH_SERVICE_URL` empty in `services/catalog/.env`.
-Product search then uses the database.
+## Public API contract
 
-## Production-like stack
+The web SDK and `/docs` read `apps/web/public/openapi.json`, merged from the running services:
 
 ```bash
-cp .env.prod.example .env.prod.local     # fill in the secrets (openssl rand -hex 32)
-docker compose -f docker-compose.prod.yml --env-file .env.prod.local up -d --build
-docker compose -f docker-compose.prod.yml --env-file .env.prod.local --profile tools run --rm seed
-bun run smoke                            # end-to-end checks through the gateway
-bun run smoke -- --resilience            # also stops Elasticsearch and catalog to test fallbacks
+bun scripts/openapi.ts                      # finds the services through Consul
+cd apps/web && bun run openapi:generate
 ```
-
-The web app is on `WEB_PORT` (default 8080) and the gateway on 3001. `docker stats` shows memory
-use per container; the measured numbers are in [DEPLOYMENT.md](./DEPLOYMENT.md#memory-budget).
-
-## Environment variables
-
-Each service validates its environment at startup (`src/env.ts`) and has a `.env.example`.
-
-| Variable | Used by | Meaning |
-| --- | --- | --- |
-| `INTERNAL_API_TOKEN` | all services | shared secret for service-to-service calls (16+ chars) |
-| `DATABASE_URL` | identity, catalog, commerce | the service's own database |
-| `JWT_SECRET` | identity | signs session cookies |
-| `IDENTITY_SERVICE_URL`, `CATALOG_SERVICE_URL`, `COMMERCE_SERVICE_URL` | gateway and peers | internal base URLs |
-| `SEARCH_SERVICE_URL`, `SEARCH_TIMEOUT_MS` | catalog | optional search service (default timeout 500 ms) |
-| `ELASTICSEARCH_URL`, `ELASTICSEARCH_USERNAME`, `ELASTICSEARCH_PASSWORD` | search | Elasticsearch connection |
-| `OUTBOX_POLL_INTERVAL_MS` | catalog, commerce, search | how often consumers pull events (default 2000) |
-| `FRONTEND_URL` | gateway | comma-separated origins allowed by CORS |
-| `PUBLIC_API_URL` | gateway | URL advertised in the OpenAPI document |
-| `SESSION_CACHE_TTL_MS` | gateway | session introspection cache (default 5000) |
-| `R2_*` | identity, catalog | Cloudflare R2 for image uploads (optional locally) |
-| `VITE_API_URL`, `VITE_APP_URL` | web (build time) | gateway URL and the app's own URL |
 
 ## Commands
 
@@ -83,7 +80,6 @@ Each service validates its environment at startup (`src/env.ts`) and has a `.env
 | `bun run check` | type-check every workspace |
 | `bun run fl` | format and lint every workspace |
 | `bun run test` | unit tests of the services and `packages/platform` |
-| `bun run seed` | wipe and seed the three databases |
+| `bun run seed` | wipe and seed the three databases, rebuild search |
 | `bun run smoke` | end-to-end checks against a running stack |
-| `cd services/<svc> && bun run db:generate` | create a migration for that service |
-| `cd apps/web && bun run openapi:generate` | regenerate the web SDK from the gateway (must be running) |
+| `cd services/<identity or commerce> && bun run db:generate` | create a Postgres migration |

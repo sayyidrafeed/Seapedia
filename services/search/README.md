@@ -1,17 +1,14 @@
 # search
 
-Owns the Elasticsearch index of products (alias `products`). It has no database and is not
-routed by the gateway; only catalog calls it.
+Owns the Elasticsearch index of products (alias `products`, plus `products_stores` for store
+names). No database of its own and not routed by Kong.
 
-- `GET /search/products?q&storeSlug&page&limit` returns `{ ids, total }`. Ranking is text relevance
-  (typo-tolerant on product and store names, exact on descriptions, every word required) plus a
-  small boost for sold count and rating.
-- `POST /search/reindex` builds a new index from catalog's export and swaps the alias atomically.
-  It also runs on first boot when the alias does not exist. `bun src/reindex.cli.ts` calls it.
+- `GET /search/products?q&storeSlug&page&limit` (scope `search:query`) returns `{ ids, total }`:
+  typo-tolerant on product and store names, exact on descriptions, every word required, with a
+  small boost for sold count and rating (weights in Consul `config/search/*`).
+- `POST /search/reindex` (scope `search:reindex`) rebuilds the index from catalog's export and
+  swaps the alias atomically; it also runs on first boot.
 
-Sync: consumes catalog's `product` and `store` events, re-reads current documents from catalog,
-and writes them in bulk. Sync batches and reindexes never interleave (`src/sync/lock.ts`). Run one
-replica: the outbox consumer assumes a single reader.
-
-The index holds no price or stock. Catalog loads those from its own database for every result.
-Env: see `.env.example`.
+Consumes `catalog.product.upserted`, `catalog.product.deleted`, `catalog.store.upserted`. Writes are
+version-guarded scripted upserts, deletions are tombstones, and sync batches never interleave
+with a reindex (`src/sync/lock.ts`). The index holds no price or stock.

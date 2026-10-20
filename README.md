@@ -26,102 +26,110 @@ Feature deep dives: [Discounts](./docs/DISCOUNTS.md) | [Delivery](./docs/DELIVER
 
 ## Architecture
 
-Seapedia runs as microservices: four domain services with their own databases, behind an API
-gateway, plus a static web app. Services talk over HTTP (internal APIs) and a transactional
-outbox; none reads another's database.
+Seapedia runs as microservices behind **Kong**. Each domain service owns its data in a database
+chosen for its workload, and services integrate by **choreography**: they publish and react to
+events on **RabbitMQ** instead of calling each other. **Consul** holds configuration and the service
+registry.
 
 ```mermaid
 flowchart LR
-  web[web<br/>nginx SPA] -->|/api/*| gw[gateway]
-  gw --> id[identity]
-  gw --> cat[catalog]
-  gw --> com[commerce]
+  user([Browser]) --> web[web<br/>nginx SPA]
+  user -->|/api/*| kong[Kong]
+  kong -->|Consul DNS| id[identity] & cat[catalog] & com[commerce]
   cat -->|ranked ids| se[search]
-  id --- idb[(identity db)]
-  cat --- cdb[(catalog db)]
-  com --- mdb[(commerce db)]
+  id --- idb[(Postgres)]
+  cat --- cdb[(MongoDB)]
+  com --- mdb[(Postgres)]
   se --- es[(Elasticsearch)]
-  cat -. product, store events .-> com
-  cat -. product, store events .-> se
-  com -. inventory, sales events .-> cat
+  id & cat & com <-->|events| mq{{RabbitMQ}}
+  se -->|events| mq
+  id & cat & com & se -.-> consul[Consul<br/>config + registry]
 ```
 
-| Service | Owns | Data store |
-|---------|------|------------|
-| [gateway](./services/gateway) | public `/api`, session resolution, merged OpenAPI | none |
-| [identity](./services/identity) | users, roles, sessions | Postgres `identity` |
-| [catalog](./services/catalog) | stores, products, reviews | Postgres `catalog` |
-| [commerce](./services/commerce) | cart, wallet, checkout, orders, discounts, delivery, admin, stock | Postgres `commerce` |
-| [search](./services/search) | product search index | Elasticsearch |
-| [web](./apps/web) | React SPA | none |
+| Service | Type | Owns | Data store |
+|---------|------|------|------------|
+| Kong ([infra/kong](./infra/kong)) | API gateway | routing, JWT check, CORS, rate limits | none |
+| [identity](./services/identity) | domain | users, roles, sessions, tokens | Postgres |
+| [catalog](./services/catalog) | domain | stores, products, reviews | MongoDB |
+| [commerce](./services/commerce) | domain | cart, wallet, checkout, orders, discounts, delivery, admin, stock | Postgres |
+| [search](./services/search) | read model (CQRS) | product search index | Elasticsearch |
+| [web](./apps/web) | frontend | React SPA | none |
 
-Each service has its own Dockerfile, image (`ghcr.io/sayyidrafeed/seapedia-<service>`), CI job,
-and Dokploy deployment. Details: [architecture overview](./docs/architecture/overview.md),
-[data ownership](./docs/architecture/data-ownership.md),
-[communication](./docs/architecture/communication.md), [decisions](./docs/architecture/decisions/).
+Patterns: database per service (polyglot persistence), choreography with a transactional outbox
+and inbox, event-carried state transfer, CQRS read model, API gateway, client-credentials service
+tokens, centralized configuration, and hybrid service discovery. Each service has its own
+Dockerfile, image (`ghcr.io/sayyidrafeed/seapedia-<service>`), CI job, and Dokploy deployment.
+
+Read more: [overview](./docs/architecture/overview.md) · [data ownership](./docs/architecture/data-ownership.md) ·
+[communication](./docs/architecture/communication.md) · [security](./docs/architecture/security.md) ·
+[platform](./docs/architecture/platform.md) · [decisions](./docs/architecture/decisions/)
 
 ## Tech Stack
 
 | Layer | Choice |
 |-------|--------|
-| Runtime | [Bun](https://bun.sh) (workspace monorepo) |
-| Services | [Hono](https://hono.dev), [Zod](https://zod.dev), OpenAPI via `hono-openapi`, [Scalar](https://scalar.com) at the gateway's `/docs` |
-| Data | PostgreSQL 17 (database per service) with [Drizzle ORM](https://orm.drizzle.team); Elasticsearch 9 for search |
-| Integration | API gateway, internal HTTP APIs with a shared service token, transactional outbox pulled over HTTP |
-| Web | [React 19](https://react.dev), [Vite](https://vite.dev), [TanStack Router](https://tanstack.com/router) and [Query](https://tanstack.com/query), [Tailwind CSS v4](https://tailwindcss.com), [hey-api](https://heyapi.dev) SDK generated from the gateway |
-| Auth | HS256 JWT in an HttpOnly cookie, sessions validated by identity |
+| Runtime | [Bun](https://bun.sh) workspace monorepo |
+| Services | [Hono](https://hono.dev), [Zod](https://zod.dev), OpenAPI via `hono-openapi` |
+| Data | PostgreSQL 17 ([Drizzle ORM](https://orm.drizzle.team)), MongoDB 8, Elasticsearch 9 |
+| Integration | [RabbitMQ](https://www.rabbitmq.com) 4 (topic exchange, retry and parking queues) |
+| Edge | [Kong](https://konghq.com) 3.9 OSS, DB-less |
+| Platform | [Consul](https://www.consul.io) (KV configuration, registry, DNS) |
+| Auth | RS256 access tokens (10 min) + rotating refresh tokens, per-device sessions, client credentials |
+| Web | [React 19](https://react.dev), [Vite](https://vite.dev), [TanStack Router](https://tanstack.com/router) and [Query](https://tanstack.com/query), [Tailwind CSS v4](https://tailwindcss.com), [hey-api](https://heyapi.dev) SDK |
 | Object storage | [Cloudflare R2](https://www.cloudflare.com/en-gb/developer-platform/products/r2/) presigned uploads |
-| Delivery | Docker images on GHCR, deployed per service with [Dokploy](https://dokploy.com) |
+| Delivery | Docker images on GHCR, one [Dokploy](https://dokploy.com) application per service |
 
 ## Quick Start
 
-Requires Bun 1.4.2 and Docker.
+Requires Bun 1.4.2 and Docker. Everything from production images:
 
 ```bash
 bun install
-docker compose up -d                 # Postgres (3 databases) + Elasticsearch
-for d in services/* infra/seed apps/web; do cp -n "$d/.env.example" "$d/.env"; done
-for s in identity catalog commerce; do (cd services/$s && bun run db:migrate); done
-bun run seed                         # demo data (wipes the databases)
-bun run dev                          # all services + web with hot reload
-```
-
-To run every service from its production image instead:
-
-```bash
-cp .env.prod.example .env.prod.local   # fill in secrets
+bun scripts/generate-secrets.ts > .env.prod.local
 docker compose -f docker-compose.prod.yml --env-file .env.prod.local up -d --build
 docker compose -f docker-compose.prod.yml --env-file .env.prod.local --profile tools run --rm seed
 bun run smoke
+```
+
+Development with hot reload (infrastructure and Kong in Docker, services on the host):
+
+```bash
+bun install
+bun scripts/generate-secrets.ts --dev
+docker compose up -d
+bun run dev
 ```
 
 See [docs/SETUP.md](./docs/SETUP.md) for details.
 
 ### Useful URLs
 
-| Service | Production | Local |
-|---------|------------|-------|
+| What | Production | Local |
+|------|------------|-------|
 | Web app | [seapedia.sayyidrafee.com](https://seapedia.sayyidrafee.com) | http://localhost:5173 (dev), http://localhost:8080 (prod-like) |
-| API gateway | [api-seapedia.sayyidrafee.com](https://api-seapedia.sayyidrafee.com) | http://localhost:3001 |
-| API docs (Scalar) | [api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) | http://localhost:3001/docs |
+| API (Kong) | [api-seapedia.sayyidrafee.com](https://api-seapedia.sayyidrafee.com) | http://localhost:3001 |
+| API docs (Scalar) | [seapedia.sayyidrafee.com/docs](https://seapedia.sayyidrafee.com/docs) | `/docs` on the web app |
+| Consul UI, RabbitMQ UI | not public | http://localhost:8500, http://localhost:15672 |
 
 ## Project Structure
 
 ```
 seapedia/
-├── apps/web/              # React SPA (talks only to the gateway)
+├── apps/web/              # React SPA (talks only to Kong)
 ├── services/
-│   ├── gateway/           # API gateway
-│   ├── identity/          # users, roles, sessions        (own Postgres database)
-│   ├── catalog/           # stores, products, reviews     (own Postgres database)
-│   ├── commerce/          # cart, wallet, orders, stock   (own Postgres database)
-│   └── search/            # Elasticsearch read model
-├── packages/platform/     # technical code shared by services (no business rules)
+│   ├── identity/          # users, roles, sessions, tokens   → Postgres
+│   ├── catalog/           # stores, products, reviews        → MongoDB
+│   ├── commerce/          # cart, wallet, orders, stock      → Postgres
+│   └── search/            # read model                       → Elasticsearch
+├── packages/platform/     # technical code shared by services (auth, events, Consul)
 ├── infra/
-│   ├── postgres/init/     # one database and role per service
+│   ├── kong/              # API gateway image and declarative config
+│   ├── consul/            # configuration defaults
+│   ├── rabbitmq/          # per-service broker users and permissions
+│   ├── mongo/             # replica set bootstrap
 │   └── seed/              # ops tool: seeds the three databases
-├── scripts/smoke.ts       # end-to-end checks through the gateway
-├── docker-compose.yml     # dev infrastructure
+├── scripts/               # smoke test, OpenAPI merge, secret generation
+├── docker-compose.yml     # dev infrastructure + Kong
 ├── docker-compose.prod.yml
 └── docs/                  # architecture, setup, deployment, business flows
 ```
@@ -202,11 +210,10 @@ Admin account setup may alternatively be handled through seed data or documented
 
 ## API Documentation
 
-Interactive API documentation is available via **Scalar** on the gateway at
-`http://localhost:3001/docs`.
-
-The gateway serves `/openapi.json`, the merged contract of identity, catalog, and commerce. The
-frontend SDK is generated from it (`cd apps/web && bun run openapi:generate`).
+Interactive API documentation (Scalar) is served by the web app at `/docs`, from
+`apps/web/public/openapi.json`: the merged contract of identity, catalog and commerce, built by
+`bun scripts/openapi.ts`. The web SDK is generated from the same file
+(`cd apps/web && bun run openapi:generate`).
 
 ## Security Measures
 
@@ -294,8 +301,8 @@ To verify the security controls implemented in Level 7:
 
 ## Deployment
 
-Each service is a separate Dokploy application pulled from GHCR, redeployed by its own webhook when
-CI publishes a new image. The web app is an nginx image. See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
+Each service, Kong, and the web app is a separate Dokploy application pulled from GHCR and
+redeployed by its own webhook when CI publishes a new image. See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
 
 | Service | URL |
 |---------|-----|
@@ -307,6 +314,6 @@ CI publishes a new image. The web app is an nginx image. See [docs/DEPLOYMENT.md
 ### Sub-Project READMEs
 
 - [Web app](./apps/web/README.md)
-- [gateway](./services/gateway/README.md), [identity](./services/identity/README.md),
+- [identity](./services/identity/README.md),
   [catalog](./services/catalog/README.md), [commerce](./services/commerce/README.md),
   [search](./services/search/README.md)

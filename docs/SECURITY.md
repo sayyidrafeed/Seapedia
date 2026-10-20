@@ -103,27 +103,24 @@ Every HTTP boundary is validated using **Zod schemas**. Invalid input is rejecte
 
 ## Session & Token Behavior
 
-### JWT Configuration
+### Token Configuration
 
-| Property | Value |
-|----------|-------|
-| Algorithm | HS256 |
-| Expiry | 2 hours |
-| Storage | HttpOnly cookie `__session` |
-| Secure | Yes (in production) |
-| SameSite | Lax |
+| Property | Access token | Refresh token |
+|----------|--------------|---------------|
+| Format | RS256 JWT (identity's private key; Kong and services hold the public key) | 256-bit random, stored as SHA-256 |
+| Expiry | 10 minutes | 7 days, rotated on every use |
+| Storage | HttpOnly cookie `__access` | HttpOnly cookie `__refresh`, path `/api/auth` |
+| Secure | Yes (in production) | Yes (in production) |
+| SameSite | Lax | Lax |
 
 ### Session Lifecycle
 
-1. **Creation**: On login, JWT is generated and stored in `__session` cookie. Session record is created in `active_session` table.
-2. **Validation**: On each request, `requireSession` middleware reads the cookie, verifies the JWT signature, and validates the session exists in the database.
-3. **Invalidation**: On logout, the session record is deleted from the database. The cookie is cleared. Any subsequent request with the old JWT is rejected because the session no longer exists.
+1. **Creation**: each login opens a session for that device and issues both tokens.
+2. **Validation**: Kong verifies the access token's signature and expiry; the owning service verifies it again and checks the session denylist.
+3. **Refresh**: `POST /api/auth/refresh` rotates the refresh token. A refresh token used twice revokes the session (it leaked).
+4. **Invalidation**: logout revokes the session and publishes `identity.session.revoked`; every service rejects that session's access tokens immediately.
 
-### Token Expiry
-
-- JWTs expire after 2 hours
-- Expired JWTs are rejected by the `jose` library during verification
-- Users must re-login after expiry
+See [architecture/security.md](./architecture/security.md) for the full model, including service-to-service tokens and RabbitMQ permissions.
 
 ## Role-Based Access Control (RBAC)
 
@@ -229,4 +226,4 @@ flowchart LR
 | JWT handling | `services/identity/src/lib/jwt.ts` |
 | Zod validation | Throughout `services/*/src/modules/*/` |
 | Error handling | `packages/platform/src/errors.ts`, `packages/platform/src/service.ts` |
-| CORS config | `services/gateway/src/gateway.ts` |
+| CORS, rate limits, JWT at the edge | `infra/kong/kong.yml.tmpl` |

@@ -1,52 +1,59 @@
 # Architecture overview
 
-Seapedia is five services behind one gateway, plus a static web app. Each service has its own
-image, deployment, and data store, and talks to the others only over HTTP: synchronous internal
-calls for reads, and a transactional outbox for changes.
+Seapedia is a set of microservices behind Kong. Four services own their data in a database chosen
+for their workload; they integrate through events on RabbitMQ (choreography, no orchestrator);
+Consul holds configuration and the service registry.
 
 ```mermaid
 flowchart LR
-  web[web<br/>nginx SPA] -->|/api/*| gw[gateway]
-  gw -->|introspect session| id[identity]
-  gw --> id
-  gw --> cat[catalog]
-  gw --> com[commerce]
-  cat -->|ranked ids| se[search]
-  id --- idb[(identity db)]
-  cat --- cdb[(catalog db)]
-  com --- mdb[(commerce db)]
+  user([Browser]) --> web[web<br/>nginx SPA + /docs]
+  user -->|/api/* + __access cookie| kong[Kong<br/>JWT, CORS, rate limits]
+  kong -->|Consul DNS| id[identity] & cat[catalog] & com[commerce]
+  cat -->|ranked ids, service token| se[search]
+  id --- idb[(Postgres<br/>identity-db)]
+  cat --- cdb[(MongoDB<br/>catalog-db)]
+  com --- mdb[(Postgres<br/>commerce-db)]
   se --- es[(Elasticsearch)]
-  cat -. product, store events .-> com
-  cat -. product, store events .-> se
-  com -. inventory, sales events .-> cat
+  id & cat & com <-->|events| mq{{RabbitMQ<br/>seapedia.events}}
+  se -->|consumes| mq
+  id & cat & com & se -.->|register, config| consul[Consul]
 ```
 
-Solid arrows are request/response calls. Dotted arrows are outbox events the consumer pulls.
+## Service types
+
+| Type | Services | Role |
+| --- | --- | --- |
+| Edge / API gateway | Kong | single public entry: JWT check, CORS, rate limits, routing |
+| Domain services | identity, catalog, commerce | own their data and rules; publish and consume events |
+| Query / read model (CQRS read side) | search | projection of catalog events; answers search queries |
+| Backing services | Postgres ×2, MongoDB, Elasticsearch, RabbitMQ, Consul | used by services, no business logic |
+| Jobs | seed, reindex | one-off operational tasks |
+| Frontend | web | static SPA; talks only to Kong |
 
 ## Services
 
-| Service | Owns | Store | Public routes |
+| Service | Owns | Store | Public routes (via Kong) |
 | --- | --- | --- | --- |
-| gateway | routing, session resolution, public API contract | none | all `/api/*`, `/docs`, `/openapi.json` |
-| identity | users, roles, sessions | Postgres `identity` | `/api/auth`, `/api/users`, `/api/private` |
-| catalog | stores, products, reviews | Postgres `catalog` | `/api/products`, `/api/seller/products`, `/api/stores`, `/api/reviews` |
-| commerce | wallet, cart, orders, discounts, delivery, admin, stock | Postgres `commerce` | `/api/buyers`, `/api/orders`, `/api/seller/orders`, `/api/seller/inventory`, `/api/discounts`, `/api/driver`, `/api/admin`, `/api/locations` |
+| identity | accounts, roles, sessions, tokens, service credentials | Postgres | `/api/auth`, `/api/users`, `/api/private`, `/.well-known/jwks.json` |
+| catalog | stores, products, reviews | MongoDB (replica set) | `/api/products`, `/api/seller/products`, `/api/stores`, `/api/reviews` |
+| commerce | wallet, cart, checkout, orders, discounts, delivery, admin, stock | Postgres | `/api/buyers`, `/api/orders`, `/api/seller/orders`, `/api/seller/inventory`, `/api/discounts`, `/api/driver`, `/api/admin`, `/api/locations` |
 | search | product search index | Elasticsearch | none (internal) |
 
-The three Postgres databases run on one Postgres server, each with its own login role that cannot
-open the others (`infra/postgres/init`). Moving one to its own server is a connection-string change.
+Each data store is its own server (container); no service can reach another's.
 
-## Where to read next
+## Read next
 
-- [Data ownership](./data-ownership.md): tables per service, replicas, and read models.
-- [Communication](./communication.md): gateway, internal auth, internal calls, the outbox, and
-  what happens when a service is down.
-- [Decisions](./decisions/): why the system is split this way.
+- [Data ownership](./data-ownership.md): what each service stores, replicas, consistency.
+- [Communication](./communication.md): events, the only synchronous calls, failure behaviour.
+- [Security](./security.md): authentication and authorization at every layer.
+- [Platform](./platform.md): Consul configuration and service discovery.
+- [Decisions](./decisions/): why it is built this way.
 - [Deployment](../DEPLOYMENT.md): one Dokploy application per service.
 
 ## Repository layout
 
-One repository holds all services (a bun workspace). Services share no business code: each one
-imports only its own modules and `packages/platform`, which holds technical code (errors, OpenAPI
-helpers, R2 storage, internal auth and HTTP client, outbox). CI builds and deploys each service on
-its own, triggered by changes to that service's directory.
+One repository (a bun workspace) holds every service. Services share no business code; they share
+`packages/platform`, which holds technical building blocks only (errors, OpenAPI helpers, storage,
+JWT verification, event bus, Consul clients). Each service has its own Dockerfile, image, CI job,
+and deployment; CI rebuilds a service when its directory, the platform package, or the lockfile
+changes.
