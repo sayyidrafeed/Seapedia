@@ -108,3 +108,9 @@ export async function loadConfig<S extends z.ZodType>(options: {
     },
   };
 }
+
+/** Config for unit tests and tools: schema defaults, no Consul. */
+export function staticConfig<S extends z.ZodType>(schema: S, values: Record<string, unknown> = {}) {
+  const value: z.infer<S> = schema.parse(values);
+  return { get: () => value, stop: () => undefined };
+}

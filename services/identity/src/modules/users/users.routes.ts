@@ -1,5 +1,5 @@
 import { factory } from '@seapedia/platform/factory';
-import { requireSession } from '@seapedia/platform/internal-auth';
+import { requireSession } from '@seapedia/platform/auth';
 import { describeRoute, validator } from 'hono-openapi';
 import { jsonContent, errorResponses } from '@seapedia/platform/openapi';
 import { presignRequestSchema, presignResponseSchema } from '@seapedia/platform/upload.schemas';

@@ -1,4 +1,10 @@
-// Unit tests mock the database and peers; env only needs to pass validation.
+import { exportPKCS8, exportSPKI, generateKeyPair } from 'jose';
+
+// Unit tests mock the database and never reach Consul or RabbitMQ; env only needs to validate.
+const { privateKey, publicKey } = await generateKeyPair('RS256', { extractable: true });
 process.env.DATABASE_URL ??= 'postgres://test:test@localhost:5432/test';
-process.env.JWT_SECRET ??= 'test-jwt-secret';
-process.env.INTERNAL_API_TOKEN ??= 'test-internal-token-0000';
+process.env.JWT_PRIVATE_KEY ??= await exportPKCS8(privateKey);
+process.env.JWT_PUBLIC_KEY ??= await exportSPKI(publicKey);
+process.env.SERVICE_CLIENT_SECRETS ??= 'catalog=test-catalog-secret-0000';
+process.env.CONSUL_HTTP_ADDR ??= 'http://consul.test:8500';
+process.env.RABBITMQ_URL ??= 'amqp://test:test@rabbit.test:5672/seapedia';

@@ -1,13 +1,56 @@
-import { db } from '@/db';
-import { users, userRole, activeSession } from '@/db/schema';
-import { eq, or, and, ne } from 'drizzle-orm';
-import { verifyJwt } from '@/lib/jwt';
+import { createHash, randomBytes } from 'node:crypto';
+import { and, eq, isNull, ne, or, sql } from 'drizzle-orm';
 import {
   ConflictError,
-  ValidationError,
   ForbiddenError,
   NotFoundError,
+  UnauthorizedError,
+  ValidationError,
 } from '@seapedia/platform/errors';
+import { config } from '@/config';
+import { db } from '@/db';
+import { refreshTokens, sessions, userRole, users } from '@/db/schema';
+import { signAccessToken } from '@/lib/tokens';
+import { IdentityEvents, identityOutbox } from '@/modules/events/events.index';
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
+
+/** Tokens handed to the browser after login, register, refresh, or a role change. */
+export type IssuedTokens = {
+  accessToken: string;
+  accessTtl: number;
+  refreshToken?: string;
+  refreshTtl?: number;
+};
+
+async function rolesOf(executor: Pick<Tx, 'select'>, userId: string) {
+  const rows = await executor
+    .select({ role: userRole.role })
+    .from(userRole)
+    .where(eq(userRole.userId, userId));
+  return rows.map((r) => r.role);
+}
+
+async function newRefreshToken(tx: Tx, sessionId: string) {
+  const token = randomBytes(32).toString('base64url');
+  const ttlDays = config.get().refreshTokenTtlDays;
+  await tx.insert(refreshTokens).values({
+    sessionId,
+    tokenHash: hashToken(token),
+    expiresAt: new Date(Date.now() + ttlDays * 86_400_000),
+  });
+  return { refreshToken: token, refreshTtl: ttlDays * 86_400 };
+}
+
+async function accessFor(userId: string, sessionId: string, roles: string[], activeRole: string) {
+  const access = await signAccessToken({ userId, sessionId, roles, activeRole });
+  return { accessToken: access.token, accessTtl: access.ttl };
+}
+
+/** The longest an access token issued now could still be accepted. */
+const accessHorizon = () => Math.floor(Date.now() / 1000) + config.get().accessTokenTtlSeconds;
 
 export class AuthService {
   static async register(input: {
@@ -16,7 +59,6 @@ export class AuthService {
     password: string;
     name?: string;
   }) {
-    // Check uniqueness
     const existing = await db
       .select()
       .from(users)
@@ -31,7 +73,6 @@ export class AuthService {
     const passwordHash = await Bun.password.hash(input.password, 'bcrypt');
 
     return await db.transaction(async (tx) => {
-      // Create user
       const [newUser] = await tx
         .insert(users)
         .values({
@@ -42,27 +83,25 @@ export class AuthService {
         })
         .returning();
 
-      // Assign default 'buyer' role
-      await tx.insert(userRole).values({
-        userId: newUser.id,
-        role: 'buyer',
-      });
-
-      // Create active session with 'buyer' role
+      // Every account starts as a buyer.
+      await tx.insert(userRole).values({ userId: newUser.id, role: 'buyer' });
       const [session] = await tx
-        .insert(activeSession)
-        .values({
-          userId: newUser.id,
-          activeRole: 'buyer',
-        })
+        .insert(sessions)
+        .values({ userId: newUser.id, activeRole: 'buyer' })
         .returning();
 
-      return { user: newUser, session };
+      await identityOutbox.enqueue(tx, IdentityEvents.user('registered', newUser, ['buyer']));
+      const refresh = await newRefreshToken(tx, session.id);
+      const tokens: IssuedTokens = {
+        ...(await accessFor(newUser.id, session.id, ['buyer'], 'buyer')),
+        ...refresh,
+      };
+      return { user: newUser, session, tokens };
     });
   }
 
+  /** Signs in on a new device: a separate session, so logging out elsewhere does not affect it. */
   static async login(input: { username: string; password: string }) {
-    // Find user by username or email
     const [user] = await db
       .select()
       .from(users)
@@ -73,111 +112,128 @@ export class AuthService {
       throw new ValidationError('Invalid credentials');
     }
 
-    // Verify password
     const isPasswordValid = await Bun.password.verify(input.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new ValidationError('Invalid credentials');
     }
 
-    // Get user roles
-    const roles = await db.select().from(userRole).where(eq(userRole.userId, user.id));
-    if (roles.length === 0) {
-      // Assign default buyer if none exists (fallback)
-      await db.insert(userRole).values({
-        userId: user.id,
-        role: 'buyer',
-      });
-      roles.push({
-        id: crypto.randomUUID(),
-        userId: user.id,
-        role: 'buyer',
-        createdAt: new Date(),
-      });
-    }
-
-    const roleStrings = roles.map((r) => r.role);
-
-    // Upsert session
-    const [existingSession] = await db
-      .select()
-      .from(activeSession)
-      .where(eq(activeSession.userId, user.id))
-      .limit(1);
-
-    let session = existingSession;
-    if (session) {
-      if (!roleStrings.includes(session.activeRole)) {
-        const [updatedSession] = await db
-          .update(activeSession)
-          .set({ activeRole: roleStrings[0], updatedAt: new Date() })
-          .where(eq(activeSession.id, session.id))
-          .returning();
-        session = updatedSession;
+    return await db.transaction(async (tx) => {
+      let roles = await rolesOf(tx, user.id);
+      if (roles.length === 0) {
+        // Assign default buyer if none exists (fallback)
+        await tx.insert(userRole).values({ userId: user.id, role: 'buyer' });
+        roles = ['buyer'];
       }
-    } else {
-      const [newSession] = await db
-        .insert(activeSession)
-        .values({
-          userId: user.id,
-          activeRole: roleStrings[0],
-        })
-        .returning();
-      session = newSession;
-    }
 
-    return { user, session, roles: roleStrings };
+      const [session] = await tx
+        .insert(sessions)
+        .values({ userId: user.id, activeRole: roles[0] })
+        .returning();
+      const refresh = await newRefreshToken(tx, session.id);
+      const tokens: IssuedTokens = {
+        ...(await accessFor(user.id, session.id, roles, roles[0])),
+        ...refresh,
+      };
+      return { user, session, roles, tokens };
+    });
   }
 
   /**
-   * Resolves a session token to the session it belongs to. Returns null for an invalid or expired
-   * token, or a session that was logged out. This is the single place sessions are validated.
+   * Rotates a refresh token. A token that was already used means someone replayed it: the whole
+   * session is revoked and every service is told to reject its access tokens.
    */
-  static async introspect(token: string) {
-    const payload = await verifyJwt(token);
-    if (!payload) return null;
+  static async refresh(presented: string) {
+    return await db.transaction(async (tx) => {
+      const [row] = await tx
+        .select({
+          id: refreshTokens.id,
+          sessionId: refreshTokens.sessionId,
+          expiresAt: refreshTokens.expiresAt,
+          usedAt: refreshTokens.usedAt,
+          revokedAt: sessions.revokedAt,
+          userId: sessions.userId,
+          activeRole: sessions.activeRole,
+        })
+        .from(refreshTokens)
+        .innerJoin(sessions, eq(sessions.id, refreshTokens.sessionId))
+        .where(eq(refreshTokens.tokenHash, hashToken(presented)))
+        .for('update')
+        .limit(1);
 
-    const [session] = await db
-      .select({
-        id: activeSession.id,
-        userId: activeSession.userId,
-        activeRole: activeSession.activeRole,
-      })
-      .from(activeSession)
-      .where(and(eq(activeSession.id, payload.sessionId), eq(activeSession.userId, payload.userId)))
-      .limit(1);
-    if (!session) return null;
+      if (!row || row.revokedAt || row.expiresAt <= new Date()) {
+        throw new UnauthorizedError('Session expired');
+      }
 
-    return { userId: session.userId, sessionId: session.id, activeRole: session.activeRole };
+      if (row.usedAt) {
+        await AuthService.revokeSession(tx, row.sessionId);
+        return { reused: true as const };
+      }
+
+      await tx
+        .update(refreshTokens)
+        .set({ usedAt: new Date() })
+        .where(eq(refreshTokens.id, row.id));
+      await tx
+        .update(sessions)
+        .set({ lastUsedAt: new Date() })
+        .where(eq(sessions.id, row.sessionId));
+
+      const roles = await rolesOf(tx, row.userId);
+      const activeRole = roles.includes(row.activeRole) ? row.activeRole : roles[0];
+      const refresh = await newRefreshToken(tx, row.sessionId);
+      const tokens: IssuedTokens = {
+        ...(await accessFor(row.userId, row.sessionId, roles, activeRole)),
+        ...refresh,
+      };
+      return { reused: false as const, tokens };
+    });
   }
 
-  static async logout(sessionId: string) {
-    await db.delete(activeSession).where(eq(activeSession.id, sessionId));
+  /** Ends a session, by its id (from the access token) or by its refresh token. */
+  static async logout(by: { sessionId?: string; refreshToken?: string }) {
+    await db.transaction(async (tx) => {
+      let sessionId = by.sessionId;
+      if (!sessionId && by.refreshToken) {
+        const [row] = await tx
+          .select({ sessionId: refreshTokens.sessionId })
+          .from(refreshTokens)
+          .where(eq(refreshTokens.tokenHash, hashToken(by.refreshToken)))
+          .limit(1);
+        sessionId = row?.sessionId;
+      }
+      if (sessionId) await AuthService.revokeSession(tx, sessionId);
+    });
   }
 
+  static async revokeSession(tx: Tx, sessionId: string) {
+    const revoked = await tx
+      .update(sessions)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(sessions.id, sessionId), isNull(sessions.revokedAt)))
+      .returning({ id: sessions.id });
+    if (revoked.length > 0) {
+      await identityOutbox.enqueue(tx, IdentityEvents.sessionRevoked(sessionId, accessHorizon()));
+    }
+  }
+
+  /** Switches the session's active role and re-issues the access token that carries it. */
   static async selectRole(userId: string, sessionId: string, role: string) {
-    // Verify user owns the role
-    const roles = await db
-      .select()
-      .from(userRole)
-      .where(and(eq(userRole.userId, userId), eq(userRole.role, role)))
-      .limit(1);
-
-    if (roles.length === 0) {
+    const roles = await rolesOf(db, userId);
+    if (!roles.includes(role)) {
       throw new ForbiddenError(`You do not have access to the '${role}' role`);
     }
 
-    // Update session active role
     const [updatedSession] = await db
-      .update(activeSession)
-      .set({ activeRole: role, updatedAt: new Date() })
-      .where(eq(activeSession.id, sessionId))
+      .update(sessions)
+      .set({ activeRole: role, lastUsedAt: new Date() })
+      .where(and(eq(sessions.id, sessionId), isNull(sessions.revokedAt)))
       .returning();
 
     if (!updatedSession) {
       throw new NotFoundError('Session not found');
     }
 
-    return updatedSession;
+    return await accessFor(userId, sessionId, roles, role);
   }
 
   static async getUser(userId: string) {
@@ -191,27 +247,26 @@ export class AuthService {
   static async getSessionInfo(userId: string, sessionId: string) {
     const [session] = await db
       .select()
-      .from(activeSession)
-      .where(eq(activeSession.id, sessionId))
+      .from(sessions)
+      .where(and(eq(sessions.id, sessionId), isNull(sessions.revokedAt)))
       .limit(1);
 
     if (!session) {
       throw new NotFoundError('Session not found');
     }
 
-    const roles = await db.select().from(userRole).where(eq(userRole.userId, userId));
-    return {
-      userId,
-      activeRole: session.activeRole,
-      roles: roles.map((r) => r.role),
-    };
+    return { userId, activeRole: session.activeRole, roles: await rolesOf(db, userId) };
   }
 
-  static async onboard(userId: string, selectedRoles: ('buyer' | 'seller' | 'driver')[]) {
+  /** Sets the user's roles; the caller's access token is re-issued with them. */
+  static async onboard(
+    userId: string,
+    sessionId: string,
+    selectedRoles: ('buyer' | 'seller' | 'driver')[],
+  ) {
     const uniqueRoles = Array.from(new Set(['buyer', ...selectedRoles]));
 
-    return await db.transaction(async (tx) => {
-      // Check if user is already onboarded
+    const roles = await db.transaction(async (tx) => {
       const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1);
 
       if (!user) {
@@ -225,26 +280,30 @@ export class AuthService {
       // Clear roles first, but protect the 'admin' role if present
       await tx.delete(userRole).where(and(eq(userRole.userId, userId), ne(userRole.role, 'admin')));
 
-      // Re-insert
       for (const role of uniqueRoles) {
         if (role === 'admin') continue;
-        await tx.insert(userRole).values({
-          userId,
-          role,
-        });
+        await tx.insert(userRole).values({ userId, role });
       }
 
-      // Update users
-      await tx
+      const [updated] = await tx
         .update(users)
-        .set({ isOnboarded: true, updatedAt: new Date() })
-        .where(eq(users.id, userId));
+        .set({ isOnboarded: true, updatedAt: new Date(), version: sql`${users.version} + 1` })
+        .where(eq(users.id, userId))
+        .returning();
+
+      const current = await rolesOf(tx, userId);
+      await identityOutbox.enqueue(tx, IdentityEvents.user('updated', updated, current));
+      return current;
     });
+
+    const [session] = await db.select().from(sessions).where(eq(sessions.id, sessionId)).limit(1);
+    const activeRole =
+      session && roles.includes(session.activeRole) ? session.activeRole : roles[0];
+    return await accessFor(userId, sessionId, roles, activeRole);
   }
 
   static async getFinancialSummary(userId: string) {
-    const roles = await db.select().from(userRole).where(eq(userRole.userId, userId));
-    const roleStrings = roles.map((r) => r.role);
+    const roleStrings = await rolesOf(db, userId);
 
     return {
       buyer: roleStrings.includes('buyer') ? { balance: 0 } : undefined,

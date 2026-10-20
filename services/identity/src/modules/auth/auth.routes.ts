@@ -1,9 +1,11 @@
 import { factory } from '@seapedia/platform/factory';
 import { describeRoute, validator } from 'hono-openapi';
-import { setCookie, deleteCookie } from 'hono/cookie';
+import type { Context } from 'hono';
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
+import { ACCESS_COOKIE, REFRESH_COOKIE } from '@seapedia/platform/auth';
 import { jsonContent, errorResponses } from '@seapedia/platform/openapi';
 import { successSchema } from '@seapedia/platform/schemas';
-import { requireSession } from '@seapedia/platform/internal-auth';
+import { requireSession } from '@seapedia/platform/auth';
 import { env } from '@/env';
 import {
   registerSchema,
@@ -14,11 +16,37 @@ import {
   sessionResponseSchema,
   financialSummarySchema,
 } from './auth.schemas';
-import { AuthService } from './auth.service';
-import { signJwt } from '@/lib/jwt';
+import { AuthService, type IssuedTokens } from './auth.service';
 import { StorageService } from '@/lib/storage';
 
 export const authRouter = factory.createApp();
+
+const secure = env.NODE_ENV === 'production';
+
+/** The access token goes everywhere; the refresh token only ever reaches /api/auth. */
+function setAuthCookies(c: Context, tokens: IssuedTokens) {
+  setCookie(c, ACCESS_COOKIE, tokens.accessToken, {
+    httpOnly: true,
+    path: '/',
+    sameSite: 'Lax',
+    secure,
+    maxAge: tokens.accessTtl,
+  });
+  if (tokens.refreshToken) {
+    setCookie(c, REFRESH_COOKIE, tokens.refreshToken, {
+      httpOnly: true,
+      path: '/api/auth',
+      sameSite: 'Lax',
+      secure,
+      maxAge: tokens.refreshTtl,
+    });
+  }
+}
+
+function clearAuthCookies(c: Context) {
+  deleteCookie(c, ACCESS_COOKIE, { path: '/', httpOnly: true, sameSite: 'Lax', secure });
+  deleteCookie(c, REFRESH_COOKIE, { path: '/api/auth', httpOnly: true, sameSite: 'Lax', secure });
+}
 
 authRouter.post(
   '/register',
@@ -34,16 +62,8 @@ authRouter.post(
   validator('json', registerSchema),
   async (c) => {
     const body = c.req.valid('json');
-    const { user, session } = await AuthService.register(body);
-
-    const token = await signJwt({ userId: user.id, sessionId: session.id });
-    setCookie(c, '__session', token, {
-      httpOnly: true,
-      path: '/',
-      sameSite: 'Lax',
-      secure: env.NODE_ENV === 'production',
-      maxAge: 2 * 60 * 60, // 2 hours
-    });
+    const { tokens } = await AuthService.register(body);
+    setAuthCookies(c, tokens);
 
     c.status(201);
     return c.json({ success: true as const });
@@ -64,17 +84,36 @@ authRouter.post(
   validator('json', loginSchema),
   async (c) => {
     const body = c.req.valid('json');
-    const { user, session } = await AuthService.login(body);
+    const { tokens } = await AuthService.login(body);
+    setAuthCookies(c, tokens);
 
-    const token = await signJwt({ userId: user.id, sessionId: session.id });
-    setCookie(c, '__session', token, {
-      httpOnly: true,
-      path: '/',
-      sameSite: 'Lax',
-      secure: env.NODE_ENV === 'production',
-      maxAge: 2 * 60 * 60, // 2 hours
-    });
+    return c.json({ success: true as const });
+  },
+);
 
+authRouter.post(
+  '/refresh',
+  describeRoute({
+    operationId: 'refreshSession',
+    tags: ['Auth'],
+    summary: 'Rotate the refresh token and issue a new access token',
+    responses: {
+      200: jsonContent(successSchema, 'Tokens refreshed'),
+      ...errorResponses(401, 500),
+    },
+  }),
+  async (c) => {
+    const presented = getCookie(c, REFRESH_COOKIE);
+    if (!presented) {
+      clearAuthCookies(c);
+      return c.json({ error: 'Session expired' }, 401);
+    }
+    const result = await AuthService.refresh(presented);
+    if (result.reused) {
+      clearAuthCookies(c);
+      return c.json({ error: 'Session revoked' }, 401);
+    }
+    setAuthCookies(c, result.tokens);
     return c.json({ success: true as const });
   },
 );
@@ -84,25 +123,19 @@ authRouter.post(
   describeRoute({
     operationId: 'logoutUser',
     tags: ['Auth'],
-    summary: 'Logout current user session',
-    security: [{ cookieAuth: [] }],
+    summary: 'Logout current device session',
     responses: {
       200: jsonContent(successSchema, 'Logout successful'),
-      ...errorResponses(401, 500),
+      ...errorResponses(500),
     },
   }),
-  requireSession,
   async (c) => {
-    const sessionId = c.get('sessionId')!;
-    await AuthService.logout(sessionId);
-
-    deleteCookie(c, '__session', {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Lax',
-      secure: env.NODE_ENV === 'production',
+    // Works with an expired access token too: the refresh cookie identifies the session.
+    await AuthService.logout({
+      sessionId: c.get('sessionId'),
+      refreshToken: getCookie(c, REFRESH_COOKIE),
     });
-
+    clearAuthCookies(c);
     return c.json({ success: true as const });
   },
 );
@@ -173,9 +206,10 @@ authRouter.post(
   validator('json', onboardSchema),
   async (c) => {
     const userId = c.get('userId')!;
+    const sessionId = c.get('sessionId')!;
     const { roles } = c.req.valid('json');
 
-    await AuthService.onboard(userId, roles);
+    setAuthCookies(c, await AuthService.onboard(userId, sessionId, roles));
 
     return c.json({ success: true as const });
   },
@@ -222,7 +256,7 @@ authRouter.post(
     const sessionId = c.get('sessionId')!;
     const { role } = c.req.valid('json');
 
-    await AuthService.selectRole(userId, sessionId, role);
+    setAuthCookies(c, await AuthService.selectRole(userId, sessionId, role));
 
     return c.json({ success: true as const });
   },

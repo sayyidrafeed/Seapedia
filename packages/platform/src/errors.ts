@@ -26,3 +26,7 @@ export class ForbiddenError extends DomainError {
 export class ConflictError extends DomainError {
   readonly statusCode = 409;
 }
+
+export class UnauthorizedError extends DomainError {
+  readonly statusCode = 401;
+}

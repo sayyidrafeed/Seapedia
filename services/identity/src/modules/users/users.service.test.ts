@@ -68,10 +68,16 @@ mock.module('@/db', () => {
     },
     select: makeSelect(),
     update: makeUpdate(),
+    transaction: (fn: (tx: unknown) => unknown) => fn(db),
   };
 
   return { db };
 });
+
+mock.module('@/modules/events/events.index', () => ({
+  IdentityEvents: { user: () => ({}) },
+  identityOutbox: { enqueue: () => Promise.resolve() },
+}));
 
 const storageState = {
   deleteCalls: [] as string[],

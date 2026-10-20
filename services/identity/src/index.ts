@@ -1,9 +1,13 @@
+import { createOutboxRelay } from '@seapedia/platform/events';
 import { app } from './app';
-import { env } from './env';
+import { config } from './config';
+import { identityOutbox } from './modules/events/events.index';
+import { runtime } from './runtime';
 
-console.log(`identity service listening on :${env.PORT}`);
+await runtime.start(app.fetch);
 
-Bun.serve({
-  fetch: app.fetch,
-  port: env.PORT,
-});
+createOutboxRelay({
+  rabbit: runtime.rabbit,
+  store: identityOutbox.store,
+  intervalMs: config.get().outboxIntervalMs,
+}).start();

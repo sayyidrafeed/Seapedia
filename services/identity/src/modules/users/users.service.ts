@@ -1,8 +1,9 @@
 import { db } from '@/db';
 import { userRole, users } from '@/db/schema';
-import { eq, inArray, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { NotFoundError } from '@seapedia/platform/errors';
 import { StorageService } from '@/lib/storage';
+import { IdentityEvents, identityOutbox } from '@/modules/events/events.index';
 
 export class UsersService {
   /**
@@ -30,16 +31,32 @@ export class UsersService {
 
     const oldAvatarKey = user.avatarKey;
 
-    // 2. Perform DB update
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        name: input.name !== undefined ? input.name : user.name,
-        avatarKey: input.avatarKey !== undefined ? input.avatarKey : user.avatarKey,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
+    // 2. Perform DB update; the display name is replicated by other services, so publish it.
+    const updatedUser = await db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(users)
+        .set({
+          name: input.name !== undefined ? input.name : user.name,
+          avatarKey: input.avatarKey !== undefined ? input.avatarKey : user.avatarKey,
+          updatedAt: new Date(),
+          version: sql`${users.version} + 1`,
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      const roles = await tx
+        .select({ role: userRole.role })
+        .from(userRole)
+        .where(eq(userRole.userId, userId));
+      await identityOutbox.enqueue(
+        tx,
+        IdentityEvents.user(
+          'updated',
+          updated,
+          roles.map((r) => r.role),
+        ),
+      );
+      return updated;
+    });
 
     // 3. Delete old avatar from R2 if it changed and DB update succeeded
     if (input.avatarKey !== undefined && oldAvatarKey && oldAvatarKey !== input.avatarKey) {
@@ -50,38 +67,5 @@ export class UsersService {
     }
 
     return updatedUser;
-  }
-
-  /**
-   * Public display names, used by other services to snapshot e.g. a reviewer's name.
-   */
-  static async getDisplayNames(ids: string[]) {
-    if (ids.length === 0) return [];
-    return await db
-      .select({
-        id: users.id,
-        displayName: sql<string>`coalesce(${users.name}, ${users.username})`,
-      })
-      .from(users)
-      .where(inArray(users.id, ids));
-  }
-
-  /**
-   * User counts for the admin dashboard.
-   */
-  static async getStats() {
-    const [[totals], roleCounts] = await Promise.all([
-      db.select({ count: sql<number>`count(*)::int` }).from(users),
-      db
-        .select({ role: userRole.role, count: sql<number>`count(*)::int` })
-        .from(userRole)
-        .groupBy(userRole.role),
-    ]);
-
-    const roles = { admin: 0, buyer: 0, seller: 0, driver: 0 };
-    for (const r of roleCounts) {
-      if (r.role in roles) roles[r.role as keyof typeof roles] = r.count;
-    }
-    return { total: totals?.count ?? 0, roles };
   }
 }

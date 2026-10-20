@@ -14,8 +14,8 @@ export const runtimeEnvSchema = z.object({
   RABBITMQ_URL: z.string().url(),
   /** identity's RS256 public key (PEM; `\n` escapes allowed). */
   JWT_PUBLIC_KEY: z.string().min(1),
-  /** This service's client-credentials secret toward identity. */
-  SERVICE_CLIENT_SECRET: z.string().min(16),
+  /** This service's client-credentials secret toward identity (not needed by identity itself). */
+  SERVICE_CLIENT_SECRET: z.string().min(16).optional(),
   /** Address registered in Consul; defaults to the container IP. */
   SERVICE_ADDRESS: z.string().optional(),
 });
@@ -34,7 +34,7 @@ export function createRuntime(name: string, env: RuntimeEnv) {
   const tokens = createServiceTokenProvider({
     identityUrl: () => resolver.resolve('identity'),
     clientId: name,
-    clientSecret: env.SERVICE_CLIENT_SECRET,
+    clientSecret: env.SERVICE_CLIENT_SECRET ?? '',
   });
 
   const denylistConsumer = createEventConsumer({

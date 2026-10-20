@@ -6,24 +6,39 @@ const testState = {
   activeRole: '',
 };
 
-// The gateway resolves the session and forwards identity headers; services only read them.
+// Requests carry a real access token signed by identity, verified like in production.
+const tokenByRole = Object.fromEntries(
+  await Promise.all(
+    ['', 'admin', 'seller', 'buyer', 'driver'].map(async (role) => {
+      const { token } = await signAccessToken({
+        userId: 'test-user',
+        sessionId: 'test-session',
+        roles: [role],
+        activeRole: role,
+      });
+      return [role, token] as const;
+    }),
+  ),
+);
+
 function identityHeaders(): Record<string, string> {
   if (!testState.hasSession) return {};
-  return {
-    'x-user-id': 'test-user',
-    'x-session-id': 'test-session',
-    'x-active-role': testState.activeRole,
-  };
+  return { cookie: `__access=${tokenByRole[testState.activeRole]}` };
 }
 
 // ─── SUT ─────────────────────────────────────────────────────────────────────
+import { authenticate } from '@seapedia/platform/auth';
+import type { ServiceEnv } from '@seapedia/platform/factory';
 import { Hono } from 'hono';
+import { signAccessToken } from '@/lib/tokens';
+import { runtime } from '@/runtime';
 import { privateRouter } from './private.routes';
 
 const ROLES = ['admin', 'seller', 'buyer', 'driver'] as const;
 
 function createTestApp() {
-  const app = new Hono();
+  const app = new Hono<ServiceEnv>();
+  app.use('*', authenticate(runtime.verifier, runtime.denylist));
   app.route('/api/private', privateRouter);
   return app;
 }
@@ -37,7 +52,7 @@ describe('Private endpoints authorization', () => {
     testState.activeRole = '';
   });
 
-  test('returns 401 when the gateway forwarded no session', async () => {
+  test('returns 401 without an access token', async () => {
     testState.hasSession = false;
     const app = createTestApp();
     const res = await app.request('/api/private/seller', { headers: identityHeaders() });
