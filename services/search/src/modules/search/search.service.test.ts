@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import { buildProductQuery } from './search.service';
 
-const filters = (storeSlug?: string) =>
-  (buildProductQuery({ q: 'tuna', storeSlug, page: 1, limit: 20 }).function_score?.query?.bool
-    ?.filter ?? []) as object[];
+function filters(storeSlug?: string) {
+  const scored = buildProductQuery({ q: 'tuna', storeSlug, page: 1, limit: 20 }).function_score;
+  const query = scored && !Array.isArray(scored) ? scored.query : undefined;
+  return [query?.bool?.filter ?? []].flat();
+}
 
 describe('product search query', () => {
   test('deleted products (tombstones) never match', () => {

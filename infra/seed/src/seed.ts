@@ -18,7 +18,16 @@ import {
   seedCarts,
 } from './seed/index';
 
-const CATALOG_COLLECTIONS = ['stores', 'products', 'product_reviews', 'app_reviews', 'users', 'purchases', 'outbox', 'inbox'];
+const CATALOG_COLLECTIONS = [
+  'stores',
+  'products',
+  'product_reviews',
+  'app_reviews',
+  'users',
+  'purchases',
+  'outbox',
+  'inbox',
+];
 
 /** Seeding starts clean: every service table is emptied (migration history is untouched). */
 async function wipePostgres(tx: Tx) {
@@ -43,7 +52,8 @@ async function syncSoldCounts({ catalog, commerce }: Dbs) {
     .groupBy(orderItems.productId);
   const products = catalog.collection<{ _id: string } & Record<string, unknown>>('products');
   for (const row of sold) {
-    if (row.productId) await products.updateOne({ _id: row.productId }, { $set: { soldCount: row.soldCount } });
+    if (row.productId)
+      await products.updateOne({ _id: row.productId }, { $set: { soldCount: row.soldCount } });
   }
 }
 
@@ -67,7 +77,10 @@ async function seed(dbs: Dbs) {
   await seedDelivery(dbs, orderMap, userMap);
   await seedReviews(dbs, displayNames, productMap, orderMap);
   await seedCarts(dbs, userMap, productMap, storeMap);
-  await dbs.commerce.insert(systemTimeOffset).values({ id: 1, offsetSeconds: 0 }).onConflictDoNothing();
+  await dbs.commerce
+    .insert(systemTimeOffset)
+    .values({ id: 1, offsetSeconds: 0 })
+    .onConflictDoNothing();
   await syncSoldCounts(dbs);
 }
 
@@ -77,7 +90,9 @@ async function seed(dbs: Dbs) {
  */
 async function rebuildSearchIndex() {
   if (!env.CONSUL_HTTP_ADDR || !env.SEED_CLIENT_SECRET) {
-    console.log('CONSUL_HTTP_ADDR / SEED_CLIENT_SECRET not set: rebuild the index with POST /search/reindex.');
+    console.log(
+      'CONSUL_HTTP_ADDR / SEED_CLIENT_SECRET not set: rebuild the index with POST /search/reindex.',
+    );
     return;
   }
   const resolver = createResolver(env.CONSUL_HTTP_ADDR);

@@ -7,11 +7,11 @@ Replicas it keeps from events: `users` (reviewer names, from identity), `purchas
 from `commerce.order.completed`), and on `products`: `stock` (from `commerce.inventory.changed`)
 and `soldCount` (from `commerce.order.completed`, deduped by `inbox`).
 
-| Public (via Kong) | Service-to-service |
-| --- | --- |
+| Public (via Kong)                                                                                      | Service-to-service                                                                   |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | `/api/products` listing, detail, image upload; `/api/products/:id/reviews`, `/api/products/reviews/me` | `GET /internal/search/documents/export` (scope `catalog:export`, for search reindex) |
-| `/api/seller/products` CRUD | |
-| `/api/stores`, `/api/reviews` | |
+| `/api/seller/products` CRUD                                                                            |                                                                                      |
+| `/api/stores`, `/api/reviews`                                                                          |                                                                                      |
 
 Free-text listing queries call search (scope `search:query`, client-side discovery) for ranked
 ids and load them from MongoDB; if search is off (`config/catalog/searchEnabled`) or slower than

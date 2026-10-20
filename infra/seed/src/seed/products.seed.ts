@@ -53,7 +53,9 @@ export async function seedProducts({ catalog, commerce }: Dbs, storeMap: Map<str
   }
 
   for (const [storeId, totalProducts] of counts) {
-    await catalog.collection<{ _id: string } & Record<string, unknown>>('stores').updateOne({ _id: storeId }, { $set: { totalProducts } });
+    await catalog
+      .collection<{ _id: string } & Record<string, unknown>>('stores')
+      .updateOne({ _id: storeId }, { $set: { totalProducts } });
   }
 
   console.log(`Seeded ${productMap.size} products successfully.`);

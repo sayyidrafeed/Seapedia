@@ -34,7 +34,9 @@ export async function seedStores({ catalog, commerce }: Dbs, userMap: Map<string
     });
 
     // Commerce's replica, normally filled from `catalog.store.upserted`.
-    await commerce.insert(storeRefs).values({ id, sellerId, name: raw.name, slug: raw.slug, version: 1 });
+    await commerce
+      .insert(storeRefs)
+      .values({ id, sellerId, name: raw.name, slug: raw.slug, version: 1 });
     storeMap.set(raw.slug, id);
   }
 

@@ -139,7 +139,13 @@ export async function seedReviews(
         .collection<Doc>('purchases')
         .updateOne(
           { _id: `${order.buyerId}:${item.productId}` },
-          { $setOnInsert: { buyerId: order.buyerId, productId: item.productId, at: order.createdAt } },
+          {
+            $setOnInsert: {
+              buyerId: order.buyerId,
+              productId: item.productId,
+              at: order.createdAt,
+            },
+          },
           { upsert: true },
         );
 
@@ -198,7 +204,9 @@ export async function seedReviews(
 
   const byStore = await productReviews
     .aggregate<{ _id: string; avg: number; total: number }>([
-      { $lookup: { from: 'products', localField: 'productId', foreignField: '_id', as: 'product' } },
+      {
+        $lookup: { from: 'products', localField: 'productId', foreignField: '_id', as: 'product' },
+      },
       { $unwind: '$product' },
       { $group: { _id: '$product.storeId', avg: { $avg: '$rating' }, total: { $sum: 1 } } },
     ])
