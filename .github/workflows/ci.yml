@@ -14,7 +14,8 @@ env:
 
 jobs:
   # Which deployables changed? A service is affected by its own directory, the shared platform
-  # package, and the lockfile. Everything counts as changed when the diff base is unknown.
+  # package, and the lockfile; the gateway image by infra/kong. Everything counts as changed when
+  # the diff base is unknown.
   changes:
     name: Detect changed services
     runs-on: ubuntu-latest
@@ -37,9 +38,10 @@ jobs:
             echo "services=$all" >> "$GITHUB_OUTPUT"; exit 0
           fi
           changed=()
-          for svc in gateway identity catalog commerce search; do
+          for svc in identity catalog commerce search; do
             echo "$files" | grep -q "^services/$svc/" && changed+=("\"$svc\"")
           done
+          echo "$files" | grep -q '^infra/kong/' && changed+=('"gateway"')
           echo "$files" | grep -q '^apps/web/' && changed+=('"web"')
           echo "services=[$(IFS=,; echo "${changed[*]}")]" >> "$GITHUB_OUTPUT"
 
@@ -51,7 +53,6 @@ jobs:
       matrix:
         workspace:
           - packages/platform
-          - services/gateway
           - services/identity
           - services/catalog
           - services/commerce
@@ -110,6 +111,8 @@ jobs:
           echo "image=ghcr.io/${{ github.repository_owner }}/seapedia-${{ matrix.service }}" >> "$GITHUB_OUTPUT"
           if [ "${{ matrix.service }}" = web ]; then
             echo "dockerfile=apps/web/Dockerfile" >> "$GITHUB_OUTPUT"
+          elif [ "${{ matrix.service }}" = gateway ]; then
+            echo "dockerfile=infra/kong/Dockerfile" >> "$GITHUB_OUTPUT"
           else
             echo "dockerfile=services/${{ matrix.service }}/Dockerfile" >> "$GITHUB_OUTPUT"
           fi
