@@ -1,5 +1,6 @@
 import type { estypes } from '@elastic/elasticsearch';
 import { elastic } from '@/elastic/client';
+import { config } from '@/config';
 import { alias } from '@/elastic/indices';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -8,7 +9,9 @@ export type ProductQuery = { q: string; storeSlug?: string; page: number; limit:
 
 /** Builds the ranked product query. Exported for inspection; it has no side effects. */
 export function buildProductQuery({ q, storeSlug }: ProductQuery): estypes.QueryDslQueryContainer {
-  const filter: estypes.QueryDslQueryContainer[] = [];
+  const { fuzziness, soldCountBoost, ratingBoost } = config.get();
+  // Deleted products stay as tombstones (see sync/apply.ts) and must never match.
+  const filter: estypes.QueryDslQueryContainer[] = [{ term: { deleted: false } }];
   if (storeSlug) {
     filter.push(
       UUID_RE.test(storeSlug)
@@ -30,7 +33,7 @@ export function buildProductQuery({ q, storeSlug }: ProductQuery): estypes.Query
                   multi_match: {
                     query: q,
                     fields: ['name^3', 'storeName^1.5'],
-                    fuzziness: 'AUTO',
+                    fuzziness,
                     prefix_length: 1,
                     operator: 'and',
                   },
@@ -45,8 +48,22 @@ export function buildProductQuery({ q, storeSlug }: ProductQuery): estypes.Query
       },
       // Text relevance first; popularity and rating break ties without drowning it.
       functions: [
-        { field_value_factor: { field: 'soldCount', modifier: 'log1p', factor: 0.1, missing: 0 } },
-        { field_value_factor: { field: 'rating', modifier: 'log1p', factor: 0.5, missing: 0 } },
+        {
+          field_value_factor: {
+            field: 'soldCount',
+            modifier: 'log1p',
+            factor: soldCountBoost,
+            missing: 0,
+          },
+        },
+        {
+          field_value_factor: {
+            field: 'rating',
+            modifier: 'log1p',
+            factor: ratingBoost,
+            missing: 0,
+          },
+        },
       ],
       score_mode: 'sum',
       boost_mode: 'sum',

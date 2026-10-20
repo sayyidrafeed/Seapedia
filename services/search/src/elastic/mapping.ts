@@ -29,5 +29,17 @@ export const productMappings: estypes.MappingTypeMapping = {
       fields: { raw: { type: 'keyword', ignore_above: 255 } },
     },
     storeSlug: { type: 'keyword' },
+    version: { type: 'long' },
+    deleted: { type: 'boolean' },
+  },
+};
+
+/** Store name and slug per store id, used to enrich product events (which carry only storeId). */
+export const storeMappings: estypes.MappingTypeMapping = {
+  dynamic: 'strict',
+  properties: {
+    name: { type: 'keyword' },
+    slug: { type: 'keyword' },
+    version: { type: 'long' },
   },
 };

@@ -1,7 +1,11 @@
 import { createServiceApp } from '@seapedia/platform/service';
-import { env } from '@/env';
 import { searchRouter } from '@/modules/search/search.index';
+import { runtime } from '@/runtime';
 
-export const app = createServiceApp({ name: 'search', internalToken: env.INTERNAL_API_TOKEN });
+export const app = createServiceApp({
+  name: 'search',
+  verifier: runtime.verifier,
+  denylist: runtime.denylist,
+});
 
 app.route('/search', searchRouter);

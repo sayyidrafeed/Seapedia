@@ -1,6 +1,6 @@
 import { env } from '@/env';
 import { elastic } from './client';
-import { productIndexSettings, productMappings } from './mapping';
+import { productIndexSettings, productMappings, storeMappings } from './mapping';
 
 export const alias = env.INDEX_ALIAS;
 
@@ -33,4 +33,16 @@ export async function swapAlias(index: string) {
 
   const stale = current.filter((old) => old !== index);
   if (stale.length > 0) await elastic.indices.delete({ index: stale });
+}
+
+export const storesIndex = `${alias}_stores`;
+
+/** The small store lookup index (not rebuilt by reindex swaps, only upserted). */
+export async function ensureStoresIndex() {
+  if (await elastic.indices.exists({ index: storesIndex })) return;
+  await elastic.indices.create({
+    index: storesIndex,
+    settings: productIndexSettings,
+    mappings: storeMappings,
+  });
 }

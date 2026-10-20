@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Product projection published by catalog (`/internal/search/documents`). */
+/** A product as search indexes it: no price or stock (catalog loads those for each result). */
 export const productDocumentSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -16,3 +16,6 @@ export const productDocumentSchema = z.object({
 });
 
 export type ProductDocument = z.infer<typeof productDocumentSchema>;
+
+/** Stored form: the catalog version it came from, and a tombstone flag for deletions. */
+export type IndexedProduct = ProductDocument & { version: number; deleted: boolean };

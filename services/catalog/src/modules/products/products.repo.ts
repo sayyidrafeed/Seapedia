@@ -167,6 +167,8 @@ export const ProductsRepo = {
         storeId: string;
         storeName: string;
         storeSlug: string;
+        version: number;
+        storeVersion: number;
       }>([
         { $match: after ? { _id: { $gt: after } } : {} },
         { $sort: { _id: 1 } },
@@ -187,6 +189,8 @@ export const ProductsRepo = {
             storeId: 1,
             storeName: '$store.name',
             storeSlug: '$store.slug',
+            version: 1,
+            storeVersion: '$store.version',
           },
         },
       ])
