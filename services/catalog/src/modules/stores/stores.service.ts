@@ -1,9 +1,8 @@
-import { db } from '@/db';
-import { stores } from '@/db/schema';
-import { eq, ilike, inArray } from 'drizzle-orm';
-import { ConflictError, NotFoundError, ForbiddenError } from '@seapedia/platform/errors';
+import { ConflictError, ForbiddenError, NotFoundError } from '@seapedia/platform/errors';
+import { inTransaction } from '@/db';
 import { StorageService } from '@/lib/storage';
-import { catalogOutbox } from '@/modules/events/events.index';
+import { CatalogEvents, enqueue } from '@/modules/events/events.index';
+import { StoresRepo, toStore } from './stores.repo';
 
 export class StoreService {
   static slugify(text: string) {
@@ -19,22 +18,8 @@ export class StoreService {
   static async getUniqueSlug(name: string, excludeStoreId?: string): Promise<string> {
     const baseSlug = StoreService.slugify(name);
     let slug = baseSlug;
-    let suffix = 1;
-    while (true) {
-      const existing = await db.query.stores.findFirst({
-        where: (stores, { eq, ne, and }) => {
-          const conds = [eq(stores.slug, slug)];
-          if (excludeStoreId) {
-            conds.push(ne(stores.id, excludeStoreId));
-          }
-          return and(...conds);
-        },
-      });
-      if (!existing) {
-        break;
-      }
+    for (let suffix = 1; await StoresRepo.slugTaken(slug, excludeStoreId); suffix++) {
       slug = `${baseSlug}-${suffix}`;
-      suffix++;
     }
     return slug;
   }
@@ -43,158 +28,105 @@ export class StoreService {
     userId: string,
     input: { name: string; description?: string; logoKey?: string | null },
   ) {
-    const existingStore = await db.query.stores.findFirst({
-      where: eq(stores.sellerId, userId),
-    });
-
-    if (existingStore) {
+    if (await StoresRepo.bySeller(userId)) {
       throw new ConflictError('Seller already has a store');
     }
-
-    const existingName = await db.query.stores.findFirst({
-      where: ilike(stores.name, input.name),
-    });
-
-    if (existingName) {
+    if (await StoresRepo.nameTaken(input.name)) {
       throw new ConflictError('Store name is already used');
     }
 
     const slug = await StoreService.getUniqueSlug(input.name);
-
-    return await db.transaction(async (tx) => {
-      const [newStore] = await tx
-        .insert(stores)
-        .values({
+    const now = new Date();
+    const store = await inTransaction(async (session) => {
+      const created = await StoresRepo.insert(
+        {
+          _id: crypto.randomUUID(),
           sellerId: userId,
           name: input.name,
           slug,
-          description: input.description,
+          description: input.description ?? null,
           logoKey: input.logoKey || null,
-        })
-        .returning();
-
-      await catalogOutbox.enqueue(tx, 'store', [newStore.id]);
-      return newStore;
+          rating: 0,
+          reviewCount: 0,
+          totalProducts: 0,
+          version: 1,
+          createdAt: now,
+          updatedAt: now,
+        },
+        session,
+      );
+      await enqueue(session, CatalogEvents.storeUpserted(created));
+      return created;
     });
+    return toStore(store);
   }
 
   static async getBySellerId(userId: string) {
-    const store = await db.query.stores.findFirst({
-      where: eq(stores.sellerId, userId),
-    });
-
+    const store = await StoresRepo.bySeller(userId);
     if (!store) {
       throw new NotFoundError('Store not found');
     }
-
-    return store;
+    return toStore(store);
   }
 
   static async update(
     userId: string,
     input: { name?: string; description?: string; logoKey?: string | null },
   ) {
-    const store = await db.query.stores.findFirst({
-      where: eq(stores.sellerId, userId),
-    });
-
+    const store = await StoresRepo.bySeller(userId);
     if (!store) {
       throw new NotFoundError('Store not found');
     }
 
     let slug = store.slug;
     if (input.name && input.name !== store.name) {
-      const existingName = await db.query.stores.findFirst({
-        where: ilike(stores.name, input.name),
-      });
-
-      if (existingName) {
+      if (await StoresRepo.nameTaken(input.name, store._id)) {
         throw new ConflictError('Store name is already used');
       }
-      slug = await StoreService.getUniqueSlug(input.name, store.id);
+      slug = await StoreService.getUniqueSlug(input.name, store._id);
     }
 
-    const oldLogoKey = store.logoKey;
-
-    const updatedStore = await db.transaction(async (tx) => {
-      const [updated] = await tx
-        .update(stores)
-        .set({
+    const updated = await inTransaction(async (session) => {
+      const doc = await StoresRepo.update(
+        store._id,
+        {
           name: input.name ?? store.name,
           slug,
           description: input.description ?? store.description,
           logoKey: input.logoKey !== undefined ? input.logoKey : store.logoKey,
-          updatedAt: new Date(),
-        })
-        .where(eq(stores.id, store.id))
-        .returning();
-
-      await catalogOutbox.enqueue(tx, 'store', [store.id]);
-      return updated;
+        },
+        session,
+      );
+      if (!doc) throw new NotFoundError('Store not found');
+      await enqueue(session, CatalogEvents.storeUpserted(doc));
+      return doc;
     });
 
-    if (input.logoKey !== undefined && oldLogoKey && oldLogoKey !== input.logoKey) {
-      await StorageService.deleteObject(oldLogoKey);
+    if (input.logoKey !== undefined && store.logoKey && store.logoKey !== input.logoKey) {
+      await StorageService.deleteObject(store.logoKey);
     }
-
-    return updatedStore;
+    return toStore(updated);
   }
 
   /**
    * Generates pre-signed URL for store logo upload
    */
   static async presignLogo(userId: string, storeId: string, mimeType: string) {
-    const store = await db.query.stores.findFirst({
-      where: eq(stores.id, storeId),
-    });
-
+    const store = await StoresRepo.byId(storeId);
     if (!store) {
       throw new NotFoundError('Store not found');
     }
-
     if (store.sellerId !== userId) {
       throw new ForbiddenError('You do not own this store');
     }
-
     return await StorageService.generatePresignedUpload('stores/logos', mimeType);
   }
 
   static async getPublic(slugOrId: string) {
-    let store;
-
-    if (
-      slugOrId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-    ) {
-      store = await db.query.stores.findFirst({
-        where: eq(stores.id, slugOrId),
-      });
-    }
-
-    if (!store) {
-      store = await db.query.stores.findFirst({
-        where: eq(stores.slug, slugOrId.toLowerCase()),
-      });
-    }
-
-    if (!store) {
-      store = await db.query.stores.findFirst({
-        where: ilike(stores.name, slugOrId),
-      });
-    }
-
+    const store = await StoresRepo.findPublic(slugOrId);
     if (!store) {
       throw new NotFoundError('Store not found');
     }
-
-    return store;
-  }
-
-  /** Minimal store fields other services replicate. Missing ids are simply absent. */
-  static async getStoreRefs(ids: string[]) {
-    if (ids.length === 0) return [];
-    return await db
-      .select({ id: stores.id, sellerId: stores.sellerId, name: stores.name, slug: stores.slug })
-      .from(stores)
-      .where(inArray(stores.id, ids));
+    return toStore(store);
   }
 }

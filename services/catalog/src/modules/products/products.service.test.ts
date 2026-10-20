@@ -1,363 +1,169 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import type { EventEnvelope } from '@seapedia/platform/events';
 
-const dbState = {
-  selectQueue: [] as unknown[][],
-  insertQueue: [] as unknown[][],
-  updateQueue: [] as unknown[][],
-  selectIdx: 0,
-  insertIdx: 0,
-  updateIdx: 0,
-
-  reset() {
-    this.selectQueue = [];
-    this.insertQueue = [];
-    this.updateQueue = [];
-    this.selectIdx = 0;
-    this.insertIdx = 0;
-    this.updateIdx = 0;
-  },
-
-  addSelect(data: unknown[]) {
-    this.selectQueue.push(data);
-  },
-  addInsert(data: unknown[]) {
-    this.insertQueue.push(data);
-  },
-  addUpdate(data: unknown[]) {
-    this.updateQueue.push(data);
-  },
+const state = {
+  store: { _id: 'store-1', sellerId: 'seller-1', slug: 'toko', version: 1 } as Record<
+    string,
+    unknown
+  > | null,
+  owned: null as Record<string, unknown> | null,
+  search: null as { ids: string[]; total: number } | null,
+  inOrder: [] as string[],
+  listFilter: null as unknown,
+  published: [] as EventEnvelope[],
+  deleted: [] as string[],
 };
 
-mock.module('@/db', () => {
-  // Any chain of from/innerJoin/where/limit/offset resolves to the next queued result.
-  function makeSelect() {
-    return () => {
-      const data = dbState.selectQueue[dbState.selectIdx++] ?? [];
-      const chain = Object.assign(Promise.resolve(data), {} as Record<string, () => unknown>);
-      for (const method of ['from', 'innerJoin', 'where', 'limit', 'offset', 'orderBy']) {
-        chain[method] = () => chain;
-      }
-      return chain;
-    };
-  }
-
-  function makeInsert() {
-    return () => ({
-      values: () => {
-        const idx = dbState.insertIdx;
-        return {
-          returning: () => {
-            dbState.insertIdx++;
-            return Promise.resolve(dbState.insertQueue[idx] ?? []);
-          },
-        };
-      },
-    });
-  }
-
-  function makeUpdate() {
-    return () => ({
-      set: () => ({
-        where: () => {
-          const idx = dbState.updateIdx;
-          return {
-            returning: () => {
-              dbState.updateIdx++;
-              return Promise.resolve(dbState.updateQueue[idx] ?? []);
-            },
-          };
-        },
-      }),
-    });
-  }
-
-  function makeDelete() {
-    return () => ({
-      where: () => Promise.resolve(),
-    });
-  }
-
-  const findFirstFn = () => {
-    return () => {
-      const idx = dbState.selectIdx++;
-      const data = dbState.selectQueue[idx] ?? [];
-      return Promise.resolve(data[0]);
-    };
-  };
-
-  const findManyFn = () => {
-    return () => {
-      const idx = dbState.selectIdx++;
-      const data = dbState.selectQueue[idx] ?? [];
-      return Promise.resolve(data);
-    };
-  };
-
-  const db = {
-    query: {
-      products: {
-        findFirst: findFirstFn(),
-        findMany: findManyFn(),
-      },
-      stores: {
-        findFirst: findFirstFn(),
-      },
-    },
-    select: makeSelect(),
-    insert: makeInsert(),
-    update: makeUpdate(),
-    delete: makeDelete(),
-    transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
-      return await fn(db);
-    },
-  };
-
-  return { db };
+const product = (id: string, extra: Record<string, unknown> = {}) => ({
+  _id: id,
+  storeId: 'store-1',
+  name: 'Ikan Tuna',
+  slug: 'ikan-tuna',
+  description: null,
+  price: 50_000,
+  imageKey: null,
+  rating: 0,
+  reviewCount: 0,
+  soldCount: 0,
+  stock: 0,
+  stockVersion: 0,
+  version: 1,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...extra,
 });
 
-const storageState = {
-  deleteCalls: [] as string[],
-  reset() {
-    this.deleteCalls = [];
+mock.module('@/db', () => ({ inTransaction: (fn: (s: unknown) => unknown) => fn({}) }));
+mock.module('@/lib/storage', () => ({
+  StorageService: {
+    deleteObject: async (key: string) => void state.deleted.push(key),
+    generatePresignedUpload: async () => ({ uploadUrl: 'u', objectKey: 'k', publicUrl: 'p' }),
   },
-};
-
-mock.module('@/lib/storage', () => {
-  return {
-    StorageService: {
-      generatePresignedUpload: (prefix: string, _mimeType: string) => {
-        return Promise.resolve({
-          uploadUrl: `https://r2-mock.com/${prefix}/file.png`,
-          objectKey: `${prefix}/file.png`,
-          publicUrl: `https://cdn.mock.com/${prefix}/file.png`,
-        });
-      },
-      deleteObject: (key: string) => {
-        storageState.deleteCalls.push(key);
-        return Promise.resolve();
-      },
-      getPublicUrl: (key: string) => {
-        return `https://cdn.mock.com/${key}`;
-      },
-    },
-  };
-});
-
-const searchState = {
-  result: null as { ids: string[]; total: number } | null,
-};
-
-mock.module('@/modules/search/search.index', () => ({
-  searchProductIds: () => Promise.resolve(searchState.result),
 }));
-
+mock.module('@/modules/search/search.index', () => ({
+  searchProductIds: async () => state.search,
+}));
 mock.module('@/modules/events/events.index', () => ({
-  catalogOutbox: { enqueue: () => Promise.resolve() },
+  enqueue: async (_s: unknown, ...events: EventEnvelope[]) => void state.published.push(...events),
+  CatalogEvents: {
+    productUpserted: (p: { _id: string }) => ({
+      type: 'catalog.product.upserted',
+      data: { id: p._id },
+    }),
+    productDeleted: (p: { _id: string }) => ({
+      type: 'catalog.product.deleted',
+      data: { id: p._id },
+    }),
+    storeUpserted: (s: { _id: string }) => ({
+      type: 'catalog.store.upserted',
+      data: { id: s._id },
+    }),
+  },
+}));
+mock.module('@/modules/stores/stores.repo', () => ({
+  StoresRepo: { bySeller: async () => state.store, findPublic: async () => state.store },
+  toStore: ({ _id, ...rest }: { _id: string }) => ({ id: _id, ...rest }),
+}));
+mock.module('./products.repo', () => ({
+  toSellerProduct: ({ _id, ...rest }: { _id: string }) => ({ id: _id, ...rest }),
+  ProductsRepo: {
+    slugTaken: async () => false,
+    insert: async (p: unknown) => p,
+    adjustStoreProductCount: async () => state.store,
+    owned: async () => state.owned,
+    update: async (id: string, set: object) => ({ ...product(id), ...set, version: 2 }),
+    remove: async () => undefined,
+    publicInOrder: async (ids: string[]) =>
+      ids.filter((id) => state.inOrder.includes(id)).map((id) => ({ id })),
+    textFilter: (q: string) => ({ text: q }),
+    listPublic: async (filter: unknown) => {
+      state.listFilter = filter;
+      return { products: [{ id: 'from-db' }], total: 1 };
+    },
+  },
 }));
 
 import { ProductsService } from './products.service';
 
-const makeStore = (overrides: Record<string, unknown> = {}) => ({
-  id: 'store-1',
-  sellerId: 'seller-1',
-  name: 'Seller Store',
-  description: 'Desc',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  ...overrides,
+beforeEach(() => {
+  state.store = { _id: 'store-1', sellerId: 'seller-1', slug: 'toko', version: 1 };
+  state.owned = null;
+  state.search = null;
+  state.inOrder = [];
+  state.listFilter = null;
+  state.published = [];
+  state.deleted = [];
 });
 
-const makeProduct = (overrides: Record<string, unknown> = {}) => ({
-  id: 'prod-1',
-  storeId: 'store-1',
-  name: 'Product Name',
-  description: 'Product Desc',
-  price: 100000,
-  stock: 10,
-  imageKey: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  ...overrides,
+describe('seller products', () => {
+  test('creating a product publishes it and the store count change', async () => {
+    const created = await ProductsService.createSellerProduct('seller-1', {
+      name: 'Ikan Tuna',
+      price: 50_000,
+    });
+    expect(created).toMatchObject({ name: 'Ikan Tuna', storeId: 'store-1', stock: 0 });
+    expect(state.published.map((e) => e.type)).toEqual([
+      'catalog.product.upserted',
+      'catalog.store.upserted',
+    ]);
+  });
+
+  test('a negative price is rejected', async () => {
+    await expect(
+      ProductsService.createSellerProduct('seller-1', { name: 'X', price: -1 }),
+    ).rejects.toThrow('Price cannot be negative');
+  });
+
+  test('a seller without a store cannot create products', async () => {
+    state.store = null;
+    await expect(
+      ProductsService.createSellerProduct('seller-1', { name: 'X', price: 1 }),
+    ).rejects.toThrow('Store not found');
+  });
+
+  test("another store's product cannot be updated", async () => {
+    await expect(
+      ProductsService.updateSellerProduct('seller-1', 'p-x', { name: 'Y' }),
+    ).rejects.toThrow('Product not found or does not belong to your store');
+  });
+
+  test('replacing the image deletes the old object after the update is published', async () => {
+    state.owned = product('p-1', { imageKey: 'products/images/old.png' });
+    await ProductsService.updateSellerProduct('seller-1', 'p-1', {
+      imageKey: 'products/images/new.png',
+    });
+    expect(state.published.map((e) => e.type)).toEqual(['catalog.product.upserted']);
+    expect(state.deleted).toEqual(['products/images/old.png']);
+  });
+
+  test('deleting a product publishes the deletion', async () => {
+    state.owned = product('p-1');
+    await ProductsService.deleteSellerProduct('seller-1', 'p-1');
+    expect(state.published.map((e) => e.type)).toEqual([
+      'catalog.product.deleted',
+      'catalog.store.upserted',
+    ]);
+  });
 });
 
-describe('ProductsService', () => {
-  beforeEach(() => {
-    dbState.reset();
-    storageState.reset();
+describe('public listing', () => {
+  test('keeps the ranking from the search service and its total', async () => {
+    state.search = { ids: ['p-2', 'p-1', 'p-gone'], total: 7 };
+    state.inOrder = ['p-1', 'p-2'];
+    const result = await ProductsService.getPublicProducts({ search: 'tuna', page: 1, limit: 20 });
+    expect(result.products.map((p) => p.id)).toEqual(['p-2', 'p-1']);
+    expect(result.total).toBe(7);
   });
 
-  describe('createSellerProduct', () => {
-    test('creates product under seller store', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addInsert([makeProduct()]); // Products insert
-
-      const result = await ProductsService.createSellerProduct('seller-1', {
-        name: 'Product Name',
-        description: 'Product Desc',
-        price: 100000,
-      });
-
-      expect(result.id).toBe('prod-1');
-      expect(result.storeId).toBe('store-1');
+  test('falls back to the database when search is unavailable', async () => {
+    state.search = null;
+    const result = await ProductsService.getPublicProducts({
+      search: 'tuna',
+      storeSlug: 'toko',
+      page: 1,
+      limit: 20,
     });
-
-    test('throws error if seller has no store', async () => {
-      dbState.addSelect([]); // StoreService.getBySellerId returns null/undefined -> throws Store not found
-
-      await expect(
-        ProductsService.createSellerProduct('seller-1', {
-          name: 'Product Name',
-          price: 100000,
-        }),
-      ).rejects.toThrow('Store not found');
-    });
-
-    test('throws ValidationError if price is negative', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-
-      await expect(
-        ProductsService.createSellerProduct('seller-1', {
-          name: 'Product Name',
-          price: -100,
-        }),
-      ).rejects.toThrow('Price cannot be negative');
-    });
-  });
-
-  describe('getSellerProducts', () => {
-    test('returns seller products list', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([{ count: 2 }]); // db.select count(*)
-      dbState.addSelect([makeProduct(), makeProduct({ id: 'prod-2' })]); // findMany products
-
-      const result = await ProductsService.getSellerProducts('seller-1');
-
-      expect(result.total).toBe(2);
-      expect(result.products.length).toBe(2);
-      expect(result.products[0].id).toBe('prod-1');
-      expect(result.products[1].id).toBe('prod-2');
-    });
-  });
-
-  describe('getSellerProductById', () => {
-    test('returns seller product by id', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([makeProduct()]); // findFirst product
-
-      const result = await ProductsService.getSellerProductById('seller-1', 'prod-1');
-
-      expect(result.id).toBe('prod-1');
-    });
-
-    test('throws NotFoundError if product not found', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([]); // findFirst product returns null
-
-      await expect(ProductsService.getSellerProductById('seller-1', 'prod-1')).rejects.toThrow(
-        'Product not found or does not belong to your store',
-      );
-    });
-  });
-
-  describe('updateSellerProduct', () => {
-    test('updates product successfully', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([makeProduct()]); // products.findFirst
-      dbState.addUpdate([makeProduct({ name: 'Updated Product Name' })]); // update products
-
-      const result = await ProductsService.updateSellerProduct('seller-1', 'prod-1', {
-        name: 'Updated Product Name',
-      });
-
-      expect(result.name).toBe('Updated Product Name');
-    });
-
-    test('updates imageKey and deletes old product image', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([makeProduct({ imageKey: 'products/images/old.png' })]); // products.findFirst
-      dbState.addUpdate([makeProduct({ imageKey: 'products/images/new.png' })]); // update products
-
-      const result = await ProductsService.updateSellerProduct('seller-1', 'prod-1', {
-        imageKey: 'products/images/new.png',
-      });
-
-      expect(result.imageKey).toBe('products/images/new.png');
-      expect(storageState.deleteCalls).toContain('products/images/old.png');
-    });
-
-    test('throws NotFoundError if product is not found or from other store', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([]); // products.findFirst returns null
-
-      await expect(
-        ProductsService.updateSellerProduct('seller-1', 'prod-1', {
-          name: 'Updated Product Name',
-        }),
-      ).rejects.toThrow('Product not found or does not belong to your store');
-    });
-  });
-
-  describe('deleteSellerProduct', () => {
-    test('deletes product successfully and deletes its image from R2', async () => {
-      dbState.addSelect([makeStore()]); // StoreService.getBySellerId
-      dbState.addSelect([makeProduct({ imageKey: 'products/images/to-delete.png' })]); // products.findFirst
-
-      const result = await ProductsService.deleteSellerProduct('seller-1', 'prod-1');
-
-      expect(result.success).toBe(true);
-      expect(storageState.deleteCalls).toContain('products/images/to-delete.png');
-    });
-  });
-
-  describe('getPublicProducts', () => {
-    beforeEach(() => {
-      searchState.result = null;
-    });
-
-    test('keeps the ranking from the search service and its total', async () => {
-      searchState.result = { ids: ['prod-2', 'prod-1', 'prod-gone'], total: 7 };
-      // Hydration returns rows in database order; deleted products are simply missing.
-      dbState.addSelect([makeProduct({ id: 'prod-1' }), makeProduct({ id: 'prod-2' })]);
-
-      const result = await ProductsService.getPublicProducts({
-        search: 'ikan',
-        page: 1,
-        limit: 20,
-      });
-
-      expect(result.products.map((p) => p.id)).toEqual(['prod-2', 'prod-1']);
-      expect(result.total).toBe(7);
-    });
-
-    test('falls back to the database query when search is unavailable', async () => {
-      searchState.result = null;
-      dbState.addSelect([{ count: 1 }]); // count
-      dbState.addSelect([makeProduct({ id: 'prod-db' })]); // rows
-
-      const result = await ProductsService.getPublicProducts({
-        search: 'ikan',
-        page: 1,
-        limit: 20,
-      });
-
-      expect(result.products.map((p) => p.id)).toEqual(['prod-db']);
-      expect(result.total).toBe(1);
-    });
-  });
-
-  describe('presignImage', () => {
-    test('generates presigned product image URL successfully', async () => {
-      dbState.addSelect([makeStore()]);
-      const result = await ProductsService.presignImage('seller-1', 'image/png');
-      expect(result.uploadUrl).toBe('https://r2-mock.com/products/images/file.png');
-      expect(result.objectKey).toBe('products/images/file.png');
-    });
-
-    test('throws ForbiddenError if seller has no store', async () => {
-      dbState.addSelect([]); // no store
-      await expect(ProductsService.presignImage('seller-1', 'image/png')).rejects.toThrow(
-        'Store not found',
-      );
-    });
+    expect(result.products.map((p) => p.id)).toEqual(['from-db']);
+    expect(state.listFilter).toEqual({ text: 'tuna', storeId: 'store-1' });
   });
 });

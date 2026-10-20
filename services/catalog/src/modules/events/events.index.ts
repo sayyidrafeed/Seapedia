@@ -1,1 +1,1 @@
-export { catalogOutbox } from './events.outbox';
+export { CatalogEvents, enqueue, outboxStore } from './events';

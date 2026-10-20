@@ -6,7 +6,7 @@ import { productSchema, productListResponseSchema } from './products.schemas';
 import { z } from 'zod';
 import { paginationQuerySchema } from '@seapedia/platform/schemas';
 import { ProductsService } from './products.service';
-import { requireRole, requireSession } from '@seapedia/platform/internal-auth';
+import { requireRole, requireSession } from '@seapedia/platform/auth';
 import { StorageService } from '@/lib/storage';
 import { presignRequestSchema, presignResponseSchema } from '@seapedia/platform/upload.schemas';
 

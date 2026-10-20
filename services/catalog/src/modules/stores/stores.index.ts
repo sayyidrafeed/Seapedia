@@ -1,5 +1,5 @@
 import { factory } from '@seapedia/platform/factory';
-import { requireRole, requireSession } from '@seapedia/platform/internal-auth';
+import { requireRole, requireSession } from '@seapedia/platform/auth';
 import { describeRoute, validator } from 'hono-openapi';
 import { jsonContent, errorResponses } from '@seapedia/platform/openapi';
 import { createStoreSchema, storeResponseSchema, updateStoreSchema } from './stores.schemas';
@@ -181,4 +181,3 @@ storesRouter.post(
     return c.json(result);
   },
 );
-export { storesInternalRouter } from './stores.internal.routes';
