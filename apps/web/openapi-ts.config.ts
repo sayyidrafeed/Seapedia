@@ -1,9 +1,8 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
-const apiUrl = (process.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
-
 export default defineConfig({
-  input: `${apiUrl}/openapi.json`,
+  // Merged public contract produced by `bun scripts/openapi.ts` from the running services.
+  input: './public/openapi.json',
   output: 'src/lib/api/generated',
   plugins: [
     '@hey-api/typescript',
