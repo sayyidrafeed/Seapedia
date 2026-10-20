@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { buildProductQuery } from './search.service';
 
 function filters(storeSlug?: string) {
-  const scored = buildProductQuery({ q: 'tuna', storeSlug, page: 1, limit: 20 }).function_score;
+  const scored = buildProductQuery({ q: 'tuna', storeSlug, page: 1, limit: 20 })?.function_score;
   const query = scored && !Array.isArray(scored) ? scored.query : undefined;
   return [query?.bool?.filter ?? []].flat();
 }
