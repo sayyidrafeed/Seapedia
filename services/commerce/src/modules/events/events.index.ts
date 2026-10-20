@@ -1,1 +1,1 @@
-export { commerceOutbox } from './events.outbox';
+export { CommerceEvents, commerceOutbox } from './events';

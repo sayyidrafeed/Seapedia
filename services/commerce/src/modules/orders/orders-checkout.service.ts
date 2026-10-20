@@ -15,17 +15,14 @@ import { eq, and, sql } from 'drizzle-orm';
 import { NotFoundError, ValidationError } from '@seapedia/platform/errors';
 import { BuyersCartService } from '@/modules/buyers/buyers-cart.service';
 import { DiscountsService } from '@/modules/discounts/discounts.service';
-import { commerceOutbox } from '@/modules/events/events.index';
-
-export const DELIVERY_FEES: Record<string, number> = {
-  instant: 30000,
-  next_day: 15000,
-  regular: 10000,
-};
+import { config } from '@/config';
+import { CommerceEvents, commerceOutbox } from '@/modules/events/events.index';
 
 export class OrdersCheckoutService {
   static calculateTotals(subtotal: number, deliveryMethod: string, discountAmount = 0) {
-    const deliveryFee = DELIVERY_FEES[deliveryMethod] ?? 0;
+    // Fees come from Consul (config/commerce/deliveryFees) and change without a redeploy.
+    const fees: Record<string, number> = config.get().deliveryFees;
+    const deliveryFee = fees[deliveryMethod] ?? 0;
     const discountedSubtotal = Math.max(0, subtotal - discountAmount);
     const taxBase = discountedSubtotal + deliveryFee;
     const ppn = Math.round(taxBase * 0.12);
@@ -193,6 +190,7 @@ export class OrdersCheckoutService {
 
       // 5. Verify and reduce stock for all items
       const sortedItems = [...items].sort((a, b) => a.productId.localeCompare(b.productId));
+      const stockChanges: { productId: string; stock: number; version: number }[] = [];
       for (const item of sortedItems) {
         if (item.product.stock < item.quantity) {
           throw new ValidationError(
@@ -204,6 +202,7 @@ export class OrdersCheckoutService {
           .update(inventory)
           .set({
             stock: sql`${inventory.stock} - ${item.quantity}`,
+            version: sql`${inventory.version} + 1`,
             updatedAt: new Date(),
           })
           .where(
@@ -212,20 +211,21 @@ export class OrdersCheckoutService {
               sql`${inventory.stock} >= ${item.quantity}`,
             ),
           )
-          .returning();
+          .returning({
+            productId: inventory.productId,
+            stock: inventory.stock,
+            version: inventory.version,
+          });
 
         if (!updatedStock) {
           throw new ValidationError(
             `Insufficient stock for product "${item.product.name}". Stock updated by another transaction.`,
           );
         }
+        stockChanges.push(updatedStock);
       }
 
-      await commerceOutbox.enqueue(
-        tx,
-        'inventory',
-        sortedItems.map((item) => item.productId),
-      );
+      await commerceOutbox.enqueue(tx, ...stockChanges.map(CommerceEvents.inventoryChanged));
 
       // 6. Deduct balance from wallet
       const [updatedWallet] = await tx

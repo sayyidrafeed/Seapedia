@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { deliveryJobs, orders, storeRefs, orderStatusHistory, orderItems } from '@/db/schema';
 import { eq, and, desc, sql, count } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@seapedia/platform/errors';
-import { commerceOutbox } from '@/modules/events/events.index';
+import { CommerceEvents, commerceOutbox } from '@/modules/events/events.index';
 
 const jobColumns = {
   id: deliveryJobs.id,
@@ -122,16 +122,12 @@ export class DriverService {
         .returning();
       if (!order) throw new ConflictError('Order is not in delivery status');
 
-      // Completed orders change sold counts, which catalog owns: publish the affected products.
+      // Choreography: catalog unlocks reviews and counts units sold from this event.
       const items = await tx
-        .select({ productId: orderItems.productId })
+        .select({ productId: orderItems.productId, quantity: orderItems.quantity })
         .from(orderItems)
         .where(eq(orderItems.orderId, job.orderId));
-      await commerceOutbox.enqueue(
-        tx,
-        'sales',
-        items.flatMap((item) => item.productId ?? []),
-      );
+      await commerceOutbox.enqueue(tx, CommerceEvents.orderCompleted(order, items));
 
       await tx.insert(orderStatusHistory).values({
         orderId: job.orderId,

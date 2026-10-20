@@ -1,16 +1,21 @@
-import { and, eq, inArray } from 'drizzle-orm';
-import { ForbiddenError, NotFoundError } from '@seapedia/platform/errors';
+import { and, eq, inArray, sql } from 'drizzle-orm';
+import { ConflictError, ForbiddenError } from '@seapedia/platform/errors';
 import { db } from '@/db';
 import { inventory, productRefs, storeRefs } from '@/db/schema';
-import { CatalogRefs } from '@/modules/catalog-sync/catalog-sync.index';
-import { commerceOutbox } from '@/modules/events/events.index';
+import { ReplicaSync } from '@/modules/catalog-sync/catalog-sync.index';
+import { CommerceEvents, commerceOutbox } from '@/modules/events/events.index';
+
+/** A product created in catalog moments ago may not have replicated here yet. */
+export class ProductSyncingError extends ConflictError {
+  constructor() {
+    super('Product is still being synchronized, please retry in a moment', 'PRODUCT_SYNCING');
+  }
+}
 
 export class InventoryService {
   /** Sets a product's stock. Only the seller who owns the product's store may do this. */
   static async setStock(sellerId: string, productId: string, stock: number) {
-    if (!(await CatalogRefs.ensureProduct(productId))) {
-      throw new NotFoundError('Product not found');
-    }
+    if (!(await ReplicaSync.hasProduct(productId))) throw new ProductSyncingError();
 
     const [owned] = await db
       .select({ productId: productRefs.id })
@@ -25,11 +30,18 @@ export class InventoryService {
     return await db.transaction(async (tx) => {
       const [row] = await tx
         .insert(inventory)
-        .values({ productId, stock })
-        .onConflictDoUpdate({ target: inventory.productId, set: { stock, updatedAt: new Date() } })
-        .returning({ productId: inventory.productId, stock: inventory.stock });
-      await commerceOutbox.enqueue(tx, 'inventory', [productId]);
-      return row;
+        .values({ productId, stock, version: 1 })
+        .onConflictDoUpdate({
+          target: inventory.productId,
+          set: { stock, version: sql`${inventory.version} + 1`, updatedAt: new Date() },
+        })
+        .returning({
+          productId: inventory.productId,
+          stock: inventory.stock,
+          version: inventory.version,
+        });
+      await commerceOutbox.enqueue(tx, CommerceEvents.inventoryChanged(row));
+      return { productId: row.productId, stock: row.stock };
     });
   }
 

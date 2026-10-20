@@ -133,6 +133,7 @@ CREATE TABLE "system_time_offset" (
 CREATE TABLE "inventory" (
 	"product_id" uuid PRIMARY KEY NOT NULL,
 	"stock" integer DEFAULT 0 NOT NULL,
+	"version" integer DEFAULT 0 NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -143,6 +144,7 @@ CREATE TABLE "product_refs" (
 	"slug" varchar(255) NOT NULL,
 	"price" integer NOT NULL,
 	"image_key" varchar(512),
+	"version" integer NOT NULL,
 	"synced_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -151,16 +153,30 @@ CREATE TABLE "store_refs" (
 	"seller_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"slug" varchar(255) NOT NULL,
+	"version" integer NOT NULL,
 	"synced_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "store_refs_seller_id_unique" UNIQUE("seller_id")
 );
 --> statement-breakpoint
+CREATE TABLE "user_refs" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"roles" varchar(32)[] NOT NULL,
+	"version" integer NOT NULL,
+	"synced_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "inbox" (
+	"event_id" uuid PRIMARY KEY NOT NULL,
+	"type" text NOT NULL,
+	"processed_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "outbox" (
-	"id" bigserial PRIMARY KEY NOT NULL,
-	"consumer" text NOT NULL,
-	"topic" text NOT NULL,
-	"entity_id" uuid NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+	"id" uuid PRIMARY KEY NOT NULL,
+	"type" text NOT NULL,
+	"payload" jsonb NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"published_at" timestamp with time zone
 );
 --> statement-breakpoint
 ALTER TABLE "wallet_transactions" ADD CONSTRAINT "wallet_transactions_wallet_id_wallets_id_fk" FOREIGN KEY ("wallet_id") REFERENCES "public"."wallets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -175,5 +191,4 @@ ALTER TABLE "delivery_jobs" ADD CONSTRAINT "delivery_jobs_order_id_orders_id_fk"
 ALTER TABLE "inventory" ADD CONSTRAINT "inventory_product_id_product_refs_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product_refs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_refs" ADD CONSTRAINT "product_refs_store_id_store_refs_id_fk" FOREIGN KEY ("store_id") REFERENCES "public"."store_refs"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "order_items_product_id_idx" ON "order_items" USING btree ("product_id");--> statement-breakpoint
-CREATE INDEX "orders_buyer_id_idx" ON "orders" USING btree ("buyer_id");--> statement-breakpoint
-CREATE INDEX "outbox_consumer_id_idx" ON "outbox" USING btree ("consumer","id");
+CREATE INDEX "orders_buyer_id_idx" ON "orders" USING btree ("buyer_id");

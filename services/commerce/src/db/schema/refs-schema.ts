@@ -1,16 +1,18 @@
 import { integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 /**
- * Local replicas of catalog data, kept current by consuming catalog's outbox (see
- * modules/catalog-sync). Commerce joins against them instead of calling catalog per request, so
- * cart, checkout and order history keep working when catalog is down. Catalog stays the owner:
- * never write these from a commerce use case.
+ * Local replicas of catalog and identity data, kept current from their events (see
+ * modules/catalog-sync). Commerce joins against them instead of calling other services, so cart,
+ * checkout, order history and the admin dashboard keep working when they are down. `version` is
+ * the producer's entity version: an event older than what is stored is ignored. Never write these
+ * from a commerce use case.
  */
 export const storeRefs = pgTable('store_refs', {
   id: uuid('id').primaryKey(),
   sellerId: uuid('seller_id').notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
   slug: varchar('slug', { length: 255 }).notNull(),
+  version: integer('version').notNull(),
   syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -23,6 +25,7 @@ export const productRefs = pgTable('product_refs', {
   slug: varchar('slug', { length: 255 }).notNull(),
   price: integer('price').notNull(), // IDR, catalog's current price
   imageKey: varchar('image_key', { length: 512 }),
+  version: integer('version').notNull(),
   syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -35,5 +38,15 @@ export const inventory = pgTable('inventory', {
     .primaryKey()
     .references(() => productRefs.id, { onDelete: 'cascade' }),
   stock: integer('stock').default(0).notNull(),
+  /** Version carried by `commerce.inventory.changed`, so catalog applies changes in order. */
+  version: integer('version').default(0).notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Replica of identity users and their roles, for the admin dashboard's user counts. */
+export const userRefs = pgTable('user_refs', {
+  id: uuid('id').primaryKey(),
+  roles: varchar('roles', { length: 32 }).array().notNull(),
+  version: integer('version').notNull(),
+  syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
 });

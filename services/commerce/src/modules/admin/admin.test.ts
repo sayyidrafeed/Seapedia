@@ -35,11 +35,7 @@ const dbState = {
 
 mock.module('@/modules/events/events.index', () => ({
   commerceOutbox: { enqueue: () => Promise.resolve() },
-}));
-
-mock.module('@/modules/clients/clients.index', () => ({
-  identityClient: { get: () => Promise.resolve({}) },
-  catalogClient: { get: () => Promise.resolve({}) },
+  CommerceEvents: { inventoryChanged: () => ({}), orderCompleted: () => ({}) },
 }));
 
 mock.module('@/db', () => {
@@ -122,22 +118,29 @@ mock.module('@/db', () => {
   };
 });
 
+import { authenticate } from '@seapedia/platform/auth';
+import type { ServiceEnv } from '@seapedia/platform/factory';
 import { Hono } from 'hono';
+import { runtime } from '@/runtime';
+import { accessCookie } from '../../../test/tokens';
 import { adminRouter } from './admin.index';
 import { AdminService } from './admin.service';
 
-// The gateway resolves the session and forwards identity headers; services only read them.
+// Requests carry an access token signed like identity's, verified like in production.
+const cookies = Object.fromEntries(
+  await Promise.all(
+    ['admin', 'buyer'].map(async (role) => [role, await accessCookie(role)] as const),
+  ),
+);
+
 function identityHeaders(): Record<string, string> {
   if (!testState.hasSession) return {};
-  return {
-    'x-user-id': 'test-user',
-    'x-session-id': 'test-session',
-    'x-active-role': testState.activeRole,
-  };
+  return { cookie: cookies[testState.activeRole] };
 }
 
 function createTestApp() {
-  const app = new Hono();
+  const app = new Hono<ServiceEnv>();
+  app.use('*', authenticate(runtime.verifier, runtime.denylist));
   app.route('/api/admin', adminRouter);
   return app;
 }

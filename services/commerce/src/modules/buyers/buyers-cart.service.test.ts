@@ -127,7 +127,7 @@ mock.module('@/db', () => {
 });
 
 mock.module('@/modules/catalog-sync/catalog-sync.index', () => ({
-  CatalogRefs: { ensureProduct: () => Promise.resolve(true) },
+  ReplicaSync: { hasProduct: () => Promise.resolve(true) },
 }));
 
 import { BuyersCartService } from './buyers-cart.service';

@@ -135,6 +135,7 @@ mock.module('@/db', () => {
 
 mock.module('@/modules/events/events.index', () => ({
   commerceOutbox: { enqueue: () => Promise.resolve() },
+  CommerceEvents: { inventoryChanged: () => ({}) },
 }));
 
 import { OrdersCheckoutService } from './orders-checkout.service';

@@ -1,12 +1,14 @@
+import { createOutboxRelay } from '@seapedia/platform/events';
 import { app } from './app';
-import { env } from './env';
-import { catalogEventsConsumer } from './modules/catalog-sync/catalog-sync.index';
+import { config } from './config';
+import { replicaConsumer } from './modules/catalog-sync/catalog-sync.index';
+import { commerceOutbox } from './modules/events/events.index';
+import { runtime } from './runtime';
 
-console.log(`commerce service listening on :${env.PORT}`);
-
-Bun.serve({
-  fetch: app.fetch,
-  port: env.PORT,
-});
-
-catalogEventsConsumer.start();
+await runtime.start(app.fetch);
+replicaConsumer.start();
+createOutboxRelay({
+  rabbit: runtime.rabbit,
+  store: commerceOutbox.store,
+  intervalMs: config.get().outboxIntervalMs,
+}).start();

@@ -2,7 +2,8 @@ import { db } from '@/db';
 import { carts, cartItems, inventory, productRefs, storeRefs } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { NotFoundError, ConflictError, ValidationError } from '@seapedia/platform/errors';
-import { CatalogRefs } from '@/modules/catalog-sync/catalog-sync.index';
+import { ReplicaSync } from '@/modules/catalog-sync/catalog-sync.index';
+import { ProductSyncingError } from '@/modules/inventory/inventory.index';
 
 type Executor = Pick<typeof db, 'select'>;
 
@@ -129,10 +130,8 @@ export class BuyersCartService {
       throw new ValidationError('Quantity must be greater than zero');
     }
 
-    // A product created moments ago may not have replicated yet: read through to catalog.
-    if (!(await CatalogRefs.ensureProduct(productId))) {
-      throw new NotFoundError('Product not found');
-    }
+    // A product created moments ago may not have replicated yet; the client retries.
+    if (!(await ReplicaSync.hasProduct(productId))) throw new ProductSyncingError();
 
     // Wrap whole block in a transaction to guarantee atomicity of store locking + item upsert
     return await db.transaction(async (tx) => {

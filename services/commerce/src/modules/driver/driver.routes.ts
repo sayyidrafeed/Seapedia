@@ -2,7 +2,7 @@ import { factory } from '@seapedia/platform/factory';
 import { describeRoute, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { jsonContent, errorResponses } from '@seapedia/platform/openapi';
-import { requireSession, requireRole } from '@seapedia/platform/internal-auth';
+import { requireSession, requireRole } from '@seapedia/platform/auth';
 import {
   deliveryJobListResponseSchema,
   deliveryJobResponseSchema,

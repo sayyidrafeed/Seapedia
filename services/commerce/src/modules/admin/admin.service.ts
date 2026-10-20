@@ -2,6 +2,9 @@ import { db } from '@/db';
 import {
   inventory,
   orders,
+  productRefs,
+  storeRefs,
+  userRefs,
   vouchers,
   promos,
   deliveryJobs,
@@ -12,21 +15,8 @@ import {
   orderStatusHistory,
 } from '@/db/schema';
 import { and, sql, eq } from 'drizzle-orm';
-import { z } from 'zod';
 import { DELIVERY_SLA_HOURS } from './admin.constants';
-import { catalogClient, identityClient } from '@/modules/clients/clients.index';
-import { commerceOutbox } from '@/modules/events/events.index';
-
-const userStatsSchema = z.object({
-  total: z.number().int(),
-  roles: z.object({
-    admin: z.number().int(),
-    buyer: z.number().int(),
-    seller: z.number().int(),
-    driver: z.number().int(),
-  }),
-});
-const catalogStatsSchema = z.object({ stores: z.number().int(), products: z.number().int() });
+import { CommerceEvents, commerceOutbox } from '@/modules/events/events.index';
 
 export interface DashboardStats {
   users: {
@@ -59,10 +49,12 @@ export class AdminService {
     const subHoursStr = (h: number) =>
       new Date(effectiveNow.getTime() - h * 60 * 60 * 1000).toISOString();
 
-    // Users and catalog counts belong to other services; a failing peer fails the dashboard (503).
+    // Users, stores and products come from local replicas fed by identity and catalog events.
     const [
-      userStats,
-      catalogStats,
+      userCountRes,
+      roleCounts,
+      storeCountRes,
+      productCountRes,
       ordersCountRes,
       ordersCounts,
       vouchersCountRes,
@@ -71,8 +63,13 @@ export class AdminService {
       deliveriesCounts,
       overdueOrdersRes,
     ] = await Promise.all([
-      identityClient.get('/internal/users/stats', userStatsSchema),
-      catalogClient.get('/internal/stats', catalogStatsSchema),
+      db.select({ count: sql<number>`count(*)::int` }).from(userRefs),
+      db
+        .select({ role: sql<string>`unnest(${userRefs.roles})`, count: sql<number>`count(*)::int` })
+        .from(userRefs)
+        .groupBy(sql`1`),
+      db.select({ count: sql<number>`count(*)::int` }).from(storeRefs),
+      db.select({ count: sql<number>`count(*)::int` }).from(productRefs),
       // 5. Orders count
       db.select({ count: sql<number>`count(${orders.id})::int` }).from(orders),
       // 6. Order statuses count
@@ -107,6 +104,11 @@ export class AdminService {
         ),
     ]);
 
+    const roles = { admin: 0, buyer: 0, seller: 0, driver: 0 };
+    for (const r of roleCounts) {
+      if (r.role in roles) roles[r.role as keyof typeof roles] = r.count;
+    }
+
     const totalOrders = ordersCountRes[0]?.count || 0;
 
     const orderStatuses = {
@@ -132,9 +134,9 @@ export class AdminService {
     }
 
     return {
-      users: userStats,
-      stores: { total: catalogStats.stores },
-      products: { total: catalogStats.products },
+      users: { total: userCountRes[0]?.count ?? 0, roles },
+      stores: { total: storeCountRes[0]?.count ?? 0 },
+      products: { total: productCountRes[0]?.count ?? 0 },
       orders: { total: totalOrders, statuses: orderStatuses },
       discounts: { vouchers: totalVouchers, promos: totalPromos },
       deliveries: { total: totalDeliveries, statuses: deliveryStatuses },
@@ -282,21 +284,27 @@ export class AdminService {
           // 5. Restore product stocks
           const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, order.id));
           let itemsRestored = 0;
-          const restoredProductIds: string[] = [];
+          const restored: { productId: string; stock: number; version: number }[] = [];
           for (const item of items) {
             if (item.productId) {
               await tx
                 .update(inventory)
                 .set({
                   stock: sql`${inventory.stock} + ${item.quantity}`,
+                  version: sql`${inventory.version} + 1`,
                   updatedAt: new Date(),
                 })
-                .where(eq(inventory.productId, item.productId));
+                .where(eq(inventory.productId, item.productId))
+                .returning({
+                  productId: inventory.productId,
+                  stock: inventory.stock,
+                  version: inventory.version,
+                })
+                .then((rows) => restored.push(...rows));
               itemsRestored += item.quantity;
-              restoredProductIds.push(item.productId);
             }
           }
-          await commerceOutbox.enqueue(tx, 'inventory', restoredProductIds);
+          await commerceOutbox.enqueue(tx, ...restored.map(CommerceEvents.inventoryChanged));
 
           return {
             orderId: order.id,

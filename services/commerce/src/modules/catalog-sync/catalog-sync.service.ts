@@ -1,132 +1,110 @@
-import { eq, inArray, sql } from 'drizzle-orm';
-import type { OutboxEvent } from '@seapedia/platform/outbox';
+import { createEventConsumer, type EventEnvelope } from '@seapedia/platform/events';
+import { eq, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { inventory, productRefs, storeRefs } from '@/db/schema';
-import { catalogClient } from '@/modules/clients/clients.index';
+import { inventory, productRefs, storeRefs, userRefs } from '@/db/schema';
+import { runtime } from '@/runtime';
 
-const productRefsSchema = z.object({
-  products: z.array(
-    z.object({
-      id: z.string(),
-      storeId: z.string(),
-      name: z.string(),
-      slug: z.string(),
-      price: z.number().int(),
-      imageKey: z.string().nullable(),
-    }),
-  ),
+const productData = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  price: z.number().int(),
+  imageKey: z.string().nullable(),
 });
-const storeRefsSchema = z.object({
-  stores: z.array(
-    z.object({ id: z.string(), sellerId: z.string(), name: z.string(), slug: z.string() }),
-  ),
+const storeData = z.object({
+  id: z.string(),
+  sellerId: z.string(),
+  name: z.string(),
+  slug: z.string(),
 });
-
-type ProductRef = z.infer<typeof productRefsSchema>['products'][number];
-
-async function fetchProducts(ids: string[]) {
-  if (ids.length === 0) return [];
-  return (await catalogClient.get('/internal/products', productRefsSchema, { ids })).products;
-}
-
-async function fetchStores(ids: string[]) {
-  if (ids.length === 0) return [];
-  return (await catalogClient.get('/internal/stores', storeRefsSchema, { ids })).stores;
-}
-
-async function upsertStores(ids: string[]) {
-  const stores = await fetchStores(ids);
-  if (stores.length === 0) return;
-  await db
-    .insert(storeRefs)
-    .values(stores)
-    .onConflictDoUpdate({
-      target: storeRefs.id,
-      set: {
-        sellerId: sql`excluded.seller_id`,
-        name: sql`excluded.name`,
-        slug: sql`excluded.slug`,
-        syncedAt: sql`now()`,
-      },
-    });
-}
-
-async function upsertProducts(products: ProductRef[]) {
-  if (products.length === 0) return;
-  // Products may reference a store this replica has not seen yet.
-  const known = await db
-    .select({ id: storeRefs.id })
-    .from(storeRefs)
-    .where(inArray(storeRefs.id, [...new Set(products.map((p) => p.storeId))]));
-  const knownIds = new Set(known.map((s) => s.id));
-  await upsertStores(
-    [...new Set(products.map((p) => p.storeId))].filter((id) => !knownIds.has(id)),
-  );
-
-  await db.transaction(async (tx) => {
-    await tx
-      .insert(productRefs)
-      .values(products)
-      .onConflictDoUpdate({
-        target: productRefs.id,
-        set: {
-          storeId: sql`excluded.store_id`,
-          name: sql`excluded.name`,
-          slug: sql`excluded.slug`,
-          price: sql`excluded.price`,
-          imageKey: sql`excluded.image_key`,
-          syncedAt: sql`now()`,
-        },
-      });
-    // New products start with no stock until the seller sets it; existing stock is untouched.
-    await tx
-      .insert(inventory)
-      .values(products.map((p) => ({ productId: p.id, stock: 0 })))
-      .onConflictDoNothing();
-  });
-}
+const userData = z.object({ id: z.string(), roles: z.array(z.string()) });
 
 /**
- * Keeps product_refs / store_refs in step with catalog. Catalog is the owner; these are replicas.
+ * Applies other services' events to commerce's replicas. Events carry full state and a version;
+ * each write only wins over an older version, so redeliveries and reordering are harmless. A
+ * product whose store has not replicated yet fails the foreign key and is retried later.
  */
-export const CatalogRefs = {
-  /**
-   * Applies a batch of catalog events by re-reading catalog's current state. A product catalog no
-   * longer returns was deleted: its ref goes, cascading to inventory and cart items.
-   */
-  async applyEvents(events: OutboxEvent[]) {
-    const storeIds = [...new Set(events.filter((e) => e.topic === 'store').map((e) => e.entityId))];
-    const productIds = [
-      ...new Set(events.filter((e) => e.topic === 'product').map((e) => e.entityId)),
-    ];
-
-    await upsertStores(storeIds);
-
-    const current = await fetchProducts(productIds);
-    await upsertProducts(current);
-
-    const present = new Set(current.map((p) => p.id));
-    const deleted = productIds.filter((id) => !present.has(id));
-    if (deleted.length > 0) {
-      await db.delete(productRefs).where(inArray(productRefs.id, deleted));
-    }
+export const ReplicaSync = {
+  async productUpserted(event: EventEnvelope) {
+    const p = productData.parse(event.data);
+    await db.transaction(async (tx) => {
+      await tx
+        .insert(productRefs)
+        .values({ ...p, version: event.version })
+        .onConflictDoUpdate({
+          target: productRefs.id,
+          set: {
+            storeId: p.storeId,
+            name: p.name,
+            slug: p.slug,
+            price: p.price,
+            imageKey: p.imageKey,
+            version: event.version,
+            syncedAt: sql`now()`,
+          },
+          setWhere: lt(productRefs.version, event.version),
+        });
+      // New products start with no stock until the seller sets it; existing stock is untouched.
+      await tx.insert(inventory).values({ productId: p.id, stock: 0 }).onConflictDoNothing();
+    });
   },
 
-  /**
-   * Read-through for a product that may not have replicated yet (e.g. created a moment ago).
-   * Returns false when catalog does not know the product either.
-   */
-  async ensureProduct(productId: string): Promise<boolean> {
-    const [local] = await db
+  async productDeleted(event: EventEnvelope) {
+    const { id } = z.object({ id: z.string() }).parse(event.data);
+    // Cascades to inventory and cart items; order items keep their name and price snapshot.
+    await db.delete(productRefs).where(eq(productRefs.id, id));
+  },
+
+  async storeUpserted(event: EventEnvelope) {
+    const s = storeData.parse(event.data);
+    await db
+      .insert(storeRefs)
+      .values({ ...s, version: event.version })
+      .onConflictDoUpdate({
+        target: storeRefs.id,
+        set: {
+          sellerId: s.sellerId,
+          name: s.name,
+          slug: s.slug,
+          version: event.version,
+          syncedAt: sql`now()`,
+        },
+        setWhere: lt(storeRefs.version, event.version),
+      });
+  },
+
+  async userUpserted(event: EventEnvelope) {
+    const u = userData.parse(event.data);
+    await db
+      .insert(userRefs)
+      .values({ id: u.id, roles: u.roles, version: event.version })
+      .onConflictDoUpdate({
+        target: userRefs.id,
+        set: { roles: u.roles, version: event.version, syncedAt: sql`now()` },
+        setWhere: lt(userRefs.version, event.version),
+      });
+  },
+
+  async hasProduct(productId: string) {
+    const [row] = await db
       .select({ id: productRefs.id })
       .from(productRefs)
       .where(eq(productRefs.id, productId))
       .limit(1);
-    if (local) return true;
-
-    const products = await fetchProducts([productId]);
-    await upsertProducts(products);
-    return products.length > 0;
+    return Boolean(row);
   },
 };
+
+export const replicaConsumer = createEventConsumer({
+  rabbit: runtime.rabbit,
+  queue: 'commerce',
+  handlers: {
+    'catalog.product.upserted': ReplicaSync.productUpserted,
+    'catalog.product.deleted': ReplicaSync.productDeleted,
+    'catalog.store.upserted': ReplicaSync.storeUpserted,
+    'identity.user.registered': ReplicaSync.userUpserted,
+    'identity.user.updated': ReplicaSync.userUpserted,
+  },
+});
