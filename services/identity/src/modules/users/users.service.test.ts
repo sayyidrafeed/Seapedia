@@ -1,167 +1,73 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
-
-const dbState = {
-  selectQueue: [] as unknown[][],
-  updateQueue: [] as unknown[][],
-  selectIdx: 0,
-  updateIdx: 0,
-
-  reset() {
-    this.selectQueue = [];
-    this.updateQueue = [];
-    this.selectIdx = 0;
-    this.updateIdx = 0;
-  },
-
-  addSelect(data: unknown[]) {
-    this.selectQueue.push(data);
-  },
-  addUpdate(data: unknown[]) {
-    this.updateQueue.push(data);
-  },
-};
-
-mock.module('@/db', () => {
-  function makeSelect() {
-    return () => ({
-      from: () => ({
-        where: () => {
-          const idx = dbState.selectIdx++;
-          const data = dbState.selectQueue[idx] ?? [];
-          return Object.assign(Promise.resolve(data), {
-            limit: (n: number) => Promise.resolve(data.slice(0, n)),
-          });
-        },
-      }),
-    });
-  }
-
-  function makeUpdate() {
-    return () => ({
-      set: () => ({
-        where: () => {
-          const idx = dbState.updateIdx;
-          return {
-            returning: () => {
-              dbState.updateIdx++;
-              return Promise.resolve(dbState.updateQueue[idx] ?? []);
-            },
-          };
-        },
-      }),
-    });
-  }
-
-  const findFirstFn = () => {
-    return () => {
-      const idx = dbState.selectIdx++;
-      const data = dbState.selectQueue[idx] ?? [];
-      return Promise.resolve(data[0]);
-    };
-  };
-
-  const db = {
-    query: {
-      users: {
-        findFirst: findFirstFn(),
-      },
-    },
-    select: makeSelect(),
-    update: makeUpdate(),
-    // The real outbox inserts its event rows here.
-    insert: () => ({ values: () => Promise.resolve() }),
-    transaction: (fn: (tx: unknown) => unknown) => fn(db),
-  };
-
-  return { db };
-});
-
-const storageState = {
-  deleteCalls: [] as string[],
-  reset() {
-    this.deleteCalls = [];
-  },
-};
-
-mock.module('@/lib/storage', () => {
-  return {
-    StorageService: {
-      generatePresignedUpload: (prefix: string, _mimeType: string) => {
-        return Promise.resolve({
-          uploadUrl: `https://r2-mock.com/${prefix}/file.png`,
-          objectKey: `${prefix}/file.png`,
-          publicUrl: `https://cdn.mock.com/${prefix}/file.png`,
-        });
-      },
-      deleteObject: (key: string) => {
-        storageState.deleteCalls.push(key);
-        return Promise.resolve();
-      },
-      getPublicUrl: (key: string) => {
-        return `https://cdn.mock.com/${key}`;
-      },
-    },
-  };
-});
-
-import { UsersService } from './users.service';
+import { afterAll, afterEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { NotFoundError } from '@seapedia/platform/errors';
+import { db } from '@/db';
+import { userRole, users } from '@/db/schema';
+import { StorageService } from '@/lib/storage';
+import { outboxEvents } from '../../../test/db';
+import { UsersService } from './users.service';
 
-const makeUser = (overrides: Record<string, unknown> = {}) => ({
-  id: 'user-1',
-  username: 'testuser',
-  email: 'test@test.com',
-  name: 'Test User',
-  avatarKey: null,
-  isOnboarded: true,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  ...overrides,
+// R2 is the external boundary; the database is real.
+const presign = spyOn(StorageService, 'generatePresignedUpload').mockResolvedValue({
+  uploadUrl: 'https://r2.test/users/avatars/file.png',
+  objectKey: 'users/avatars/file.png',
+  publicUrl: 'https://cdn.test/users/avatars/file.png',
+});
+const deleteObject = spyOn(StorageService, 'deleteObject').mockResolvedValue();
+
+afterEach(() => {
+  presign.mockClear();
+  deleteObject.mockClear();
+});
+afterAll(() => mock.restore());
+
+async function seedUser(avatarKey: string | null = null) {
+  const [user] = await db
+    .insert(users)
+    .values({ username: 'dewi', email: 'dewi@example.com', passwordHash: 'x', avatarKey })
+    .returning();
+  await db.insert(userRole).values({ userId: user.id, role: 'seller' });
+  return user;
+}
+
+const MISSING = '00000000-0000-4000-8000-000000000000';
+
+describe('presignAvatar', () => {
+  test('signs an upload under the avatars prefix for an existing user', async () => {
+    const user = await seedUser();
+    const result = await UsersService.presignAvatar(user.id, 'image/png');
+    expect(result.objectKey).toBe('users/avatars/file.png');
+    expect(presign).toHaveBeenCalledWith('users/avatars', 'image/png');
+  });
+
+  test('throws NotFoundError if user not found', async () => {
+    await expect(UsersService.presignAvatar(MISSING, 'image/png')).rejects.toThrow(NotFoundError);
+  });
 });
 
-describe('UsersService', () => {
-  beforeEach(() => {
-    dbState.reset();
-    storageState.reset();
-  });
+describe('updateProfile', () => {
+  test('renames the user and publishes the new display name with a newer version', async () => {
+    const user = await seedUser();
 
-  describe('presignAvatar', () => {
-    test('generates presigned avatar URL successfully', async () => {
-      dbState.addSelect([makeUser()]); // user exists
-      const result = await UsersService.presignAvatar('user-1', 'image/png');
-      expect(result.uploadUrl).toBe('https://r2-mock.com/users/avatars/file.png');
-      expect(result.objectKey).toBe('users/avatars/file.png');
-    });
+    const result = await UsersService.updateProfile(user.id, { name: 'Dewi Lestari' });
 
-    test('throws NotFoundError if user not found', async () => {
-      dbState.addSelect([]); // user not found
-      await expect(UsersService.presignAvatar('user-1', 'image/png')).rejects.toThrow(
-        NotFoundError,
-      );
+    expect(result).toMatchObject({ name: 'Dewi Lestari', version: 2 });
+    expect(deleteObject).not.toHaveBeenCalled();
+    const [updated] = await outboxEvents();
+    expect(updated).toMatchObject({
+      type: 'identity.user.updated',
+      version: 2,
+      data: { displayName: 'Dewi Lestari', roles: ['seller'] },
     });
   });
 
-  describe('updateProfile', () => {
-    test('updates profile successfully', async () => {
-      const user = makeUser();
-      dbState.addSelect([user]); // select user
-      dbState.addUpdate([makeUser({ name: 'Updated Name' })]); // update user
+  test('deletes the old avatar from R2 after the new one is saved', async () => {
+    const user = await seedUser('users/avatars/old.png');
 
-      const result = await UsersService.updateProfile('user-1', { name: 'Updated Name' });
-      expect(result.name).toBe('Updated Name');
-      expect(storageState.deleteCalls.length).toBe(0); // no old avatar to delete
+    const result = await UsersService.updateProfile(user.id, {
+      avatarKey: 'users/avatars/new.png',
     });
 
-    test('deletes old avatar from R2 when updating to new avatar', async () => {
-      const user = makeUser({ avatarKey: 'users/avatars/old.png' });
-      dbState.addSelect([user]); // select user
-      dbState.addUpdate([makeUser({ avatarKey: 'users/avatars/new.png' })]); // update user
-
-      const result = await UsersService.updateProfile('user-1', {
-        avatarKey: 'users/avatars/new.png',
-      });
-      expect(result.avatarKey).toBe('users/avatars/new.png');
-      expect(storageState.deleteCalls).toContain('users/avatars/old.png');
-    });
+    expect(result.avatarKey).toBe('users/avatars/new.png');
+    expect(deleteObject).toHaveBeenCalledWith('users/avatars/old.png');
   });
 });

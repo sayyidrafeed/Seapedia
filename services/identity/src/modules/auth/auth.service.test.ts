@@ -1,199 +1,173 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+import { createHash } from 'node:crypto';
 import { createTokenVerifier } from '@seapedia/platform/auth';
-import type { EventEnvelope } from '@seapedia/platform/events';
-import { getTableName, type Table } from 'drizzle-orm';
-
-// ─── Database fake: every query chain resolves to the next queued result ─────
-const dbState = {
-  selects: [] as unknown[][],
-  inserts: [] as { table: string; values: unknown }[],
-  insertResults: [] as unknown[][],
-  updates: [] as { table: string; values: unknown }[],
-  updateResults: [] as unknown[][],
-  reset() {
-    this.selects = [];
-    this.inserts = [];
-    this.insertResults = [];
-    this.updates = [];
-    this.updateResults = [];
-  },
-};
-
-function chain(result: () => unknown, onValues?: (values: unknown) => void): unknown {
-  const proxy: unknown = new Proxy(() => undefined, {
-    get(_t, prop) {
-      if (prop === 'then') {
-        return (res: (v: unknown) => void, rej: (e: unknown) => void) =>
-          Promise.resolve(result()).then(res, rej);
-      }
-      return (...args: unknown[]) => {
-        if ((prop === 'values' || prop === 'set') && onValues) onValues(args[0]);
-        return proxy;
-      };
-    },
-  });
-  return proxy;
-}
-
-const db = {
-  select: () => chain(() => dbState.selects.shift() ?? []),
-  insert: (table: Table) => {
-    const entry = { table: getTableName(table), values: undefined as unknown };
-    dbState.inserts.push(entry);
-    return chain(
-      () => dbState.insertResults.shift() ?? [],
-      (v) => (entry.values = v),
-    );
-  },
-  update: (table: Table) => {
-    const entry = { table: getTableName(table), values: undefined as unknown };
-    dbState.updates.push(entry);
-    return chain(
-      () => dbState.updateResults.shift() ?? [],
-      (v) => (entry.values = v),
-    );
-  },
-  delete: () => chain(() => []),
-  transaction: (fn: (tx: unknown) => unknown) => fn(db),
-};
-
-mock.module('@/db', () => ({ db }));
-
-// The real outbox writes into the fake database; events are read back from the outbox rows.
-const published = () =>
-  dbState.inserts
-    .filter((i) => i.table === 'outbox')
-    .flatMap((i) => (i.values as { payload: EventEnvelope }[]).map((row) => row.payload));
-
+import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { refreshTokens, sessions, userRole, users } from '@/db/schema';
+import { outboxEvents } from '../../../test/db';
 import { AuthService } from './auth.service';
 
 const verifier = createTokenVerifier(process.env.JWT_PUBLIC_KEY!);
-const user = {
-  id: '00000000-0000-4000-8000-000000000001',
-  username: 'dewi',
-  email: 'dewi@example.com',
-  name: 'Dewi',
-  passwordHash: await Bun.password.hash('password123', 'bcrypt'),
-  isOnboarded: true,
-  avatarKey: null,
-  version: 1,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-const SESSION = '00000000-0000-4000-8000-0000000000aa';
+const passwordHash = await Bun.password.hash('password123', 'bcrypt');
 
-beforeEach(() => {
-  dbState.reset();
-});
+async function seedUser(roles: string[], fields: Partial<typeof users.$inferInsert> = {}) {
+  const [user] = await db
+    .insert(users)
+    .values({ username: 'dewi', email: 'dewi@example.com', passwordHash, ...fields })
+    .returning();
+  for (const role of roles) await db.insert(userRole).values({ userId: user.id, role });
+  return user;
+}
+
+async function signIn(roles = ['buyer', 'seller']) {
+  const user = await seedUser(roles);
+  const { session, tokens } = await AuthService.login({
+    username: 'dewi',
+    password: 'password123',
+  });
+  return { user, session, refreshToken: tokens.refreshToken! };
+}
+
+const tokenRow = async (token: string) => {
+  const hash = createHash('sha256').update(token).digest('hex');
+  const [row] = await db.select().from(refreshTokens).where(eq(refreshTokens.tokenHash, hash));
+  return row;
+};
 
 describe('register and login', () => {
   test('register refuses a taken username or email', async () => {
-    dbState.selects.push([user]);
+    await seedUser(['buyer']);
     await expect(
       AuthService.register({ username: 'dewi', email: 'x@example.com', password: 'secret123' }),
+    ).rejects.toThrow('Username or email is already taken');
+    await expect(
+      AuthService.register({ username: 'other', email: 'dewi@example.com', password: 'secret123' }),
     ).rejects.toThrow('Username or email is already taken');
   });
 
   test('register creates a buyer session and announces the new user', async () => {
-    dbState.selects.push([]); // uniqueness check
-    dbState.insertResults.push([user], [], [{ id: SESSION }], [], [{ id: 'rt-1' }]); // user, role, session, outbox, refresh token
-
-    const { tokens } = await AuthService.register({
+    const { user, session, tokens } = await AuthService.register({
       username: 'dewi',
       email: 'dewi@example.com',
       password: 'password123',
     });
 
-    expect(tokens.refreshToken).toBeDefined();
     const claims = await verifier.user(tokens.accessToken);
-    expect(claims).toMatchObject({ userId: user.id, sessionId: SESSION, activeRole: 'buyer' });
-    expect(published().map((e) => e.type)).toEqual(['identity.user.registered']);
+    expect(claims).toMatchObject({ userId: user.id, sessionId: session.id, activeRole: 'buyer' });
+    expect(await db.select({ role: userRole.role }).from(userRole)).toEqual([{ role: 'buyer' }]);
+    // Only the hash is stored, so a database leak does not leak usable refresh tokens.
+    expect((await tokenRow(tokens.refreshToken!)).sessionId).toBe(session.id);
+    const [registered] = await outboxEvents();
+    expect(registered).toMatchObject({
+      type: 'identity.user.registered',
+      version: 1,
+      data: { id: user.id, username: 'dewi', roles: ['buyer'] },
+    });
   });
 
   test('login rejects a wrong password', async () => {
-    dbState.selects.push([user]);
+    await seedUser(['buyer']);
     await expect(AuthService.login({ username: 'dewi', password: 'wrong' })).rejects.toThrow(
       'Invalid credentials',
     );
   });
 
   test('each login opens its own session, so devices sign out independently', async () => {
-    dbState.selects.push([user], [{ role: 'buyer' }, { role: 'seller' }]);
-    dbState.insertResults.push([{ id: SESSION }], [{ id: 'rt-1' }]);
+    await seedUser(['buyer', 'seller']);
+    const first = await AuthService.login({ username: 'dewi', password: 'password123' });
+    const second = await AuthService.login({
+      username: 'dewi@example.com',
+      password: 'password123',
+    });
 
-    const { tokens } = await AuthService.login({ username: 'dewi', password: 'password123' });
-
-    expect(dbState.inserts.map((i) => i.table)).toEqual(['sessions', 'refresh_tokens']);
-    expect(await verifier.user(tokens.accessToken)).toMatchObject({
+    expect(first.session.id).not.toBe(second.session.id);
+    expect(await verifier.user(second.tokens.accessToken)).toMatchObject({
       roles: ['buyer', 'seller'],
       activeRole: 'buyer',
     });
+    await AuthService.logout({ sessionId: first.session.id });
+    const live = await db.select({ id: sessions.id, revokedAt: sessions.revokedAt }).from(sessions);
+    expect(live).toContainEqual({ id: second.session.id, revokedAt: null });
   });
 });
 
 describe('refresh token rotation', () => {
-  const stored = (usedAt: Date | null) => ({
-    id: 'rt-1',
-    sessionId: SESSION,
-    expiresAt: new Date(Date.now() + 86_400_000),
-    usedAt,
-    revokedAt: null,
-    userId: user.id,
-    activeRole: 'seller',
-  });
-
   test('a fresh token is rotated: marked used and linked to the new one', async () => {
-    dbState.selects.push([stored(null)], [{ role: 'buyer' }, { role: 'seller' }]);
-    dbState.insertResults.push([{ id: 'rt-2' }]);
+    const { user, session, refreshToken } = await signIn();
+    await AuthService.selectRole(user.id, session.id, 'seller');
 
-    const result = await AuthService.refresh('presented-token');
+    const result = await AuthService.refresh(refreshToken);
 
-    expect(result.reused).toBe(false);
-    if (result.reused) return;
-    const rotated = dbState.updates.find((u) => u.table === 'refresh_tokens');
-    expect(rotated?.values).toMatchObject({ replacedBy: 'rt-2', usedAt: expect.any(Date) });
-    expect(dbState.inserts.map((i) => i.table)).toEqual(['refresh_tokens']);
+    if (result.reused) throw new Error('expected a rotation');
+    const old = await tokenRow(refreshToken);
+    const next = await tokenRow(result.tokens.refreshToken!);
+    expect(old.usedAt).toBeInstanceOf(Date);
+    expect(old.replacedBy).toBe(next.id);
+    expect(next).toMatchObject({ sessionId: session.id, usedAt: null });
     expect(await verifier.user(result.tokens.accessToken)).toMatchObject({ activeRole: 'seller' });
   });
 
   test('a token used twice revokes the session and tells every service', async () => {
-    dbState.selects.push([stored(new Date())]);
-    dbState.updateResults.push([{ id: SESSION }]); // session revoked
+    const { session, refreshToken } = await signIn();
+    const rotated = await AuthService.refresh(refreshToken);
+    if (rotated.reused) throw new Error('expected a rotation');
 
-    const result = await AuthService.refresh('replayed-token');
+    expect(await AuthService.refresh(refreshToken)).toEqual({ reused: true });
 
-    expect(result.reused).toBe(true);
-    expect(dbState.updates[0]).toMatchObject({ table: 'sessions' });
-    expect(published().map((e) => e.type)).toEqual(['identity.session.revoked']);
-    expect(published()[0].data).toMatchObject({ sessionId: SESSION });
+    const [row] = await db.select().from(sessions).where(eq(sessions.id, session.id));
+    expect(row.revokedAt).toBeInstanceOf(Date);
+    const revoked = (await outboxEvents()).filter((e) => e.type === 'identity.session.revoked');
+    expect(revoked.map((e) => e.data)).toEqual([
+      { sessionId: session.id, expiresAt: expect.any(Number) },
+    ]);
+    // The legitimate holder's newer token belongs to the same family and dies with it.
+    await expect(AuthService.refresh(rotated.tokens.refreshToken!)).rejects.toThrow(
+      'Session expired',
+    );
   });
 
-  test('an unknown token is refused', async () => {
-    dbState.selects.push([]);
+  test('an unknown or expired token is refused', async () => {
+    const { refreshToken } = await signIn();
     await expect(AuthService.refresh('nope')).rejects.toThrow('Session expired');
+
+    await db.update(refreshTokens).set({ expiresAt: new Date(Date.now() - 1000) });
+    await expect(AuthService.refresh(refreshToken)).rejects.toThrow('Session expired');
   });
 });
 
 describe('roles', () => {
   test('a role the user does not hold cannot be selected', async () => {
-    dbState.selects.push([{ role: 'buyer' }]);
-    await expect(AuthService.selectRole(user.id, SESSION, 'admin')).rejects.toThrow(
+    const { user, session } = await signIn(['buyer']);
+    await expect(AuthService.selectRole(user.id, session.id, 'admin')).rejects.toThrow(
       "You do not have access to the 'admin' role",
     );
   });
 
-  test('switching role re-issues the access token with the new role', async () => {
-    dbState.selects.push([{ role: 'buyer' }, { role: 'seller' }]);
-    dbState.updateResults.push([{ id: SESSION }]);
+  test('switching role re-issues the access token and remembers it on the session', async () => {
+    const { user, session } = await signIn();
 
-    const tokens = await AuthService.selectRole(user.id, SESSION, 'seller');
+    const tokens = await AuthService.selectRole(user.id, session.id, 'seller');
 
     expect(await verifier.user(tokens.accessToken)).toMatchObject({ activeRole: 'seller' });
+    const [row] = await db.select().from(sessions).where(eq(sessions.id, session.id));
+    expect(row.activeRole).toBe('seller');
   });
 
-  test('onboarding twice is refused', async () => {
-    dbState.selects.push([{ ...user, isOnboarded: true }]);
-    await expect(AuthService.onboard(user.id, SESSION, ['seller'])).rejects.toThrow(
+  test('onboarding sets the chosen roles, keeps admin, and publishes a newer version', async () => {
+    const user = await seedUser(['admin', 'buyer'], { isOnboarded: false });
+    const [session] = await db
+      .insert(sessions)
+      .values({ userId: user.id, activeRole: 'admin' })
+      .returning();
+
+    const tokens = await AuthService.onboard(user.id, session.id, ['driver']);
+
+    expect(await verifier.user(tokens.accessToken)).toMatchObject({ activeRole: 'admin' });
+    const roles = await db.select({ role: userRole.role }).from(userRole);
+    expect(roles.map((r) => r.role).sort()).toEqual(['admin', 'buyer', 'driver']);
+    const [updated] = await outboxEvents();
+    expect(updated).toMatchObject({ type: 'identity.user.updated', version: 2 });
+    await expect(AuthService.onboard(user.id, session.id, ['seller'])).rejects.toThrow(
       'User is already onboarded',
     );
   });
