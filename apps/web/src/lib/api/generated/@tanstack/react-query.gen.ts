@@ -71,6 +71,7 @@ import {
   privateSellerEndpoint,
   processOverdueOrders,
   processSellerOrder,
+  refreshSession,
   registerUser,
   selectActiveRole,
   setDefaultAddress,
@@ -271,6 +272,9 @@ import type {
   ProcessSellerOrderData,
   ProcessSellerOrderError,
   ProcessSellerOrderResponse,
+  RefreshSessionData,
+  RefreshSessionError,
+  RefreshSessionResponse,
   RegisterUserData,
   RegisterUserError,
   RegisterUserResponse,
@@ -318,75 +322,6 @@ import type {
   ValidateDiscountCodeResponse,
 } from '../types.gen';
 
-/**
- * Register a new user account
- */
-export const registerUserMutation = (
-  options?: Partial<Options<RegisterUserData>>,
-): UseMutationOptions<RegisterUserResponse, RegisterUserError, Options<RegisterUserData>> => {
-  const mutationOptions: UseMutationOptions<
-    RegisterUserResponse,
-    RegisterUserError,
-    Options<RegisterUserData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await registerUser({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Login to user account
- */
-export const loginUserMutation = (
-  options?: Partial<Options<LoginUserData>>,
-): UseMutationOptions<LoginUserResponse, LoginUserError, Options<LoginUserData>> => {
-  const mutationOptions: UseMutationOptions<
-    LoginUserResponse,
-    LoginUserError,
-    Options<LoginUserData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await loginUser({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Logout current user session
- */
-export const logoutUserMutation = (
-  options?: Partial<Options<LogoutUserData>>,
-): UseMutationOptions<LogoutUserResponse, LogoutUserError, Options<LogoutUserData>> => {
-  const mutationOptions: UseMutationOptions<
-    LogoutUserResponse,
-    LogoutUserError,
-    Options<LogoutUserData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await logoutUser({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
 export type QueryKey<TOptions extends Options> = [
   Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
     _id: string;
@@ -424,6 +359,273 @@ const createQueryKey = <TOptions extends Options>(
     params.query = options.query;
   }
   return [params];
+};
+
+export const getDashboardStatsQueryKey = (options?: Options<GetDashboardStatsData>) =>
+  createQueryKey('getDashboardStats', options);
+
+/**
+ * Get dashboard statistics for admin monitoring
+ */
+export const getDashboardStatsOptions = (options?: Options<GetDashboardStatsData>) =>
+  queryOptions<
+    GetDashboardStatsResponse,
+    GetDashboardStatsError,
+    GetDashboardStatsResponse,
+    ReturnType<typeof getDashboardStatsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDashboardStats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDashboardStatsQueryKey(options),
+  });
+
+/**
+ * Process overdue orders by auto-returning and refunding them
+ */
+export const processOverdueOrdersMutation = (
+  options?: Partial<Options<ProcessOverdueOrdersData>>,
+): UseMutationOptions<
+  ProcessOverdueOrdersResponse,
+  ProcessOverdueOrdersError,
+  Options<ProcessOverdueOrdersData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProcessOverdueOrdersResponse,
+    ProcessOverdueOrdersError,
+    Options<ProcessOverdueOrdersData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await processOverdueOrders({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Simulate system time forward for demo purposes
+ */
+export const simulateTimeMutation = (
+  options?: Partial<Options<SimulateTimeData>>,
+): UseMutationOptions<SimulateTimeResponse2, SimulateTimeError, Options<SimulateTimeData>> => {
+  const mutationOptions: UseMutationOptions<
+    SimulateTimeResponse2,
+    SimulateTimeError,
+    Options<SimulateTimeData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await simulateTime({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const listPromosQueryKey = (options?: Options<ListPromosData>) =>
+  createQueryKey('listPromos', options);
+
+/**
+ * List all discount promos
+ */
+export const listPromosOptions = (options?: Options<ListPromosData>) =>
+  queryOptions<
+    ListPromosResponse,
+    ListPromosError,
+    ListPromosResponse,
+    ReturnType<typeof listPromosQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listPromos({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listPromosQueryKey(options),
+  });
+
+/**
+ * Create a new discount promo campaign
+ */
+export const createPromoMutation = (
+  options?: Partial<Options<CreatePromoData>>,
+): UseMutationOptions<CreatePromoResponse, CreatePromoError, Options<CreatePromoData>> => {
+  const mutationOptions: UseMutationOptions<
+    CreatePromoResponse,
+    CreatePromoError,
+    Options<CreatePromoData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createPromo({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getPromoQueryKey = (options: Options<GetPromoData>) =>
+  createQueryKey('getPromo', options);
+
+/**
+ * Get details of a specific promo campaign
+ */
+export const getPromoOptions = (options: Options<GetPromoData>) =>
+  queryOptions<
+    GetPromoResponse,
+    GetPromoError,
+    GetPromoResponse,
+    ReturnType<typeof getPromoQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getPromo({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getPromoQueryKey(options),
+  });
+
+export const listVouchersQueryKey = (options?: Options<ListVouchersData>) =>
+  createQueryKey('listVouchers', options);
+
+/**
+ * List all discount vouchers
+ */
+export const listVouchersOptions = (options?: Options<ListVouchersData>) =>
+  queryOptions<
+    ListVouchersResponse,
+    ListVouchersError,
+    ListVouchersResponse,
+    ReturnType<typeof listVouchersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listVouchers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listVouchersQueryKey(options),
+  });
+
+/**
+ * Create a new discount voucher
+ */
+export const createVoucherMutation = (
+  options?: Partial<Options<CreateVoucherData>>,
+): UseMutationOptions<CreateVoucherResponse, CreateVoucherError, Options<CreateVoucherData>> => {
+  const mutationOptions: UseMutationOptions<
+    CreateVoucherResponse,
+    CreateVoucherError,
+    Options<CreateVoucherData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await createVoucher({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getVoucherQueryKey = (options: Options<GetVoucherData>) =>
+  createQueryKey('getVoucher', options);
+
+/**
+ * Get details of a specific voucher
+ */
+export const getVoucherOptions = (options: Options<GetVoucherData>) =>
+  queryOptions<
+    GetVoucherResponse,
+    GetVoucherError,
+    GetVoucherResponse,
+    ReturnType<typeof getVoucherQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getVoucher({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getVoucherQueryKey(options),
+  });
+
+/**
+ * Login to user account
+ */
+export const loginUserMutation = (
+  options?: Partial<Options<LoginUserData>>,
+): UseMutationOptions<LoginUserResponse, LoginUserError, Options<LoginUserData>> => {
+  const mutationOptions: UseMutationOptions<
+    LoginUserResponse,
+    LoginUserError,
+    Options<LoginUserData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await loginUser({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Logout current device session
+ */
+export const logoutUserMutation = (
+  options?: Partial<Options<LogoutUserData>>,
+): UseMutationOptions<LogoutUserResponse, LogoutUserError, Options<LogoutUserData>> => {
+  const mutationOptions: UseMutationOptions<
+    LogoutUserResponse,
+    LogoutUserError,
+    Options<LogoutUserData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await logoutUser({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getCurrentUserQueryKey = (options?: Options<GetCurrentUserData>) =>
@@ -502,30 +704,51 @@ export const onboardUserMutation = (
   return mutationOptions;
 };
 
-export const getCurrentSessionQueryKey = (options?: Options<GetCurrentSessionData>) =>
-  createQueryKey('getCurrentSession', options);
-
 /**
- * Get status and roles of current session
+ * Rotate the refresh token and issue a new access token
  */
-export const getCurrentSessionOptions = (options?: Options<GetCurrentSessionData>) =>
-  queryOptions<
-    GetCurrentSessionResponse,
-    GetCurrentSessionError,
-    GetCurrentSessionResponse,
-    ReturnType<typeof getCurrentSessionQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getCurrentSession({
+export const refreshSessionMutation = (
+  options?: Partial<Options<RefreshSessionData>>,
+): UseMutationOptions<RefreshSessionResponse, RefreshSessionError, Options<RefreshSessionData>> => {
+  const mutationOptions: UseMutationOptions<
+    RefreshSessionResponse,
+    RefreshSessionError,
+    Options<RefreshSessionData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await refreshSession({
         ...options,
-        ...queryKey[0],
-        signal,
+        ...fnOptions,
         throwOnError: true,
       });
       return data;
     },
-    queryKey: getCurrentSessionQueryKey(options),
-  });
+  };
+  return mutationOptions;
+};
+
+/**
+ * Register a new user account
+ */
+export const registerUserMutation = (
+  options?: Partial<Options<RegisterUserData>>,
+): UseMutationOptions<RegisterUserResponse, RegisterUserError, Options<RegisterUserData>> => {
+  const mutationOptions: UseMutationOptions<
+    RegisterUserResponse,
+    RegisterUserError,
+    Options<RegisterUserData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await registerUser({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
 
 /**
  * Switch current active role in session
@@ -554,79 +777,21 @@ export const selectActiveRoleMutation = (
   return mutationOptions;
 };
 
-/**
- * Generate pre-signed URL for avatar upload
- *
- * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
- */
-export const presignUserAvatarMutation = (
-  options?: Partial<Options<PresignUserAvatarData>>,
-): UseMutationOptions<
-  PresignUserAvatarResponse,
-  PresignUserAvatarError,
-  Options<PresignUserAvatarData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PresignUserAvatarResponse,
-    PresignUserAvatarError,
-    Options<PresignUserAvatarData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await presignUserAvatar({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
+export const getCurrentSessionQueryKey = (options?: Options<GetCurrentSessionData>) =>
+  createQueryKey('getCurrentSession', options);
 
 /**
- * Update current user profile info
- *
- * Update profile information (e.g. name, avatarKey) for the logged-in user.
+ * Get status and roles of current session
  */
-export const updateUserProfileMutation = (
-  options?: Partial<Options<UpdateUserProfileData>>,
-): UseMutationOptions<
-  UpdateUserProfileResponse,
-  UpdateUserProfileError,
-  Options<UpdateUserProfileData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    UpdateUserProfileResponse,
-    UpdateUserProfileError,
-    Options<UpdateUserProfileData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await updateUserProfile({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const privateAdminEndpointQueryKey = (options?: Options<PrivateAdminEndpointData>) =>
-  createQueryKey('privateAdminEndpoint', options);
-
-/**
- * Private endpoint accessible only by Admin role
- */
-export const privateAdminEndpointOptions = (options?: Options<PrivateAdminEndpointData>) =>
+export const getCurrentSessionOptions = (options?: Options<GetCurrentSessionData>) =>
   queryOptions<
-    PrivateAdminEndpointResponse,
-    PrivateAdminEndpointError,
-    PrivateAdminEndpointResponse,
-    ReturnType<typeof privateAdminEndpointQueryKey>
+    GetCurrentSessionResponse,
+    GetCurrentSessionError,
+    GetCurrentSessionResponse,
+    ReturnType<typeof getCurrentSessionQueryKey>
   >({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await privateAdminEndpoint({
+      const { data } = await getCurrentSession({
         ...options,
         ...queryKey[0],
         signal,
@@ -634,930 +799,7 @@ export const privateAdminEndpointOptions = (options?: Options<PrivateAdminEndpoi
       });
       return data;
     },
-    queryKey: privateAdminEndpointQueryKey(options),
-  });
-
-export const privateSellerEndpointQueryKey = (options?: Options<PrivateSellerEndpointData>) =>
-  createQueryKey('privateSellerEndpoint', options);
-
-/**
- * Private endpoint accessible only by Seller role
- */
-export const privateSellerEndpointOptions = (options?: Options<PrivateSellerEndpointData>) =>
-  queryOptions<
-    PrivateSellerEndpointResponse,
-    PrivateSellerEndpointError,
-    PrivateSellerEndpointResponse,
-    ReturnType<typeof privateSellerEndpointQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await privateSellerEndpoint({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: privateSellerEndpointQueryKey(options),
-  });
-
-export const privateBuyerEndpointQueryKey = (options?: Options<PrivateBuyerEndpointData>) =>
-  createQueryKey('privateBuyerEndpoint', options);
-
-/**
- * Private endpoint accessible only by Buyer role
- */
-export const privateBuyerEndpointOptions = (options?: Options<PrivateBuyerEndpointData>) =>
-  queryOptions<
-    PrivateBuyerEndpointResponse,
-    PrivateBuyerEndpointError,
-    PrivateBuyerEndpointResponse,
-    ReturnType<typeof privateBuyerEndpointQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await privateBuyerEndpoint({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: privateBuyerEndpointQueryKey(options),
-  });
-
-export const privateDriverEndpointQueryKey = (options?: Options<PrivateDriverEndpointData>) =>
-  createQueryKey('privateDriverEndpoint', options);
-
-/**
- * Private endpoint accessible only by Driver role
- */
-export const privateDriverEndpointOptions = (options?: Options<PrivateDriverEndpointData>) =>
-  queryOptions<
-    PrivateDriverEndpointResponse,
-    PrivateDriverEndpointError,
-    PrivateDriverEndpointResponse,
-    ReturnType<typeof privateDriverEndpointQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await privateDriverEndpoint({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: privateDriverEndpointQueryKey(options),
-  });
-
-export const listProductsQueryKey = (options?: Options<ListProductsData>) =>
-  createQueryKey('listProducts', options);
-
-/**
- * List products (public)
- */
-export const listProductsOptions = (options?: Options<ListProductsData>) =>
-  queryOptions<
-    ListProductsResponse,
-    ListProductsError,
-    ListProductsResponse,
-    ReturnType<typeof listProductsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listProducts({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: listProductsQueryKey(options),
-  });
-
-const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>,
->(
-  queryKey: QueryKey<Options>,
-  page: K,
-) => {
-  const params = { ...queryKey[0] };
-  if (page.body) {
-    params.body = {
-      ...(queryKey[0].body as any),
-      ...(page.body as any),
-    };
-  }
-  if (page.headers) {
-    params.headers = {
-      ...queryKey[0].headers,
-      ...page.headers,
-    };
-  }
-  if (page.path) {
-    params.path = {
-      ...(queryKey[0].path as any),
-      ...(page.path as any),
-    };
-  }
-  if (page.query) {
-    params.query = {
-      ...(queryKey[0].query as any),
-      ...(page.query as any),
-    };
-  }
-  return params as unknown as typeof page;
-};
-
-export const listProductsInfiniteQueryKey = (
-  options?: Options<ListProductsData>,
-): QueryKey<Options<ListProductsData>> => createQueryKey('listProducts', options, true);
-
-/**
- * List products (public)
- */
-export const listProductsInfiniteOptions = (options?: Options<ListProductsData>) =>
-  infiniteQueryOptions<
-    ListProductsResponse,
-    ListProductsError,
-    InfiniteData<ListProductsResponse>,
-    QueryKey<Options<ListProductsData>>,
-    number | Pick<QueryKey<Options<ListProductsData>>[0], 'body' | 'headers' | 'path' | 'query'>
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<ListProductsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              };
-        const params = createInfiniteParams(queryKey, page);
-        const { data } = await listProducts({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        });
-        return data;
-      },
-      queryKey: listProductsInfiniteQueryKey(options),
-    },
-  );
-
-export const getProductByIdQueryKey = (options: Options<GetProductByIdData>) =>
-  createQueryKey('getProductById', options);
-
-/**
- * Get product details (public)
- */
-export const getProductByIdOptions = (options: Options<GetProductByIdData>) =>
-  queryOptions<
-    GetProductByIdResponse,
-    GetProductByIdError,
-    GetProductByIdResponse,
-    ReturnType<typeof getProductByIdQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getProductById({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getProductByIdQueryKey(options),
-  });
-
-export const getProductBySlugQueryKey = (options: Options<GetProductBySlugData>) =>
-  createQueryKey('getProductBySlug', options);
-
-/**
- * Get product by store and product slug (public)
- */
-export const getProductBySlugOptions = (options: Options<GetProductBySlugData>) =>
-  queryOptions<
-    GetProductBySlugResponse,
-    GetProductBySlugError,
-    GetProductBySlugResponse,
-    ReturnType<typeof getProductBySlugQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getProductBySlug({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getProductBySlugQueryKey(options),
-  });
-
-/**
- * Generate pre-signed URL for product image upload
- *
- * Generates an expiring pre-signed URL for direct upload of a product image to Cloudflare R2.
- */
-export const presignProductImageMutation = (
-  options?: Partial<Options<PresignProductImageData>>,
-): UseMutationOptions<
-  PresignProductImageResponse,
-  PresignProductImageError,
-  Options<PresignProductImageData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PresignProductImageResponse,
-    PresignProductImageError,
-    Options<PresignProductImageData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await presignProductImage({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getProductReviewsQueryKey = (options: Options<GetProductReviewsData>) =>
-  createQueryKey('getProductReviews', options);
-
-/**
- * Get product reviews list (Public)
- */
-export const getProductReviewsOptions = (options: Options<GetProductReviewsData>) =>
-  queryOptions<
-    GetProductReviewsResponse,
-    GetProductReviewsError,
-    GetProductReviewsResponse,
-    ReturnType<typeof getProductReviewsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getProductReviews({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getProductReviewsQueryKey(options),
-  });
-
-export const getProductReviewsInfiniteQueryKey = (
-  options: Options<GetProductReviewsData>,
-): QueryKey<Options<GetProductReviewsData>> => createQueryKey('getProductReviews', options, true);
-
-/**
- * Get product reviews list (Public)
- */
-export const getProductReviewsInfiniteOptions = (options: Options<GetProductReviewsData>) =>
-  infiniteQueryOptions<
-    GetProductReviewsResponse,
-    GetProductReviewsError,
-    InfiniteData<GetProductReviewsResponse>,
-    QueryKey<Options<GetProductReviewsData>>,
-    | number
-    | Pick<QueryKey<Options<GetProductReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetProductReviewsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              };
-        const params = createInfiniteParams(queryKey, page);
-        const { data } = await getProductReviews({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        });
-        return data;
-      },
-      queryKey: getProductReviewsInfiniteQueryKey(options),
-    },
-  );
-
-/**
- * Submit a product review (Buyer only)
- */
-export const submitProductReviewMutation = (
-  options?: Partial<Options<SubmitProductReviewData>>,
-): UseMutationOptions<
-  SubmitProductReviewResponse,
-  SubmitProductReviewError,
-  Options<SubmitProductReviewData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    SubmitProductReviewResponse,
-    SubmitProductReviewError,
-    Options<SubmitProductReviewData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await submitProductReview({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getMyProductReviewsQueryKey = (options?: Options<GetMyProductReviewsData>) =>
-  createQueryKey('getMyProductReviews', options);
-
-/**
- * Get all product reviews submitted by current user
- */
-export const getMyProductReviewsOptions = (options?: Options<GetMyProductReviewsData>) =>
-  queryOptions<
-    GetMyProductReviewsResponse,
-    GetMyProductReviewsError,
-    GetMyProductReviewsResponse,
-    ReturnType<typeof getMyProductReviewsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getMyProductReviews({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getMyProductReviewsQueryKey(options),
-  });
-
-export const getMyProductReviewsInfiniteQueryKey = (
-  options?: Options<GetMyProductReviewsData>,
-): QueryKey<Options<GetMyProductReviewsData>> =>
-  createQueryKey('getMyProductReviews', options, true);
-
-/**
- * Get all product reviews submitted by current user
- */
-export const getMyProductReviewsInfiniteOptions = (options?: Options<GetMyProductReviewsData>) =>
-  infiniteQueryOptions<
-    GetMyProductReviewsResponse,
-    GetMyProductReviewsError,
-    InfiniteData<GetMyProductReviewsResponse>,
-    QueryKey<Options<GetMyProductReviewsData>>,
-    | number
-    | Pick<QueryKey<Options<GetMyProductReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetMyProductReviewsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              };
-        const params = createInfiniteParams(queryKey, page);
-        const { data } = await getMyProductReviews({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        });
-        return data;
-      },
-      queryKey: getMyProductReviewsInfiniteQueryKey(options),
-    },
-  );
-
-export const listSellerProductsQueryKey = (options?: Options<ListSellerProductsData>) =>
-  createQueryKey('listSellerProducts', options);
-
-/**
- * List products owned by logged-in Seller
- */
-export const listSellerProductsOptions = (options?: Options<ListSellerProductsData>) =>
-  queryOptions<
-    ListSellerProductsResponse,
-    ListSellerProductsError,
-    ListSellerProductsResponse,
-    ReturnType<typeof listSellerProductsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listSellerProducts({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: listSellerProductsQueryKey(options),
-  });
-
-export const listSellerProductsInfiniteQueryKey = (
-  options?: Options<ListSellerProductsData>,
-): QueryKey<Options<ListSellerProductsData>> => createQueryKey('listSellerProducts', options, true);
-
-/**
- * List products owned by logged-in Seller
- */
-export const listSellerProductsInfiniteOptions = (options?: Options<ListSellerProductsData>) =>
-  infiniteQueryOptions<
-    ListSellerProductsResponse,
-    ListSellerProductsError,
-    InfiniteData<ListSellerProductsResponse>,
-    QueryKey<Options<ListSellerProductsData>>,
-    | number
-    | Pick<QueryKey<Options<ListSellerProductsData>>[0], 'body' | 'headers' | 'path' | 'query'>
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<ListSellerProductsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              };
-        const params = createInfiniteParams(queryKey, page);
-        const { data } = await listSellerProducts({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        });
-        return data;
-      },
-      queryKey: listSellerProductsInfiniteQueryKey(options),
-    },
-  );
-
-/**
- * Create a new product under Seller store
- */
-export const createSellerProductMutation = (
-  options?: Partial<Options<CreateSellerProductData>>,
-): UseMutationOptions<
-  CreateSellerProductResponse,
-  CreateSellerProductError,
-  Options<CreateSellerProductData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    CreateSellerProductResponse,
-    CreateSellerProductError,
-    Options<CreateSellerProductData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await createSellerProduct({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Delete a product owned by Seller
- */
-export const deleteSellerProductMutation = (
-  options?: Partial<Options<DeleteSellerProductData>>,
-): UseMutationOptions<
-  DeleteSellerProductResponse,
-  DeleteSellerProductError,
-  Options<DeleteSellerProductData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    DeleteSellerProductResponse,
-    DeleteSellerProductError,
-    Options<DeleteSellerProductData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await deleteSellerProduct({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getSellerProductByIdQueryKey = (options: Options<GetSellerProductByIdData>) =>
-  createQueryKey('getSellerProductById', options);
-
-/**
- * Get details of a product owned by logged-in Seller
- */
-export const getSellerProductByIdOptions = (options: Options<GetSellerProductByIdData>) =>
-  queryOptions<
-    GetSellerProductByIdResponse,
-    GetSellerProductByIdError,
-    GetSellerProductByIdResponse,
-    ReturnType<typeof getSellerProductByIdQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getSellerProductById({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getSellerProductByIdQueryKey(options),
-  });
-
-/**
- * Update a product owned by Seller
- */
-export const updateSellerProductMutation = (
-  options?: Partial<Options<UpdateSellerProductData>>,
-): UseMutationOptions<
-  UpdateSellerProductResponse,
-  UpdateSellerProductError,
-  Options<UpdateSellerProductData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    UpdateSellerProductResponse,
-    UpdateSellerProductError,
-    Options<UpdateSellerProductData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await updateSellerProduct({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Create a new store
- *
- * Create a new store for the currently authenticated seller.
- */
-export const createStoreMutation = (
-  options?: Partial<Options<CreateStoreData>>,
-): UseMutationOptions<CreateStoreResponse, CreateStoreError, Options<CreateStoreData>> => {
-  const mutationOptions: UseMutationOptions<
-    CreateStoreResponse,
-    CreateStoreError,
-    Options<CreateStoreData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await createStore({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getCurrentSellerStoreQueryKey = (options?: Options<GetCurrentSellerStoreData>) =>
-  createQueryKey('getCurrentSellerStore', options);
-
-/**
- * Get current seller store
- *
- * Get the store of the currently authenticated seller.
- */
-export const getCurrentSellerStoreOptions = (options?: Options<GetCurrentSellerStoreData>) =>
-  queryOptions<
-    GetCurrentSellerStoreResponse,
-    GetCurrentSellerStoreError,
-    GetCurrentSellerStoreResponse,
-    ReturnType<typeof getCurrentSellerStoreQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getCurrentSellerStore({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getCurrentSellerStoreQueryKey(options),
-  });
-
-/**
- * Update current seller store
- *
- * Update the store of the currently authenticated seller.
- */
-export const updateCurrentSellerStoreMutation = (
-  options?: Partial<Options<UpdateCurrentSellerStoreData>>,
-): UseMutationOptions<
-  UpdateCurrentSellerStoreResponse,
-  UpdateCurrentSellerStoreError,
-  Options<UpdateCurrentSellerStoreData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    UpdateCurrentSellerStoreResponse,
-    UpdateCurrentSellerStoreError,
-    Options<UpdateCurrentSellerStoreData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await updateCurrentSellerStore({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getPublicStoreInfoQueryKey = (options: Options<GetPublicStoreInfoData>) =>
-  createQueryKey('getPublicStoreInfo', options);
-
-/**
- * Get public store info
- *
- * Get public information about a store by ID or slug (name).
- */
-export const getPublicStoreInfoOptions = (options: Options<GetPublicStoreInfoData>) =>
-  queryOptions<
-    GetPublicStoreInfoResponse,
-    GetPublicStoreInfoError,
-    GetPublicStoreInfoResponse,
-    ReturnType<typeof getPublicStoreInfoQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getPublicStoreInfo({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getPublicStoreInfoQueryKey(options),
-  });
-
-/**
- * Generate pre-signed URL for store logo upload
- *
- * Generates an expiring pre-signed URL for direct upload of a store logo to Cloudflare R2.
- */
-export const presignStoreLogoMutation = (
-  options?: Partial<Options<PresignStoreLogoData>>,
-): UseMutationOptions<
-  PresignStoreLogoResponse,
-  PresignStoreLogoError,
-  Options<PresignStoreLogoData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PresignStoreLogoResponse,
-    PresignStoreLogoError,
-    Options<PresignStoreLogoData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await presignStoreLogo({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const listReviewsQueryKey = (options?: Options<ListReviewsData>) =>
-  createQueryKey('listReviews', options);
-
-/**
- * List all public application reviews with pagination
- */
-export const listReviewsOptions = (options?: Options<ListReviewsData>) =>
-  queryOptions<
-    ListReviewsResponse,
-    ListReviewsError,
-    ListReviewsResponse,
-    ReturnType<typeof listReviewsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listReviews({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: listReviewsQueryKey(options),
-  });
-
-export const listReviewsInfiniteQueryKey = (
-  options?: Options<ListReviewsData>,
-): QueryKey<Options<ListReviewsData>> => createQueryKey('listReviews', options, true);
-
-/**
- * List all public application reviews with pagination
- */
-export const listReviewsInfiniteOptions = (options?: Options<ListReviewsData>) =>
-  infiniteQueryOptions<
-    ListReviewsResponse,
-    ListReviewsError,
-    InfiniteData<ListReviewsResponse>,
-    QueryKey<Options<ListReviewsData>>,
-    number | Pick<QueryKey<Options<ListReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<ListReviewsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              };
-        const params = createInfiniteParams(queryKey, page);
-        const { data } = await listReviews({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        });
-        return data;
-      },
-      queryKey: listReviewsInfiniteQueryKey(options),
-    },
-  );
-
-/**
- * Submit a new application review (public/guest)
- */
-export const submitReviewMutation = (
-  options?: Partial<Options<SubmitReviewData>>,
-): UseMutationOptions<SubmitReviewResponse, SubmitReviewError, Options<SubmitReviewData>> => {
-  const mutationOptions: UseMutationOptions<
-    SubmitReviewResponse,
-    SubmitReviewError,
-    Options<SubmitReviewData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await submitReview({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getReviewsStatsQueryKey = (options?: Options<GetReviewsStatsData>) =>
-  createQueryKey('getReviewsStats', options);
-
-/**
- * Get application reviews statistics (total count and average rating)
- */
-export const getReviewsStatsOptions = (options?: Options<GetReviewsStatsData>) =>
-  queryOptions<
-    GetReviewsStatsResponse,
-    GetReviewsStatsError,
-    GetReviewsStatsResponse,
-    ReturnType<typeof getReviewsStatsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getReviewsStats({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getReviewsStatsQueryKey(options),
-  });
-
-export const getBuyerWalletQueryKey = (options?: Options<GetBuyerWalletData>) =>
-  createQueryKey('getBuyerWallet', options);
-
-/**
- * Get buyer wallet balance
- */
-export const getBuyerWalletOptions = (options?: Options<GetBuyerWalletData>) =>
-  queryOptions<
-    GetBuyerWalletResponse,
-    GetBuyerWalletError,
-    GetBuyerWalletResponse,
-    ReturnType<typeof getBuyerWalletQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getBuyerWallet({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getBuyerWalletQueryKey(options),
-  });
-
-/**
- * Directly top up the wallet balance
- */
-export const topUpWalletMutation = (
-  options?: Partial<Options<TopUpWalletData>>,
-): UseMutationOptions<TopUpWalletResponse, TopUpWalletError, Options<TopUpWalletData>> => {
-  const mutationOptions: UseMutationOptions<
-    TopUpWalletResponse,
-    TopUpWalletError,
-    Options<TopUpWalletData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await topUpWallet({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getWalletTransactionsQueryKey = (options?: Options<GetWalletTransactionsData>) =>
-  createQueryKey('getWalletTransactions', options);
-
-/**
- * Get wallet transaction history
- */
-export const getWalletTransactionsOptions = (options?: Options<GetWalletTransactionsData>) =>
-  queryOptions<
-    GetWalletTransactionsResponse,
-    GetWalletTransactionsError,
-    GetWalletTransactionsResponse,
-    ReturnType<typeof getWalletTransactionsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWalletTransactions({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getWalletTransactionsQueryKey(options),
+    queryKey: getCurrentSessionQueryKey(options),
   });
 
 export const getAddressesQueryKey = (options?: Options<GetAddressesData>) =>
@@ -1798,23 +1040,44 @@ export const updateCartItemMutation = (
   return mutationOptions;
 };
 
+export const getBuyerWalletQueryKey = (options?: Options<GetBuyerWalletData>) =>
+  createQueryKey('getBuyerWallet', options);
+
 /**
- * Preview order calculations before checking out
+ * Get buyer wallet balance
  */
-export const checkoutPreviewMutation = (
-  options?: Partial<Options<CheckoutPreviewData>>,
-): UseMutationOptions<
-  CheckoutPreviewResponse2,
-  CheckoutPreviewError,
-  Options<CheckoutPreviewData>
-> => {
+export const getBuyerWalletOptions = (options?: Options<GetBuyerWalletData>) =>
+  queryOptions<
+    GetBuyerWalletResponse,
+    GetBuyerWalletError,
+    GetBuyerWalletResponse,
+    ReturnType<typeof getBuyerWalletQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBuyerWallet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBuyerWalletQueryKey(options),
+  });
+
+/**
+ * Directly top up the wallet balance
+ */
+export const topUpWalletMutation = (
+  options?: Partial<Options<TopUpWalletData>>,
+): UseMutationOptions<TopUpWalletResponse, TopUpWalletError, Options<TopUpWalletData>> => {
   const mutationOptions: UseMutationOptions<
-    CheckoutPreviewResponse2,
-    CheckoutPreviewError,
-    Options<CheckoutPreviewData>
+    TopUpWalletResponse,
+    TopUpWalletError,
+    Options<TopUpWalletData>
   > = {
     mutationFn: async (fnOptions) => {
-      const { data } = await checkoutPreview({
+      const { data } = await topUpWallet({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -1824,6 +1087,366 @@ export const checkoutPreviewMutation = (
   };
   return mutationOptions;
 };
+
+export const getWalletTransactionsQueryKey = (options?: Options<GetWalletTransactionsData>) =>
+  createQueryKey('getWalletTransactions', options);
+
+/**
+ * Get wallet transaction history
+ */
+export const getWalletTransactionsOptions = (options?: Options<GetWalletTransactionsData>) =>
+  queryOptions<
+    GetWalletTransactionsResponse,
+    GetWalletTransactionsError,
+    GetWalletTransactionsResponse,
+    ReturnType<typeof getWalletTransactionsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWalletTransactions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWalletTransactionsQueryKey(options),
+  });
+
+/**
+ * Validate a voucher or promo code for buyer checkout
+ */
+export const validateDiscountCodeMutation = (
+  options?: Partial<Options<ValidateDiscountCodeData>>,
+): UseMutationOptions<
+  ValidateDiscountCodeResponse,
+  ValidateDiscountCodeError,
+  Options<ValidateDiscountCodeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidateDiscountCodeResponse,
+    ValidateDiscountCodeError,
+    Options<ValidateDiscountCodeData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await validateDiscountCode({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const listAvailableJobsQueryKey = (options?: Options<ListAvailableJobsData>) =>
+  createQueryKey('listAvailableJobs', options);
+
+/**
+ * List available delivery jobs for drivers
+ */
+export const listAvailableJobsOptions = (options?: Options<ListAvailableJobsData>) =>
+  queryOptions<
+    ListAvailableJobsResponse,
+    ListAvailableJobsError,
+    ListAvailableJobsResponse,
+    ReturnType<typeof listAvailableJobsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listAvailableJobs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listAvailableJobsQueryKey(options),
+  });
+
+export const getDriverJobDetailQueryKey = (options: Options<GetDriverJobDetailData>) =>
+  createQueryKey('getDriverJobDetail', options);
+
+/**
+ * Get details of a specific delivery job
+ */
+export const getDriverJobDetailOptions = (options: Options<GetDriverJobDetailData>) =>
+  queryOptions<
+    GetDriverJobDetailResponse,
+    GetDriverJobDetailError,
+    GetDriverJobDetailResponse,
+    ReturnType<typeof getDriverJobDetailQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDriverJobDetail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDriverJobDetailQueryKey(options),
+  });
+
+/**
+ * Complete a taken delivery job
+ */
+export const completeDeliveryJobMutation = (
+  options?: Partial<Options<CompleteDeliveryJobData>>,
+): UseMutationOptions<
+  CompleteDeliveryJobResponse,
+  CompleteDeliveryJobError,
+  Options<CompleteDeliveryJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CompleteDeliveryJobResponse,
+    CompleteDeliveryJobError,
+    Options<CompleteDeliveryJobData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await completeDeliveryJob({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Take a pending delivery job
+ */
+export const takeDeliveryJobMutation = (
+  options?: Partial<Options<TakeDeliveryJobData>>,
+): UseMutationOptions<
+  TakeDeliveryJobResponse,
+  TakeDeliveryJobError,
+  Options<TakeDeliveryJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    TakeDeliveryJobResponse,
+    TakeDeliveryJobError,
+    Options<TakeDeliveryJobData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await takeDeliveryJob({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getDriverJobHistoryQueryKey = (options?: Options<GetDriverJobHistoryData>) =>
+  createQueryKey('getDriverJobHistory', options);
+
+/**
+ * Get paginated history of completed delivery jobs for the logged-in driver
+ */
+export const getDriverJobHistoryOptions = (options?: Options<GetDriverJobHistoryData>) =>
+  queryOptions<
+    GetDriverJobHistoryResponse,
+    GetDriverJobHistoryError,
+    GetDriverJobHistoryResponse,
+    ReturnType<typeof getDriverJobHistoryQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDriverJobHistory({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDriverJobHistoryQueryKey(options),
+  });
+
+const createInfiniteParams = <
+  K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>,
+>(
+  queryKey: QueryKey<Options>,
+  page: K,
+) => {
+  const params = { ...queryKey[0] };
+  if (page.body) {
+    params.body = {
+      ...(queryKey[0].body as any),
+      ...(page.body as any),
+    };
+  }
+  if (page.headers) {
+    params.headers = {
+      ...queryKey[0].headers,
+      ...page.headers,
+    };
+  }
+  if (page.path) {
+    params.path = {
+      ...(queryKey[0].path as any),
+      ...(page.path as any),
+    };
+  }
+  if (page.query) {
+    params.query = {
+      ...(queryKey[0].query as any),
+      ...(page.query as any),
+    };
+  }
+  return params as unknown as typeof page;
+};
+
+export const getDriverJobHistoryInfiniteQueryKey = (
+  options?: Options<GetDriverJobHistoryData>,
+): QueryKey<Options<GetDriverJobHistoryData>> =>
+  createQueryKey('getDriverJobHistory', options, true);
+
+/**
+ * Get paginated history of completed delivery jobs for the logged-in driver
+ */
+export const getDriverJobHistoryInfiniteOptions = (options?: Options<GetDriverJobHistoryData>) =>
+  infiniteQueryOptions<
+    GetDriverJobHistoryResponse,
+    GetDriverJobHistoryError,
+    InfiniteData<GetDriverJobHistoryResponse>,
+    QueryKey<Options<GetDriverJobHistoryData>>,
+    | number
+    | Pick<QueryKey<Options<GetDriverJobHistoryData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetDriverJobHistoryData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getDriverJobHistory({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getDriverJobHistoryInfiniteQueryKey(options),
+    },
+  );
+
+export const getDriverStatsQueryKey = (options?: Options<GetDriverStatsData>) =>
+  createQueryKey('getDriverStats', options);
+
+/**
+ * Get stats, earnings and jobs history for the logged-in driver
+ */
+export const getDriverStatsOptions = (options?: Options<GetDriverStatsData>) =>
+  queryOptions<
+    GetDriverStatsResponse,
+    GetDriverStatsError,
+    GetDriverStatsResponse,
+    ReturnType<typeof getDriverStatsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDriverStats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDriverStatsQueryKey(options),
+  });
+
+export const getCitiesQueryKey = (options: Options<GetCitiesData>) =>
+  createQueryKey('getCities', options);
+
+/**
+ * Get cities by province ID
+ */
+export const getCitiesOptions = (options: Options<GetCitiesData>) =>
+  queryOptions<
+    GetCitiesResponse,
+    GetCitiesError,
+    GetCitiesResponse,
+    ReturnType<typeof getCitiesQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getCities({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getCitiesQueryKey(options),
+  });
+
+export const getDistrictsQueryKey = (options: Options<GetDistrictsData>) =>
+  createQueryKey('getDistricts', options);
+
+/**
+ * Get districts by city ID
+ */
+export const getDistrictsOptions = (options: Options<GetDistrictsData>) =>
+  queryOptions<
+    GetDistrictsResponse,
+    GetDistrictsError,
+    GetDistrictsResponse,
+    ReturnType<typeof getDistrictsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDistricts({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDistrictsQueryKey(options),
+  });
+
+export const getProvincesQueryKey = (options?: Options<GetProvincesData>) =>
+  createQueryKey('getProvinces', options);
+
+/**
+ * Get all provinces
+ */
+export const getProvincesOptions = (options?: Options<GetProvincesData>) =>
+  queryOptions<
+    GetProvincesResponse,
+    GetProvincesError,
+    GetProvincesResponse,
+    ReturnType<typeof getProvincesQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProvinces({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProvincesQueryKey(options),
+  });
 
 export const listBuyerOrdersQueryKey = (options?: Options<ListBuyerOrdersData>) =>
   createQueryKey('listBuyerOrders', options);
@@ -1873,31 +1496,6 @@ export const createOrderMutation = (
   return mutationOptions;
 };
 
-export const getBuyerExpenseReportQueryKey = (options?: Options<GetBuyerExpenseReportData>) =>
-  createQueryKey('getBuyerExpenseReport', options);
-
-/**
- * Get expense report for buyer completed orders
- */
-export const getBuyerExpenseReportOptions = (options?: Options<GetBuyerExpenseReportData>) =>
-  queryOptions<
-    GetBuyerExpenseReportResponse,
-    GetBuyerExpenseReportError,
-    GetBuyerExpenseReportResponse,
-    ReturnType<typeof getBuyerExpenseReportQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getBuyerExpenseReport({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getBuyerExpenseReportQueryKey(options),
-  });
-
 export const getBuyerOrderDetailQueryKey = (options: Options<GetBuyerOrderDetailData>) =>
   createQueryKey('getBuyerOrderDetail', options);
 
@@ -1923,6 +1521,616 @@ export const getBuyerOrderDetailOptions = (options: Options<GetBuyerOrderDetailD
     queryKey: getBuyerOrderDetailQueryKey(options),
   });
 
+/**
+ * Preview order calculations before checking out
+ */
+export const checkoutPreviewMutation = (
+  options?: Partial<Options<CheckoutPreviewData>>,
+): UseMutationOptions<
+  CheckoutPreviewResponse2,
+  CheckoutPreviewError,
+  Options<CheckoutPreviewData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CheckoutPreviewResponse2,
+    CheckoutPreviewError,
+    Options<CheckoutPreviewData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await checkoutPreview({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getBuyerExpenseReportQueryKey = (options?: Options<GetBuyerExpenseReportData>) =>
+  createQueryKey('getBuyerExpenseReport', options);
+
+/**
+ * Get expense report for buyer completed orders
+ */
+export const getBuyerExpenseReportOptions = (options?: Options<GetBuyerExpenseReportData>) =>
+  queryOptions<
+    GetBuyerExpenseReportResponse,
+    GetBuyerExpenseReportError,
+    GetBuyerExpenseReportResponse,
+    ReturnType<typeof getBuyerExpenseReportQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBuyerExpenseReport({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBuyerExpenseReportQueryKey(options),
+  });
+
+export const privateAdminEndpointQueryKey = (options?: Options<PrivateAdminEndpointData>) =>
+  createQueryKey('privateAdminEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Admin role
+ */
+export const privateAdminEndpointOptions = (options?: Options<PrivateAdminEndpointData>) =>
+  queryOptions<
+    PrivateAdminEndpointResponse,
+    PrivateAdminEndpointError,
+    PrivateAdminEndpointResponse,
+    ReturnType<typeof privateAdminEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateAdminEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateAdminEndpointQueryKey(options),
+  });
+
+export const privateBuyerEndpointQueryKey = (options?: Options<PrivateBuyerEndpointData>) =>
+  createQueryKey('privateBuyerEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Buyer role
+ */
+export const privateBuyerEndpointOptions = (options?: Options<PrivateBuyerEndpointData>) =>
+  queryOptions<
+    PrivateBuyerEndpointResponse,
+    PrivateBuyerEndpointError,
+    PrivateBuyerEndpointResponse,
+    ReturnType<typeof privateBuyerEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateBuyerEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateBuyerEndpointQueryKey(options),
+  });
+
+export const privateDriverEndpointQueryKey = (options?: Options<PrivateDriverEndpointData>) =>
+  createQueryKey('privateDriverEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Driver role
+ */
+export const privateDriverEndpointOptions = (options?: Options<PrivateDriverEndpointData>) =>
+  queryOptions<
+    PrivateDriverEndpointResponse,
+    PrivateDriverEndpointError,
+    PrivateDriverEndpointResponse,
+    ReturnType<typeof privateDriverEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateDriverEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateDriverEndpointQueryKey(options),
+  });
+
+export const privateSellerEndpointQueryKey = (options?: Options<PrivateSellerEndpointData>) =>
+  createQueryKey('privateSellerEndpoint', options);
+
+/**
+ * Private endpoint accessible only by Seller role
+ */
+export const privateSellerEndpointOptions = (options?: Options<PrivateSellerEndpointData>) =>
+  queryOptions<
+    PrivateSellerEndpointResponse,
+    PrivateSellerEndpointError,
+    PrivateSellerEndpointResponse,
+    ReturnType<typeof privateSellerEndpointQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await privateSellerEndpoint({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: privateSellerEndpointQueryKey(options),
+  });
+
+export const listProductsQueryKey = (options?: Options<ListProductsData>) =>
+  createQueryKey('listProducts', options);
+
+/**
+ * List products (public)
+ */
+export const listProductsOptions = (options?: Options<ListProductsData>) =>
+  queryOptions<
+    ListProductsResponse,
+    ListProductsError,
+    ListProductsResponse,
+    ReturnType<typeof listProductsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listProducts({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listProductsQueryKey(options),
+  });
+
+export const listProductsInfiniteQueryKey = (
+  options?: Options<ListProductsData>,
+): QueryKey<Options<ListProductsData>> => createQueryKey('listProducts', options, true);
+
+/**
+ * List products (public)
+ */
+export const listProductsInfiniteOptions = (options?: Options<ListProductsData>) =>
+  infiniteQueryOptions<
+    ListProductsResponse,
+    ListProductsError,
+    InfiniteData<ListProductsResponse>,
+    QueryKey<Options<ListProductsData>>,
+    number | Pick<QueryKey<Options<ListProductsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListProductsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await listProducts({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: listProductsInfiniteQueryKey(options),
+    },
+  );
+
+export const getProductByIdQueryKey = (options: Options<GetProductByIdData>) =>
+  createQueryKey('getProductById', options);
+
+/**
+ * Get product details (public)
+ */
+export const getProductByIdOptions = (options: Options<GetProductByIdData>) =>
+  queryOptions<
+    GetProductByIdResponse,
+    GetProductByIdError,
+    GetProductByIdResponse,
+    ReturnType<typeof getProductByIdQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProductById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProductByIdQueryKey(options),
+  });
+
+export const getProductReviewsQueryKey = (options: Options<GetProductReviewsData>) =>
+  createQueryKey('getProductReviews', options);
+
+/**
+ * Get product reviews list (Public)
+ */
+export const getProductReviewsOptions = (options: Options<GetProductReviewsData>) =>
+  queryOptions<
+    GetProductReviewsResponse,
+    GetProductReviewsError,
+    GetProductReviewsResponse,
+    ReturnType<typeof getProductReviewsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProductReviews({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProductReviewsQueryKey(options),
+  });
+
+export const getProductReviewsInfiniteQueryKey = (
+  options: Options<GetProductReviewsData>,
+): QueryKey<Options<GetProductReviewsData>> => createQueryKey('getProductReviews', options, true);
+
+/**
+ * Get product reviews list (Public)
+ */
+export const getProductReviewsInfiniteOptions = (options: Options<GetProductReviewsData>) =>
+  infiniteQueryOptions<
+    GetProductReviewsResponse,
+    GetProductReviewsError,
+    InfiniteData<GetProductReviewsResponse>,
+    QueryKey<Options<GetProductReviewsData>>,
+    | number
+    | Pick<QueryKey<Options<GetProductReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetProductReviewsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getProductReviews({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getProductReviewsInfiniteQueryKey(options),
+    },
+  );
+
+/**
+ * Submit a product review (Buyer only)
+ */
+export const submitProductReviewMutation = (
+  options?: Partial<Options<SubmitProductReviewData>>,
+): UseMutationOptions<
+  SubmitProductReviewResponse,
+  SubmitProductReviewError,
+  Options<SubmitProductReviewData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SubmitProductReviewResponse,
+    SubmitProductReviewError,
+    Options<SubmitProductReviewData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await submitProductReview({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProductBySlugQueryKey = (options: Options<GetProductBySlugData>) =>
+  createQueryKey('getProductBySlug', options);
+
+/**
+ * Get product by store and product slug (public)
+ */
+export const getProductBySlugOptions = (options: Options<GetProductBySlugData>) =>
+  queryOptions<
+    GetProductBySlugResponse,
+    GetProductBySlugError,
+    GetProductBySlugResponse,
+    ReturnType<typeof getProductBySlugQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProductBySlug({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProductBySlugQueryKey(options),
+  });
+
+/**
+ * Generate pre-signed URL for product image upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a product image to Cloudflare R2.
+ */
+export const presignProductImageMutation = (
+  options?: Partial<Options<PresignProductImageData>>,
+): UseMutationOptions<
+  PresignProductImageResponse,
+  PresignProductImageError,
+  Options<PresignProductImageData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PresignProductImageResponse,
+    PresignProductImageError,
+    Options<PresignProductImageData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await presignProductImage({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getMyProductReviewsQueryKey = (options?: Options<GetMyProductReviewsData>) =>
+  createQueryKey('getMyProductReviews', options);
+
+/**
+ * Get all product reviews submitted by current user
+ */
+export const getMyProductReviewsOptions = (options?: Options<GetMyProductReviewsData>) =>
+  queryOptions<
+    GetMyProductReviewsResponse,
+    GetMyProductReviewsError,
+    GetMyProductReviewsResponse,
+    ReturnType<typeof getMyProductReviewsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMyProductReviews({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getMyProductReviewsQueryKey(options),
+  });
+
+export const getMyProductReviewsInfiniteQueryKey = (
+  options?: Options<GetMyProductReviewsData>,
+): QueryKey<Options<GetMyProductReviewsData>> =>
+  createQueryKey('getMyProductReviews', options, true);
+
+/**
+ * Get all product reviews submitted by current user
+ */
+export const getMyProductReviewsInfiniteOptions = (options?: Options<GetMyProductReviewsData>) =>
+  infiniteQueryOptions<
+    GetMyProductReviewsResponse,
+    GetMyProductReviewsError,
+    InfiniteData<GetMyProductReviewsResponse>,
+    QueryKey<Options<GetMyProductReviewsData>>,
+    | number
+    | Pick<QueryKey<Options<GetMyProductReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetMyProductReviewsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getMyProductReviews({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getMyProductReviewsInfiniteQueryKey(options),
+    },
+  );
+
+export const listReviewsQueryKey = (options?: Options<ListReviewsData>) =>
+  createQueryKey('listReviews', options);
+
+/**
+ * List all public application reviews with pagination
+ */
+export const listReviewsOptions = (options?: Options<ListReviewsData>) =>
+  queryOptions<
+    ListReviewsResponse,
+    ListReviewsError,
+    ListReviewsResponse,
+    ReturnType<typeof listReviewsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listReviews({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: listReviewsQueryKey(options),
+  });
+
+export const listReviewsInfiniteQueryKey = (
+  options?: Options<ListReviewsData>,
+): QueryKey<Options<ListReviewsData>> => createQueryKey('listReviews', options, true);
+
+/**
+ * List all public application reviews with pagination
+ */
+export const listReviewsInfiniteOptions = (options?: Options<ListReviewsData>) =>
+  infiniteQueryOptions<
+    ListReviewsResponse,
+    ListReviewsError,
+    InfiniteData<ListReviewsResponse>,
+    QueryKey<Options<ListReviewsData>>,
+    number | Pick<QueryKey<Options<ListReviewsData>>[0], 'body' | 'headers' | 'path' | 'query'>
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListReviewsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await listReviews({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: listReviewsInfiniteQueryKey(options),
+    },
+  );
+
+/**
+ * Submit a new application review (public/guest)
+ */
+export const submitReviewMutation = (
+  options?: Partial<Options<SubmitReviewData>>,
+): UseMutationOptions<SubmitReviewResponse, SubmitReviewError, Options<SubmitReviewData>> => {
+  const mutationOptions: UseMutationOptions<
+    SubmitReviewResponse,
+    SubmitReviewError,
+    Options<SubmitReviewData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await submitReview({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getReviewsStatsQueryKey = (options?: Options<GetReviewsStatsData>) =>
+  createQueryKey('getReviewsStats', options);
+
+/**
+ * Get application reviews statistics (total count and average rating)
+ */
+export const getReviewsStatsOptions = (options?: Options<GetReviewsStatsData>) =>
+  queryOptions<
+    GetReviewsStatsResponse,
+    GetReviewsStatsError,
+    GetReviewsStatsResponse,
+    ReturnType<typeof getReviewsStatsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getReviewsStats({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getReviewsStatsQueryKey(options),
+  });
+
+/**
+ * Set the stock of a product owned by the logged-in Seller
+ *
+ * Commerce owns stock. The catalog shows a read model of it that catches up within a few seconds.
+ */
+export const setSellerProductStockMutation = (
+  options?: Partial<Options<SetSellerProductStockData>>,
+): UseMutationOptions<
+  SetSellerProductStockResponse,
+  SetSellerProductStockError,
+  Options<SetSellerProductStockData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SetSellerProductStockResponse,
+    SetSellerProductStockError,
+    Options<SetSellerProductStockData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await setSellerProductStock({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const listSellerOrdersQueryKey = (options?: Options<ListSellerOrdersData>) =>
   createQueryKey('listSellerOrders', options);
 
@@ -1946,31 +2154,6 @@ export const listSellerOrdersOptions = (options?: Options<ListSellerOrdersData>)
       return data;
     },
     queryKey: listSellerOrdersQueryKey(options),
-  });
-
-export const getSellerIncomeReportQueryKey = (options?: Options<GetSellerIncomeReportData>) =>
-  createQueryKey('getSellerIncomeReport', options);
-
-/**
- * Get income report for seller completed orders
- */
-export const getSellerIncomeReportOptions = (options?: Options<GetSellerIncomeReportData>) =>
-  queryOptions<
-    GetSellerIncomeReportResponse,
-    GetSellerIncomeReportError,
-    GetSellerIncomeReportResponse,
-    ReturnType<typeof getSellerIncomeReportQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getSellerIncomeReport({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getSellerIncomeReportQueryKey(options),
   });
 
 export const getSellerOrderDetailQueryKey = (options: Options<GetSellerOrderDetailData>) =>
@@ -2025,77 +2208,21 @@ export const processSellerOrderMutation = (
   return mutationOptions;
 };
 
-/**
- * Set the stock of a product owned by the logged-in Seller
- *
- * Commerce owns stock. The catalog shows a read model of it that catches up within a few seconds.
- */
-export const setSellerProductStockMutation = (
-  options?: Partial<Options<SetSellerProductStockData>>,
-): UseMutationOptions<
-  SetSellerProductStockResponse,
-  SetSellerProductStockError,
-  Options<SetSellerProductStockData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    SetSellerProductStockResponse,
-    SetSellerProductStockError,
-    Options<SetSellerProductStockData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await setSellerProductStock({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
+export const getSellerIncomeReportQueryKey = (options?: Options<GetSellerIncomeReportData>) =>
+  createQueryKey('getSellerIncomeReport', options);
 
 /**
- * Validate a voucher or promo code for buyer checkout
+ * Get income report for seller completed orders
  */
-export const validateDiscountCodeMutation = (
-  options?: Partial<Options<ValidateDiscountCodeData>>,
-): UseMutationOptions<
-  ValidateDiscountCodeResponse,
-  ValidateDiscountCodeError,
-  Options<ValidateDiscountCodeData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    ValidateDiscountCodeResponse,
-    ValidateDiscountCodeError,
-    Options<ValidateDiscountCodeData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await validateDiscountCode({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getDriverStatsQueryKey = (options?: Options<GetDriverStatsData>) =>
-  createQueryKey('getDriverStats', options);
-
-/**
- * Get stats, earnings and jobs history for the logged-in driver
- */
-export const getDriverStatsOptions = (options?: Options<GetDriverStatsData>) =>
+export const getSellerIncomeReportOptions = (options?: Options<GetSellerIncomeReportData>) =>
   queryOptions<
-    GetDriverStatsResponse,
-    GetDriverStatsError,
-    GetDriverStatsResponse,
-    ReturnType<typeof getDriverStatsQueryKey>
+    GetSellerIncomeReportResponse,
+    GetSellerIncomeReportError,
+    GetSellerIncomeReportResponse,
+    ReturnType<typeof getSellerIncomeReportQueryKey>
   >({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getDriverStats({
+      const { data } = await getSellerIncomeReport({
         ...options,
         ...queryKey[0],
         signal,
@@ -2103,24 +2230,24 @@ export const getDriverStatsOptions = (options?: Options<GetDriverStatsData>) =>
       });
       return data;
     },
-    queryKey: getDriverStatsQueryKey(options),
+    queryKey: getSellerIncomeReportQueryKey(options),
   });
 
-export const getDriverJobHistoryQueryKey = (options?: Options<GetDriverJobHistoryData>) =>
-  createQueryKey('getDriverJobHistory', options);
+export const listSellerProductsQueryKey = (options?: Options<ListSellerProductsData>) =>
+  createQueryKey('listSellerProducts', options);
 
 /**
- * Get paginated history of completed delivery jobs for the logged-in driver
+ * List products owned by logged-in Seller
  */
-export const getDriverJobHistoryOptions = (options?: Options<GetDriverJobHistoryData>) =>
+export const listSellerProductsOptions = (options?: Options<ListSellerProductsData>) =>
   queryOptions<
-    GetDriverJobHistoryResponse,
-    GetDriverJobHistoryError,
-    GetDriverJobHistoryResponse,
-    ReturnType<typeof getDriverJobHistoryQueryKey>
+    ListSellerProductsResponse,
+    ListSellerProductsError,
+    ListSellerProductsResponse,
+    ReturnType<typeof listSellerProductsQueryKey>
   >({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getDriverJobHistory({
+      const { data } = await listSellerProducts({
         ...options,
         ...queryKey[0],
         signal,
@@ -2128,32 +2255,31 @@ export const getDriverJobHistoryOptions = (options?: Options<GetDriverJobHistory
       });
       return data;
     },
-    queryKey: getDriverJobHistoryQueryKey(options),
+    queryKey: listSellerProductsQueryKey(options),
   });
 
-export const getDriverJobHistoryInfiniteQueryKey = (
-  options?: Options<GetDriverJobHistoryData>,
-): QueryKey<Options<GetDriverJobHistoryData>> =>
-  createQueryKey('getDriverJobHistory', options, true);
+export const listSellerProductsInfiniteQueryKey = (
+  options?: Options<ListSellerProductsData>,
+): QueryKey<Options<ListSellerProductsData>> => createQueryKey('listSellerProducts', options, true);
 
 /**
- * Get paginated history of completed delivery jobs for the logged-in driver
+ * List products owned by logged-in Seller
  */
-export const getDriverJobHistoryInfiniteOptions = (options?: Options<GetDriverJobHistoryData>) =>
+export const listSellerProductsInfiniteOptions = (options?: Options<ListSellerProductsData>) =>
   infiniteQueryOptions<
-    GetDriverJobHistoryResponse,
-    GetDriverJobHistoryError,
-    InfiniteData<GetDriverJobHistoryResponse>,
-    QueryKey<Options<GetDriverJobHistoryData>>,
+    ListSellerProductsResponse,
+    ListSellerProductsError,
+    InfiniteData<ListSellerProductsResponse>,
+    QueryKey<Options<ListSellerProductsData>>,
     | number
-    | Pick<QueryKey<Options<GetDriverJobHistoryData>>[0], 'body' | 'headers' | 'path' | 'query'>
+    | Pick<QueryKey<Options<ListSellerProductsData>>[0], 'body' | 'headers' | 'path' | 'query'>
   >(
     // @ts-ignore
     {
       queryFn: async ({ pageParam, queryKey, signal }) => {
         // @ts-ignore
         const page: Pick<
-          QueryKey<Options<GetDriverJobHistoryData>>[0],
+          QueryKey<Options<ListSellerProductsData>>[0],
           'body' | 'headers' | 'path' | 'query'
         > =
           typeof pageParam === 'object'
@@ -2164,7 +2290,7 @@ export const getDriverJobHistoryInfiniteOptions = (options?: Options<GetDriverJo
                 },
               };
         const params = createInfiniteParams(queryKey, page);
-        const { data } = await getDriverJobHistory({
+        const { data } = await listSellerProducts({
           ...options,
           ...params,
           signal,
@@ -2172,77 +2298,27 @@ export const getDriverJobHistoryInfiniteOptions = (options?: Options<GetDriverJo
         });
         return data;
       },
-      queryKey: getDriverJobHistoryInfiniteQueryKey(options),
+      queryKey: listSellerProductsInfiniteQueryKey(options),
     },
   );
 
-export const listAvailableJobsQueryKey = (options?: Options<ListAvailableJobsData>) =>
-  createQueryKey('listAvailableJobs', options);
-
 /**
- * List available delivery jobs for drivers
+ * Create a new product under Seller store
  */
-export const listAvailableJobsOptions = (options?: Options<ListAvailableJobsData>) =>
-  queryOptions<
-    ListAvailableJobsResponse,
-    ListAvailableJobsError,
-    ListAvailableJobsResponse,
-    ReturnType<typeof listAvailableJobsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listAvailableJobs({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: listAvailableJobsQueryKey(options),
-  });
-
-export const getDriverJobDetailQueryKey = (options: Options<GetDriverJobDetailData>) =>
-  createQueryKey('getDriverJobDetail', options);
-
-/**
- * Get details of a specific delivery job
- */
-export const getDriverJobDetailOptions = (options: Options<GetDriverJobDetailData>) =>
-  queryOptions<
-    GetDriverJobDetailResponse,
-    GetDriverJobDetailError,
-    GetDriverJobDetailResponse,
-    ReturnType<typeof getDriverJobDetailQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getDriverJobDetail({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getDriverJobDetailQueryKey(options),
-  });
-
-/**
- * Take a pending delivery job
- */
-export const takeDeliveryJobMutation = (
-  options?: Partial<Options<TakeDeliveryJobData>>,
+export const createSellerProductMutation = (
+  options?: Partial<Options<CreateSellerProductData>>,
 ): UseMutationOptions<
-  TakeDeliveryJobResponse,
-  TakeDeliveryJobError,
-  Options<TakeDeliveryJobData>
+  CreateSellerProductResponse,
+  CreateSellerProductError,
+  Options<CreateSellerProductData>
 > => {
   const mutationOptions: UseMutationOptions<
-    TakeDeliveryJobResponse,
-    TakeDeliveryJobError,
-    Options<TakeDeliveryJobData>
+    CreateSellerProductResponse,
+    CreateSellerProductError,
+    Options<CreateSellerProductData>
   > = {
     mutationFn: async (fnOptions) => {
-      const { data } = await takeDeliveryJob({
+      const { data } = await createSellerProduct({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -2254,22 +2330,22 @@ export const takeDeliveryJobMutation = (
 };
 
 /**
- * Complete a taken delivery job
+ * Delete a product owned by Seller
  */
-export const completeDeliveryJobMutation = (
-  options?: Partial<Options<CompleteDeliveryJobData>>,
+export const deleteSellerProductMutation = (
+  options?: Partial<Options<DeleteSellerProductData>>,
 ): UseMutationOptions<
-  CompleteDeliveryJobResponse,
-  CompleteDeliveryJobError,
-  Options<CompleteDeliveryJobData>
+  DeleteSellerProductResponse,
+  DeleteSellerProductError,
+  Options<DeleteSellerProductData>
 > => {
   const mutationOptions: UseMutationOptions<
-    CompleteDeliveryJobResponse,
-    CompleteDeliveryJobError,
-    Options<CompleteDeliveryJobData>
+    DeleteSellerProductResponse,
+    DeleteSellerProductError,
+    Options<DeleteSellerProductData>
   > = {
     mutationFn: async (fnOptions) => {
-      const { data } = await completeDeliveryJob({
+      const { data } = await deleteSellerProduct({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -2280,21 +2356,21 @@ export const completeDeliveryJobMutation = (
   return mutationOptions;
 };
 
-export const listVouchersQueryKey = (options?: Options<ListVouchersData>) =>
-  createQueryKey('listVouchers', options);
+export const getSellerProductByIdQueryKey = (options: Options<GetSellerProductByIdData>) =>
+  createQueryKey('getSellerProductById', options);
 
 /**
- * List all discount vouchers
+ * Get details of a product owned by logged-in Seller
  */
-export const listVouchersOptions = (options?: Options<ListVouchersData>) =>
+export const getSellerProductByIdOptions = (options: Options<GetSellerProductByIdData>) =>
   queryOptions<
-    ListVouchersResponse,
-    ListVouchersError,
-    ListVouchersResponse,
-    ReturnType<typeof listVouchersQueryKey>
+    GetSellerProductByIdResponse,
+    GetSellerProductByIdError,
+    GetSellerProductByIdResponse,
+    ReturnType<typeof getSellerProductByIdQueryKey>
   >({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listVouchers({
+      const { data } = await getSellerProductById({
         ...options,
         ...queryKey[0],
         signal,
@@ -2302,172 +2378,26 @@ export const listVouchersOptions = (options?: Options<ListVouchersData>) =>
       });
       return data;
     },
-    queryKey: listVouchersQueryKey(options),
+    queryKey: getSellerProductByIdQueryKey(options),
   });
 
 /**
- * Create a new discount voucher
+ * Update a product owned by Seller
  */
-export const createVoucherMutation = (
-  options?: Partial<Options<CreateVoucherData>>,
-): UseMutationOptions<CreateVoucherResponse, CreateVoucherError, Options<CreateVoucherData>> => {
-  const mutationOptions: UseMutationOptions<
-    CreateVoucherResponse,
-    CreateVoucherError,
-    Options<CreateVoucherData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await createVoucher({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getVoucherQueryKey = (options: Options<GetVoucherData>) =>
-  createQueryKey('getVoucher', options);
-
-/**
- * Get details of a specific voucher
- */
-export const getVoucherOptions = (options: Options<GetVoucherData>) =>
-  queryOptions<
-    GetVoucherResponse,
-    GetVoucherError,
-    GetVoucherResponse,
-    ReturnType<typeof getVoucherQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getVoucher({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getVoucherQueryKey(options),
-  });
-
-export const listPromosQueryKey = (options?: Options<ListPromosData>) =>
-  createQueryKey('listPromos', options);
-
-/**
- * List all discount promos
- */
-export const listPromosOptions = (options?: Options<ListPromosData>) =>
-  queryOptions<
-    ListPromosResponse,
-    ListPromosError,
-    ListPromosResponse,
-    ReturnType<typeof listPromosQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listPromos({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: listPromosQueryKey(options),
-  });
-
-/**
- * Create a new discount promo campaign
- */
-export const createPromoMutation = (
-  options?: Partial<Options<CreatePromoData>>,
-): UseMutationOptions<CreatePromoResponse, CreatePromoError, Options<CreatePromoData>> => {
-  const mutationOptions: UseMutationOptions<
-    CreatePromoResponse,
-    CreatePromoError,
-    Options<CreatePromoData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await createPromo({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getPromoQueryKey = (options: Options<GetPromoData>) =>
-  createQueryKey('getPromo', options);
-
-/**
- * Get details of a specific promo campaign
- */
-export const getPromoOptions = (options: Options<GetPromoData>) =>
-  queryOptions<
-    GetPromoResponse,
-    GetPromoError,
-    GetPromoResponse,
-    ReturnType<typeof getPromoQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getPromo({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getPromoQueryKey(options),
-  });
-
-export const getDashboardStatsQueryKey = (options?: Options<GetDashboardStatsData>) =>
-  createQueryKey('getDashboardStats', options);
-
-/**
- * Get dashboard statistics for admin monitoring
- */
-export const getDashboardStatsOptions = (options?: Options<GetDashboardStatsData>) =>
-  queryOptions<
-    GetDashboardStatsResponse,
-    GetDashboardStatsError,
-    GetDashboardStatsResponse,
-    ReturnType<typeof getDashboardStatsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getDashboardStats({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getDashboardStatsQueryKey(options),
-  });
-
-/**
- * Process overdue orders by auto-returning and refunding them
- */
-export const processOverdueOrdersMutation = (
-  options?: Partial<Options<ProcessOverdueOrdersData>>,
+export const updateSellerProductMutation = (
+  options?: Partial<Options<UpdateSellerProductData>>,
 ): UseMutationOptions<
-  ProcessOverdueOrdersResponse,
-  ProcessOverdueOrdersError,
-  Options<ProcessOverdueOrdersData>
+  UpdateSellerProductResponse,
+  UpdateSellerProductError,
+  Options<UpdateSellerProductData>
 > => {
   const mutationOptions: UseMutationOptions<
-    ProcessOverdueOrdersResponse,
-    ProcessOverdueOrdersError,
-    Options<ProcessOverdueOrdersData>
+    UpdateSellerProductResponse,
+    UpdateSellerProductError,
+    Options<UpdateSellerProductData>
   > = {
     mutationFn: async (fnOptions) => {
-      const { data } = await processOverdueOrders({
+      const { data } = await updateSellerProduct({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -2479,18 +2409,20 @@ export const processOverdueOrdersMutation = (
 };
 
 /**
- * Simulate system time forward for demo purposes
+ * Create a new store
+ *
+ * Create a new store for the currently authenticated seller.
  */
-export const simulateTimeMutation = (
-  options?: Partial<Options<SimulateTimeData>>,
-): UseMutationOptions<SimulateTimeResponse2, SimulateTimeError, Options<SimulateTimeData>> => {
+export const createStoreMutation = (
+  options?: Partial<Options<CreateStoreData>>,
+): UseMutationOptions<CreateStoreResponse, CreateStoreError, Options<CreateStoreData>> => {
   const mutationOptions: UseMutationOptions<
-    SimulateTimeResponse2,
-    SimulateTimeError,
-    Options<SimulateTimeData>
+    CreateStoreResponse,
+    CreateStoreError,
+    Options<CreateStoreData>
   > = {
     mutationFn: async (fnOptions) => {
-      const { data } = await simulateTime({
+      const { data } = await createStore({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -2501,21 +2433,52 @@ export const simulateTimeMutation = (
   return mutationOptions;
 };
 
-export const getProvincesQueryKey = (options?: Options<GetProvincesData>) =>
-  createQueryKey('getProvinces', options);
+/**
+ * Generate pre-signed URL for store logo upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a store logo to Cloudflare R2.
+ */
+export const presignStoreLogoMutation = (
+  options?: Partial<Options<PresignStoreLogoData>>,
+): UseMutationOptions<
+  PresignStoreLogoResponse,
+  PresignStoreLogoError,
+  Options<PresignStoreLogoData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PresignStoreLogoResponse,
+    PresignStoreLogoError,
+    Options<PresignStoreLogoData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await presignStoreLogo({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getCurrentSellerStoreQueryKey = (options?: Options<GetCurrentSellerStoreData>) =>
+  createQueryKey('getCurrentSellerStore', options);
 
 /**
- * Get all provinces
+ * Get current seller store
+ *
+ * Get the store of the currently authenticated seller.
  */
-export const getProvincesOptions = (options?: Options<GetProvincesData>) =>
+export const getCurrentSellerStoreOptions = (options?: Options<GetCurrentSellerStoreData>) =>
   queryOptions<
-    GetProvincesResponse,
-    GetProvincesError,
-    GetProvincesResponse,
-    ReturnType<typeof getProvincesQueryKey>
+    GetCurrentSellerStoreResponse,
+    GetCurrentSellerStoreError,
+    GetCurrentSellerStoreResponse,
+    ReturnType<typeof getCurrentSellerStoreQueryKey>
   >({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getProvinces({
+      const { data } = await getCurrentSellerStore({
         ...options,
         ...queryKey[0],
         signal,
@@ -2523,24 +2486,55 @@ export const getProvincesOptions = (options?: Options<GetProvincesData>) =>
       });
       return data;
     },
-    queryKey: getProvincesQueryKey(options),
+    queryKey: getCurrentSellerStoreQueryKey(options),
   });
 
-export const getCitiesQueryKey = (options: Options<GetCitiesData>) =>
-  createQueryKey('getCities', options);
+/**
+ * Update current seller store
+ *
+ * Update the store of the currently authenticated seller.
+ */
+export const updateCurrentSellerStoreMutation = (
+  options?: Partial<Options<UpdateCurrentSellerStoreData>>,
+): UseMutationOptions<
+  UpdateCurrentSellerStoreResponse,
+  UpdateCurrentSellerStoreError,
+  Options<UpdateCurrentSellerStoreData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateCurrentSellerStoreResponse,
+    UpdateCurrentSellerStoreError,
+    Options<UpdateCurrentSellerStoreData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateCurrentSellerStore({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getPublicStoreInfoQueryKey = (options: Options<GetPublicStoreInfoData>) =>
+  createQueryKey('getPublicStoreInfo', options);
 
 /**
- * Get cities by province ID
+ * Get public store info
+ *
+ * Get public information about a store by ID or slug (name).
  */
-export const getCitiesOptions = (options: Options<GetCitiesData>) =>
+export const getPublicStoreInfoOptions = (options: Options<GetPublicStoreInfoData>) =>
   queryOptions<
-    GetCitiesResponse,
-    GetCitiesError,
-    GetCitiesResponse,
-    ReturnType<typeof getCitiesQueryKey>
+    GetPublicStoreInfoResponse,
+    GetPublicStoreInfoError,
+    GetPublicStoreInfoResponse,
+    ReturnType<typeof getPublicStoreInfoQueryKey>
   >({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getCities({
+      const { data } = await getPublicStoreInfo({
         ...options,
         ...queryKey[0],
         signal,
@@ -2548,30 +2542,63 @@ export const getCitiesOptions = (options: Options<GetCitiesData>) =>
       });
       return data;
     },
-    queryKey: getCitiesQueryKey(options),
+    queryKey: getPublicStoreInfoQueryKey(options),
   });
 
-export const getDistrictsQueryKey = (options: Options<GetDistrictsData>) =>
-  createQueryKey('getDistricts', options);
-
 /**
- * Get districts by city ID
+ * Update current user profile info
+ *
+ * Update profile information (e.g. name, avatarKey) for the logged-in user.
  */
-export const getDistrictsOptions = (options: Options<GetDistrictsData>) =>
-  queryOptions<
-    GetDistrictsResponse,
-    GetDistrictsError,
-    GetDistrictsResponse,
-    ReturnType<typeof getDistrictsQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getDistricts({
+export const updateUserProfileMutation = (
+  options?: Partial<Options<UpdateUserProfileData>>,
+): UseMutationOptions<
+  UpdateUserProfileResponse,
+  UpdateUserProfileError,
+  Options<UpdateUserProfileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateUserProfileResponse,
+    UpdateUserProfileError,
+    Options<UpdateUserProfileData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateUserProfile({
         ...options,
-        ...queryKey[0],
-        signal,
+        ...fnOptions,
         throwOnError: true,
       });
       return data;
     },
-    queryKey: getDistrictsQueryKey(options),
-  });
+  };
+  return mutationOptions;
+};
+
+/**
+ * Generate pre-signed URL for avatar upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
+ */
+export const presignUserAvatarMutation = (
+  options?: Partial<Options<PresignUserAvatarData>>,
+): UseMutationOptions<
+  PresignUserAvatarResponse,
+  PresignUserAvatarError,
+  Options<PresignUserAvatarData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PresignUserAvatarResponse,
+    PresignUserAvatarError,
+    Options<PresignUserAvatarData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await presignUserAvatar({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};

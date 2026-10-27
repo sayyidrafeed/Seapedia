@@ -186,6 +186,9 @@ import type {
   ProcessSellerOrderData,
   ProcessSellerOrderErrors,
   ProcessSellerOrderResponses,
+  RefreshSessionData,
+  RefreshSessionErrors,
+  RefreshSessionResponses,
   RegisterUserData,
   RegisterUserErrors,
   RegisterUserResponses,
@@ -252,18 +255,185 @@ export type Options<
 };
 
 /**
- * Register a new user account
+ * Get dashboard statistics for admin monitoring
  */
-export const registerUser = <ThrowOnError extends boolean = false>(
-  options: Options<RegisterUserData, ThrowOnError>,
-): RequestResult<RegisterUserResponses, RegisterUserErrors, ThrowOnError> =>
-  (options.client ?? client).post<RegisterUserResponses, RegisterUserErrors, ThrowOnError>({
-    url: '/api/auth/register',
+export const getDashboardStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDashboardStatsData, ThrowOnError>,
+): RequestResult<GetDashboardStatsResponses, GetDashboardStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetDashboardStatsResponses,
+    GetDashboardStatsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/dashboard',
+    ...options,
+  });
+
+/**
+ * Process overdue orders by auto-returning and refunding them
+ */
+export const processOverdueOrders = <ThrowOnError extends boolean = false>(
+  options?: Options<ProcessOverdueOrdersData, ThrowOnError>,
+): RequestResult<ProcessOverdueOrdersResponses, ProcessOverdueOrdersErrors, ThrowOnError> =>
+  (options?.client ?? client).post<
+    ProcessOverdueOrdersResponses,
+    ProcessOverdueOrdersErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/dashboard/overdue/process',
+    ...options,
+  });
+
+/**
+ * Simulate system time forward for demo purposes
+ */
+export const simulateTime = <ThrowOnError extends boolean = false>(
+  options: Options<SimulateTimeData, ThrowOnError>,
+): RequestResult<SimulateTimeResponses, SimulateTimeErrors, ThrowOnError> =>
+  (options.client ?? client).post<SimulateTimeResponses, SimulateTimeErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/dashboard/time/simulate',
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+/**
+ * List all discount promos
+ */
+export const listPromos = <ThrowOnError extends boolean = false>(
+  options?: Options<ListPromosData, ThrowOnError>,
+): RequestResult<ListPromosResponses, ListPromosErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListPromosResponses, ListPromosErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/promos',
+    ...options,
+  });
+
+/**
+ * Create a new discount promo campaign
+ */
+export const createPromo = <ThrowOnError extends boolean = false>(
+  options: Options<CreatePromoData, ThrowOnError>,
+): RequestResult<CreatePromoResponses, CreatePromoErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreatePromoResponses, CreatePromoErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/promos',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get details of a specific promo campaign
+ */
+export const getPromo = <ThrowOnError extends boolean = false>(
+  options: Options<GetPromoData, ThrowOnError>,
+): RequestResult<GetPromoResponses, GetPromoErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetPromoResponses, GetPromoErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/promos/{id}',
+    ...options,
+  });
+
+/**
+ * List all discount vouchers
+ */
+export const listVouchers = <ThrowOnError extends boolean = false>(
+  options?: Options<ListVouchersData, ThrowOnError>,
+): RequestResult<ListVouchersResponses, ListVouchersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListVouchersResponses, ListVouchersErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/vouchers',
+    ...options,
+  });
+
+/**
+ * Create a new discount voucher
+ */
+export const createVoucher = <ThrowOnError extends boolean = false>(
+  options: Options<CreateVoucherData, ThrowOnError>,
+): RequestResult<CreateVoucherResponses, CreateVoucherErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateVoucherResponses, CreateVoucherErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/vouchers',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get details of a specific voucher
+ */
+export const getVoucher = <ThrowOnError extends boolean = false>(
+  options: Options<GetVoucherData, ThrowOnError>,
+): RequestResult<GetVoucherResponses, GetVoucherErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetVoucherResponses, GetVoucherErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/admin/vouchers/{id}',
+    ...options,
   });
 
 /**
@@ -282,19 +452,12 @@ export const loginUser = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Logout current user session
+ * Logout current device session
  */
 export const logoutUser = <ThrowOnError extends boolean = false>(
   options?: Options<LogoutUserData, ThrowOnError>,
 ): RequestResult<LogoutUserResponses, LogoutUserErrors, ThrowOnError> =>
   (options?.client ?? client).post<LogoutUserResponses, LogoutUserErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
     url: '/api/auth/logout',
     ...options,
   });
@@ -309,7 +472,7 @@ export const getCurrentUser = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
@@ -335,7 +498,7 @@ export const getCurrentUserFinancialSummary = <ThrowOnError extends boolean = fa
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
@@ -353,11 +516,59 @@ export const onboardUser = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
     url: '/api/auth/onboard',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Rotate the refresh token and issue a new access token
+ */
+export const refreshSession = <ThrowOnError extends boolean = false>(
+  options?: Options<RefreshSessionData, ThrowOnError>,
+): RequestResult<RefreshSessionResponses, RefreshSessionErrors, ThrowOnError> =>
+  (options?.client ?? client).post<RefreshSessionResponses, RefreshSessionErrors, ThrowOnError>({
+    url: '/api/auth/refresh',
+    ...options,
+  });
+
+/**
+ * Register a new user account
+ */
+export const registerUser = <ThrowOnError extends boolean = false>(
+  options: Options<RegisterUserData, ThrowOnError>,
+): RequestResult<RegisterUserResponses, RegisterUserErrors, ThrowOnError> =>
+  (options.client ?? client).post<RegisterUserResponses, RegisterUserErrors, ThrowOnError>({
+    url: '/api/auth/register',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Switch current active role in session
+ */
+export const selectActiveRole = <ThrowOnError extends boolean = false>(
+  options: Options<SelectActiveRoleData, ThrowOnError>,
+): RequestResult<SelectActiveRoleResponses, SelectActiveRoleErrors, ThrowOnError> =>
+  (options.client ?? client).post<SelectActiveRoleResponses, SelectActiveRoleErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/auth/select-role',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -379,7 +590,7 @@ export const getCurrentSession = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
@@ -388,20 +599,38 @@ export const getCurrentSession = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Switch current active role in session
+ * List buyer delivery addresses
  */
-export const selectActiveRole = <ThrowOnError extends boolean = false>(
-  options: Options<SelectActiveRoleData, ThrowOnError>,
-): RequestResult<SelectActiveRoleResponses, SelectActiveRoleErrors, ThrowOnError> =>
-  (options.client ?? client).post<SelectActiveRoleResponses, SelectActiveRoleErrors, ThrowOnError>({
+export const getAddresses = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAddressesData, ThrowOnError>,
+): RequestResult<GetAddressesResponses, GetAddressesErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetAddressesResponses, GetAddressesErrors, ThrowOnError>({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/auth/select-role',
+    url: '/api/buyers/addresses',
+    ...options,
+  });
+
+/**
+ * Add a new delivery address
+ */
+export const createAddress = <ThrowOnError extends boolean = false>(
+  options: Options<CreateAddressData, ThrowOnError>,
+): RequestResult<CreateAddressResponses, CreateAddressErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateAddressResponses, CreateAddressErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/addresses',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -410,26 +639,244 @@ export const selectActiveRole = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Generate pre-signed URL for avatar upload
- *
- * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
+ * Delete a delivery address
  */
-export const presignUserAvatar = <ThrowOnError extends boolean = false>(
-  options: Options<PresignUserAvatarData, ThrowOnError>,
-): RequestResult<PresignUserAvatarResponses, PresignUserAvatarErrors, ThrowOnError> =>
-  (options.client ?? client).post<
-    PresignUserAvatarResponses,
-    PresignUserAvatarErrors,
+export const deleteAddress = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAddressData, ThrowOnError>,
+): RequestResult<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError> =>
+  (options.client ?? client).delete<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/addresses/{id}',
+    ...options,
+  });
+
+/**
+ * Update delivery address details
+ */
+export const updateAddress = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateAddressData, ThrowOnError>,
+): RequestResult<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError> =>
+  (options.client ?? client).put<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/addresses/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Set address as the default delivery address
+ */
+export const setDefaultAddress = <ThrowOnError extends boolean = false>(
+  options: Options<SetDefaultAddressData, ThrowOnError>,
+): RequestResult<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError> =>
+  (options.client ?? client).put<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError>(
+    {
+      security: [
+        {
+          in: 'cookie',
+          name: '__access',
+          type: 'apiKey',
+        },
+      ],
+      url: '/api/buyers/addresses/{id}/default',
+      ...options,
+    },
+  );
+
+/**
+ * Clear all items from the buyer cart
+ */
+export const clearCart = <ThrowOnError extends boolean = false>(
+  options?: Options<ClearCartData, ThrowOnError>,
+): RequestResult<ClearCartResponses, ClearCartErrors, ThrowOnError> =>
+  (options?.client ?? client).delete<ClearCartResponses, ClearCartErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart',
+    ...options,
+  });
+
+/**
+ * Get buyer cart summary
+ */
+export const getBuyerCart = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBuyerCartData, ThrowOnError>,
+): RequestResult<GetBuyerCartResponses, GetBuyerCartErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetBuyerCartResponses, GetBuyerCartErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart',
+    ...options,
+  });
+
+/**
+ * Add an item to the buyer cart
+ */
+export const addCartItem = <ThrowOnError extends boolean = false>(
+  options: Options<AddCartItemData, ThrowOnError>,
+): RequestResult<AddCartItemResponses, AddCartItemErrors, ThrowOnError> =>
+  (options.client ?? client).post<AddCartItemResponses, AddCartItemErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart/items',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Delete an item from the buyer cart
+ */
+export const deleteCartItem = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteCartItemData, ThrowOnError>,
+): RequestResult<DeleteCartItemResponses, DeleteCartItemErrors, ThrowOnError> =>
+  (options.client ?? client).delete<DeleteCartItemResponses, DeleteCartItemErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart/items/{id}',
+    ...options,
+  });
+
+/**
+ * Update quantity of an item in the buyer cart
+ */
+export const updateCartItem = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateCartItemData, ThrowOnError>,
+): RequestResult<UpdateCartItemResponses, UpdateCartItemErrors, ThrowOnError> =>
+  (options.client ?? client).put<UpdateCartItemResponses, UpdateCartItemErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/cart/items/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get buyer wallet balance
+ */
+export const getBuyerWallet = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBuyerWalletData, ThrowOnError>,
+): RequestResult<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/wallet',
+    ...options,
+  });
+
+/**
+ * Directly top up the wallet balance
+ */
+export const topUpWallet = <ThrowOnError extends boolean = false>(
+  options: Options<TopUpWalletData, ThrowOnError>,
+): RequestResult<TopUpWalletResponses, TopUpWalletErrors, ThrowOnError> =>
+  (options.client ?? client).post<TopUpWalletResponses, TopUpWalletErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/buyers/wallet/topup',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get wallet transaction history
+ */
+export const getWalletTransactions = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWalletTransactionsData, ThrowOnError>,
+): RequestResult<GetWalletTransactionsResponses, GetWalletTransactionsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetWalletTransactionsResponses,
+    GetWalletTransactionsErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/users/me/avatar/presign',
+    url: '/api/buyers/wallet/transactions',
+    ...options,
+  });
+
+/**
+ * Validate a voucher or promo code for buyer checkout
+ */
+export const validateDiscountCode = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateDiscountCodeData, ThrowOnError>,
+): RequestResult<ValidateDiscountCodeResponses, ValidateDiscountCodeErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    ValidateDiscountCodeResponses,
+    ValidateDiscountCodeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/discounts/validate',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -438,30 +885,267 @@ export const presignUserAvatar = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Update current user profile info
- *
- * Update profile information (e.g. name, avatarKey) for the logged-in user.
+ * List available delivery jobs for drivers
  */
-export const updateUserProfile = <ThrowOnError extends boolean = false>(
-  options: Options<UpdateUserProfileData, ThrowOnError>,
-): RequestResult<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError> =>
-  (options.client ?? client).put<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError>(
-    {
-      security: [
-        {
-          in: 'cookie',
-          name: '__session',
-          type: 'apiKey',
-        },
-      ],
-      url: '/api/users/me',
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
+export const listAvailableJobs = <ThrowOnError extends boolean = false>(
+  options?: Options<ListAvailableJobsData, ThrowOnError>,
+): RequestResult<ListAvailableJobsResponses, ListAvailableJobsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListAvailableJobsResponses,
+    ListAvailableJobsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
       },
+    ],
+    url: '/api/driver/jobs',
+    ...options,
+  });
+
+/**
+ * Get details of a specific delivery job
+ */
+export const getDriverJobDetail = <ThrowOnError extends boolean = false>(
+  options: Options<GetDriverJobDetailData, ThrowOnError>,
+): RequestResult<GetDriverJobDetailResponses, GetDriverJobDetailErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetDriverJobDetailResponses,
+    GetDriverJobDetailErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}',
+    ...options,
+  });
+
+/**
+ * Complete a taken delivery job
+ */
+export const completeDeliveryJob = <ThrowOnError extends boolean = false>(
+  options: Options<CompleteDeliveryJobData, ThrowOnError>,
+): RequestResult<CompleteDeliveryJobResponses, CompleteDeliveryJobErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    CompleteDeliveryJobResponses,
+    CompleteDeliveryJobErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}/complete',
+    ...options,
+  });
+
+/**
+ * Take a pending delivery job
+ */
+export const takeDeliveryJob = <ThrowOnError extends boolean = false>(
+  options: Options<TakeDeliveryJobData, ThrowOnError>,
+): RequestResult<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError> =>
+  (options.client ?? client).post<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/jobs/{id}/take',
+    ...options,
+  });
+
+/**
+ * Get paginated history of completed delivery jobs for the logged-in driver
+ */
+export const getDriverJobHistory = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDriverJobHistoryData, ThrowOnError>,
+): RequestResult<GetDriverJobHistoryResponses, GetDriverJobHistoryErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetDriverJobHistoryResponses,
+    GetDriverJobHistoryErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/me/history',
+    ...options,
+  });
+
+/**
+ * Get stats, earnings and jobs history for the logged-in driver
+ */
+export const getDriverStats = <ThrowOnError extends boolean = false>(
+  options?: Options<GetDriverStatsData, ThrowOnError>,
+): RequestResult<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/driver/me/stats',
+    ...options,
+  });
+
+/**
+ * Get cities by province ID
+ */
+export const getCities = <ThrowOnError extends boolean = false>(
+  options: Options<GetCitiesData, ThrowOnError>,
+): RequestResult<GetCitiesResponses, GetCitiesErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetCitiesResponses, GetCitiesErrors, ThrowOnError>({
+    url: '/api/locations/cities',
+    ...options,
+  });
+
+/**
+ * Get districts by city ID
+ */
+export const getDistricts = <ThrowOnError extends boolean = false>(
+  options: Options<GetDistrictsData, ThrowOnError>,
+): RequestResult<GetDistrictsResponses, GetDistrictsErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetDistrictsResponses, GetDistrictsErrors, ThrowOnError>({
+    url: '/api/locations/districts',
+    ...options,
+  });
+
+/**
+ * Get all provinces
+ */
+export const getProvinces = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProvincesData, ThrowOnError>,
+): RequestResult<GetProvincesResponses, GetProvincesErrors, ThrowOnError> =>
+  (options?.client ?? client).get<GetProvincesResponses, GetProvincesErrors, ThrowOnError>({
+    url: '/api/locations/provinces',
+    ...options,
+  });
+
+/**
+ * List buyer orders
+ */
+export const listBuyerOrders = <ThrowOnError extends boolean = false>(
+  options?: Options<ListBuyerOrdersData, ThrowOnError>,
+): RequestResult<ListBuyerOrdersResponses, ListBuyerOrdersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ListBuyerOrdersResponses, ListBuyerOrdersErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders',
+    ...options,
+  });
+
+/**
+ * Confirm checkout and create a new order
+ */
+export const createOrder = <ThrowOnError extends boolean = false>(
+  options: Options<CreateOrderData, ThrowOnError>,
+): RequestResult<CreateOrderResponses, CreateOrderErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateOrderResponses, CreateOrderErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
     },
-  );
+  });
+
+/**
+ * Get details of a specific buyer order
+ */
+export const getBuyerOrderDetail = <ThrowOnError extends boolean = false>(
+  options: Options<GetBuyerOrderDetailData, ThrowOnError>,
+): RequestResult<GetBuyerOrderDetailResponses, GetBuyerOrderDetailErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetBuyerOrderDetailResponses,
+    GetBuyerOrderDetailErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders/{id}',
+    ...options,
+  });
+
+/**
+ * Preview order calculations before checking out
+ */
+export const checkoutPreview = <ThrowOnError extends boolean = false>(
+  options: Options<CheckoutPreviewData, ThrowOnError>,
+): RequestResult<CheckoutPreviewResponses, CheckoutPreviewErrors, ThrowOnError> =>
+  (options.client ?? client).post<CheckoutPreviewResponses, CheckoutPreviewErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders/preview',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get expense report for buyer completed orders
+ */
+export const getBuyerExpenseReport = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBuyerExpenseReportData, ThrowOnError>,
+): RequestResult<GetBuyerExpenseReportResponses, GetBuyerExpenseReportErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetBuyerExpenseReportResponses,
+    GetBuyerExpenseReportErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/orders/report/expense',
+    ...options,
+  });
 
 /**
  * Private endpoint accessible only by Admin role
@@ -477,33 +1161,11 @@ export const privateAdminEndpoint = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
     url: '/api/private/admin',
-    ...options,
-  });
-
-/**
- * Private endpoint accessible only by Seller role
- */
-export const privateSellerEndpoint = <ThrowOnError extends boolean = false>(
-  options?: Options<PrivateSellerEndpointData, ThrowOnError>,
-): RequestResult<PrivateSellerEndpointResponses, PrivateSellerEndpointErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    PrivateSellerEndpointResponses,
-    PrivateSellerEndpointErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/private/seller',
     ...options,
   });
 
@@ -521,7 +1183,7 @@ export const privateBuyerEndpoint = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
@@ -543,11 +1205,33 @@ export const privateDriverEndpoint = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
     url: '/api/private/driver',
+    ...options,
+  });
+
+/**
+ * Private endpoint accessible only by Seller role
+ */
+export const privateSellerEndpoint = <ThrowOnError extends boolean = false>(
+  options?: Options<PrivateSellerEndpointData, ThrowOnError>,
+): RequestResult<PrivateSellerEndpointResponses, PrivateSellerEndpointErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    PrivateSellerEndpointResponses,
+    PrivateSellerEndpointErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/private/seller',
     ...options,
   });
 
@@ -571,6 +1255,42 @@ export const getProductById = <ThrowOnError extends boolean = false>(
   (options.client ?? client).get<GetProductByIdResponses, GetProductByIdErrors, ThrowOnError>({
     url: '/api/products/{id}',
     ...options,
+  });
+
+/**
+ * Get product reviews list (Public)
+ */
+export const getProductReviews = <ThrowOnError extends boolean = false>(
+  options: Options<GetProductReviewsData, ThrowOnError>,
+): RequestResult<GetProductReviewsResponses, GetProductReviewsErrors, ThrowOnError> =>
+  (options.client ?? client).get<GetProductReviewsResponses, GetProductReviewsErrors, ThrowOnError>(
+    { url: '/api/products/{id}/reviews', ...options },
+  );
+
+/**
+ * Submit a product review (Buyer only)
+ */
+export const submitProductReview = <ThrowOnError extends boolean = false>(
+  options: Options<SubmitProductReviewData, ThrowOnError>,
+): RequestResult<SubmitProductReviewResponses, SubmitProductReviewErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    SubmitProductReviewResponses,
+    SubmitProductReviewErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/products/{id}/reviews',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 /**
@@ -600,47 +1320,11 @@ export const presignProductImage = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
     url: '/api/products/image/presign',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Get product reviews list (Public)
- */
-export const getProductReviews = <ThrowOnError extends boolean = false>(
-  options: Options<GetProductReviewsData, ThrowOnError>,
-): RequestResult<GetProductReviewsResponses, GetProductReviewsErrors, ThrowOnError> =>
-  (options.client ?? client).get<GetProductReviewsResponses, GetProductReviewsErrors, ThrowOnError>(
-    { url: '/api/products/{id}/reviews', ...options },
-  );
-
-/**
- * Submit a product review (Buyer only)
- */
-export const submitProductReview = <ThrowOnError extends boolean = false>(
-  options: Options<SubmitProductReviewData, ThrowOnError>,
-): RequestResult<SubmitProductReviewResponses, SubmitProductReviewErrors, ThrowOnError> =>
-  (options.client ?? client).post<
-    SubmitProductReviewResponses,
-    SubmitProductReviewErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/products/{id}/reviews',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -662,244 +1346,12 @@ export const getMyProductReviews = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
     url: '/api/products/reviews/me',
     ...options,
-  });
-
-/**
- * List products owned by logged-in Seller
- */
-export const listSellerProducts = <ThrowOnError extends boolean = false>(
-  options?: Options<ListSellerProductsData, ThrowOnError>,
-): RequestResult<ListSellerProductsResponses, ListSellerProductsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    ListSellerProductsResponses,
-    ListSellerProductsErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/seller/products',
-    ...options,
-  });
-
-/**
- * Create a new product under Seller store
- */
-export const createSellerProduct = <ThrowOnError extends boolean = false>(
-  options: Options<CreateSellerProductData, ThrowOnError>,
-): RequestResult<CreateSellerProductResponses, CreateSellerProductErrors, ThrowOnError> =>
-  (options.client ?? client).post<
-    CreateSellerProductResponses,
-    CreateSellerProductErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/seller/products',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Delete a product owned by Seller
- */
-export const deleteSellerProduct = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteSellerProductData, ThrowOnError>,
-): RequestResult<DeleteSellerProductResponses, DeleteSellerProductErrors, ThrowOnError> =>
-  (options.client ?? client).delete<
-    DeleteSellerProductResponses,
-    DeleteSellerProductErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/seller/products/{id}',
-    ...options,
-  });
-
-/**
- * Get details of a product owned by logged-in Seller
- */
-export const getSellerProductById = <ThrowOnError extends boolean = false>(
-  options: Options<GetSellerProductByIdData, ThrowOnError>,
-): RequestResult<GetSellerProductByIdResponses, GetSellerProductByIdErrors, ThrowOnError> =>
-  (options.client ?? client).get<
-    GetSellerProductByIdResponses,
-    GetSellerProductByIdErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/seller/products/{id}',
-    ...options,
-  });
-
-/**
- * Update a product owned by Seller
- */
-export const updateSellerProduct = <ThrowOnError extends boolean = false>(
-  options: Options<UpdateSellerProductData, ThrowOnError>,
-): RequestResult<UpdateSellerProductResponses, UpdateSellerProductErrors, ThrowOnError> =>
-  (options.client ?? client).put<
-    UpdateSellerProductResponses,
-    UpdateSellerProductErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/seller/products/{id}',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Create a new store
- *
- * Create a new store for the currently authenticated seller.
- */
-export const createStore = <ThrowOnError extends boolean = false>(
-  options: Options<CreateStoreData, ThrowOnError>,
-): RequestResult<CreateStoreResponses, CreateStoreErrors, ThrowOnError> =>
-  (options.client ?? client).post<CreateStoreResponses, CreateStoreErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/stores',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Get current seller store
- *
- * Get the store of the currently authenticated seller.
- */
-export const getCurrentSellerStore = <ThrowOnError extends boolean = false>(
-  options?: Options<GetCurrentSellerStoreData, ThrowOnError>,
-): RequestResult<GetCurrentSellerStoreResponses, GetCurrentSellerStoreErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    GetCurrentSellerStoreResponses,
-    GetCurrentSellerStoreErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/stores/me',
-    ...options,
-  });
-
-/**
- * Update current seller store
- *
- * Update the store of the currently authenticated seller.
- */
-export const updateCurrentSellerStore = <ThrowOnError extends boolean = false>(
-  options: Options<UpdateCurrentSellerStoreData, ThrowOnError>,
-): RequestResult<UpdateCurrentSellerStoreResponses, UpdateCurrentSellerStoreErrors, ThrowOnError> =>
-  (options.client ?? client).put<
-    UpdateCurrentSellerStoreResponses,
-    UpdateCurrentSellerStoreErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/stores/me',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Get public store info
- *
- * Get public information about a store by ID or slug (name).
- */
-export const getPublicStoreInfo = <ThrowOnError extends boolean = false>(
-  options: Options<GetPublicStoreInfoData, ThrowOnError>,
-): RequestResult<GetPublicStoreInfoResponses, GetPublicStoreInfoErrors, ThrowOnError> =>
-  (options.client ?? client).get<
-    GetPublicStoreInfoResponses,
-    GetPublicStoreInfoErrors,
-    ThrowOnError
-  >({ url: '/api/stores/public/{slugOrId}', ...options });
-
-/**
- * Generate pre-signed URL for store logo upload
- *
- * Generates an expiring pre-signed URL for direct upload of a store logo to Cloudflare R2.
- */
-export const presignStoreLogo = <ThrowOnError extends boolean = false>(
-  options: Options<PresignStoreLogoData, ThrowOnError>,
-): RequestResult<PresignStoreLogoResponses, PresignStoreLogoErrors, ThrowOnError> =>
-  (options.client ?? client).post<PresignStoreLogoResponses, PresignStoreLogoErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/stores/{storeId}/logo/presign',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
   });
 
 /**
@@ -940,369 +1392,31 @@ export const getReviewsStats = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Get buyer wallet balance
+ * Set the stock of a product owned by the logged-in Seller
+ *
+ * Commerce owns stock. The catalog shows a read model of it that catches up within a few seconds.
  */
-export const getBuyerWallet = <ThrowOnError extends boolean = false>(
-  options?: Options<GetBuyerWalletData, ThrowOnError>,
-): RequestResult<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError> =>
-  (options?.client ?? client).get<GetBuyerWalletResponses, GetBuyerWalletErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/wallet',
-    ...options,
-  });
-
-/**
- * Directly top up the wallet balance
- */
-export const topUpWallet = <ThrowOnError extends boolean = false>(
-  options: Options<TopUpWalletData, ThrowOnError>,
-): RequestResult<TopUpWalletResponses, TopUpWalletErrors, ThrowOnError> =>
-  (options.client ?? client).post<TopUpWalletResponses, TopUpWalletErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/wallet/topup',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Get wallet transaction history
- */
-export const getWalletTransactions = <ThrowOnError extends boolean = false>(
-  options?: Options<GetWalletTransactionsData, ThrowOnError>,
-): RequestResult<GetWalletTransactionsResponses, GetWalletTransactionsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    GetWalletTransactionsResponses,
-    GetWalletTransactionsErrors,
+export const setSellerProductStock = <ThrowOnError extends boolean = false>(
+  options: Options<SetSellerProductStockData, ThrowOnError>,
+): RequestResult<SetSellerProductStockResponses, SetSellerProductStockErrors, ThrowOnError> =>
+  (options.client ?? client).put<
+    SetSellerProductStockResponses,
+    SetSellerProductStockErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/buyers/wallet/transactions',
-    ...options,
-  });
-
-/**
- * List buyer delivery addresses
- */
-export const getAddresses = <ThrowOnError extends boolean = false>(
-  options?: Options<GetAddressesData, ThrowOnError>,
-): RequestResult<GetAddressesResponses, GetAddressesErrors, ThrowOnError> =>
-  (options?.client ?? client).get<GetAddressesResponses, GetAddressesErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/addresses',
-    ...options,
-  });
-
-/**
- * Add a new delivery address
- */
-export const createAddress = <ThrowOnError extends boolean = false>(
-  options: Options<CreateAddressData, ThrowOnError>,
-): RequestResult<CreateAddressResponses, CreateAddressErrors, ThrowOnError> =>
-  (options.client ?? client).post<CreateAddressResponses, CreateAddressErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/addresses',
+    url: '/api/seller/inventory/{productId}',
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  });
-
-/**
- * Delete a delivery address
- */
-export const deleteAddress = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteAddressData, ThrowOnError>,
-): RequestResult<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError> =>
-  (options.client ?? client).delete<DeleteAddressResponses, DeleteAddressErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/addresses/{id}',
-    ...options,
-  });
-
-/**
- * Update delivery address details
- */
-export const updateAddress = <ThrowOnError extends boolean = false>(
-  options: Options<UpdateAddressData, ThrowOnError>,
-): RequestResult<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError> =>
-  (options.client ?? client).put<UpdateAddressResponses, UpdateAddressErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/addresses/{id}',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Set address as the default delivery address
- */
-export const setDefaultAddress = <ThrowOnError extends boolean = false>(
-  options: Options<SetDefaultAddressData, ThrowOnError>,
-): RequestResult<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError> =>
-  (options.client ?? client).put<SetDefaultAddressResponses, SetDefaultAddressErrors, ThrowOnError>(
-    {
-      security: [
-        {
-          in: 'cookie',
-          name: '__session',
-          type: 'apiKey',
-        },
-      ],
-      url: '/api/buyers/addresses/{id}/default',
-      ...options,
-    },
-  );
-
-/**
- * Clear all items from the buyer cart
- */
-export const clearCart = <ThrowOnError extends boolean = false>(
-  options?: Options<ClearCartData, ThrowOnError>,
-): RequestResult<ClearCartResponses, ClearCartErrors, ThrowOnError> =>
-  (options?.client ?? client).delete<ClearCartResponses, ClearCartErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/cart',
-    ...options,
-  });
-
-/**
- * Get buyer cart summary
- */
-export const getBuyerCart = <ThrowOnError extends boolean = false>(
-  options?: Options<GetBuyerCartData, ThrowOnError>,
-): RequestResult<GetBuyerCartResponses, GetBuyerCartErrors, ThrowOnError> =>
-  (options?.client ?? client).get<GetBuyerCartResponses, GetBuyerCartErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/cart',
-    ...options,
-  });
-
-/**
- * Add an item to the buyer cart
- */
-export const addCartItem = <ThrowOnError extends boolean = false>(
-  options: Options<AddCartItemData, ThrowOnError>,
-): RequestResult<AddCartItemResponses, AddCartItemErrors, ThrowOnError> =>
-  (options.client ?? client).post<AddCartItemResponses, AddCartItemErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/cart/items',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Delete an item from the buyer cart
- */
-export const deleteCartItem = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteCartItemData, ThrowOnError>,
-): RequestResult<DeleteCartItemResponses, DeleteCartItemErrors, ThrowOnError> =>
-  (options.client ?? client).delete<DeleteCartItemResponses, DeleteCartItemErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/cart/items/{id}',
-    ...options,
-  });
-
-/**
- * Update quantity of an item in the buyer cart
- */
-export const updateCartItem = <ThrowOnError extends boolean = false>(
-  options: Options<UpdateCartItemData, ThrowOnError>,
-): RequestResult<UpdateCartItemResponses, UpdateCartItemErrors, ThrowOnError> =>
-  (options.client ?? client).put<UpdateCartItemResponses, UpdateCartItemErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/buyers/cart/items/{id}',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Preview order calculations before checking out
- */
-export const checkoutPreview = <ThrowOnError extends boolean = false>(
-  options: Options<CheckoutPreviewData, ThrowOnError>,
-): RequestResult<CheckoutPreviewResponses, CheckoutPreviewErrors, ThrowOnError> =>
-  (options.client ?? client).post<CheckoutPreviewResponses, CheckoutPreviewErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/orders/preview',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * List buyer orders
- */
-export const listBuyerOrders = <ThrowOnError extends boolean = false>(
-  options?: Options<ListBuyerOrdersData, ThrowOnError>,
-): RequestResult<ListBuyerOrdersResponses, ListBuyerOrdersErrors, ThrowOnError> =>
-  (options?.client ?? client).get<ListBuyerOrdersResponses, ListBuyerOrdersErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/orders',
-    ...options,
-  });
-
-/**
- * Confirm checkout and create a new order
- */
-export const createOrder = <ThrowOnError extends boolean = false>(
-  options: Options<CreateOrderData, ThrowOnError>,
-): RequestResult<CreateOrderResponses, CreateOrderErrors, ThrowOnError> =>
-  (options.client ?? client).post<CreateOrderResponses, CreateOrderErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/orders',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-/**
- * Get expense report for buyer completed orders
- */
-export const getBuyerExpenseReport = <ThrowOnError extends boolean = false>(
-  options?: Options<GetBuyerExpenseReportData, ThrowOnError>,
-): RequestResult<GetBuyerExpenseReportResponses, GetBuyerExpenseReportErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    GetBuyerExpenseReportResponses,
-    GetBuyerExpenseReportErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/orders/report/expense',
-    ...options,
-  });
-
-/**
- * Get details of a specific buyer order
- */
-export const getBuyerOrderDetail = <ThrowOnError extends boolean = false>(
-  options: Options<GetBuyerOrderDetailData, ThrowOnError>,
-): RequestResult<GetBuyerOrderDetailResponses, GetBuyerOrderDetailErrors, ThrowOnError> =>
-  (options.client ?? client).get<
-    GetBuyerOrderDetailResponses,
-    GetBuyerOrderDetailErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/orders/{id}',
-    ...options,
   });
 
 /**
@@ -1315,33 +1429,11 @@ export const listSellerOrders = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
     url: '/api/seller/orders',
-    ...options,
-  });
-
-/**
- * Get income report for seller completed orders
- */
-export const getSellerIncomeReport = <ThrowOnError extends boolean = false>(
-  options?: Options<GetSellerIncomeReportData, ThrowOnError>,
-): RequestResult<GetSellerIncomeReportResponses, GetSellerIncomeReportErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    GetSellerIncomeReportResponses,
-    GetSellerIncomeReportErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/seller/orders/report/income',
     ...options,
   });
 
@@ -1359,7 +1451,7 @@ export const getSellerOrderDetail = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
@@ -1381,7 +1473,7 @@ export const processSellerOrder = <ThrowOnError extends boolean = false>(
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
@@ -1394,52 +1486,68 @@ export const processSellerOrder = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Set the stock of a product owned by the logged-in Seller
- *
- * Commerce owns stock. The catalog shows a read model of it that catches up within a few seconds.
+ * Get income report for seller completed orders
  */
-export const setSellerProductStock = <ThrowOnError extends boolean = false>(
-  options: Options<SetSellerProductStockData, ThrowOnError>,
-): RequestResult<SetSellerProductStockResponses, SetSellerProductStockErrors, ThrowOnError> =>
-  (options.client ?? client).put<
-    SetSellerProductStockResponses,
-    SetSellerProductStockErrors,
+export const getSellerIncomeReport = <ThrowOnError extends boolean = false>(
+  options?: Options<GetSellerIncomeReportData, ThrowOnError>,
+): RequestResult<GetSellerIncomeReportResponses, GetSellerIncomeReportErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetSellerIncomeReportResponses,
+    GetSellerIncomeReportErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/seller/inventory/{productId}',
+    url: '/api/seller/orders/report/income',
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
   });
 
 /**
- * Validate a voucher or promo code for buyer checkout
+ * List products owned by logged-in Seller
  */
-export const validateDiscountCode = <ThrowOnError extends boolean = false>(
-  options: Options<ValidateDiscountCodeData, ThrowOnError>,
-): RequestResult<ValidateDiscountCodeResponses, ValidateDiscountCodeErrors, ThrowOnError> =>
+export const listSellerProducts = <ThrowOnError extends boolean = false>(
+  options?: Options<ListSellerProductsData, ThrowOnError>,
+): RequestResult<ListSellerProductsResponses, ListSellerProductsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListSellerProductsResponses,
+    ListSellerProductsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/seller/products',
+    ...options,
+  });
+
+/**
+ * Create a new product under Seller store
+ */
+export const createSellerProduct = <ThrowOnError extends boolean = false>(
+  options: Options<CreateSellerProductData, ThrowOnError>,
+): RequestResult<CreateSellerProductResponses, CreateSellerProductErrors, ThrowOnError> =>
   (options.client ?? client).post<
-    ValidateDiscountCodeResponses,
-    ValidateDiscountCodeErrors,
+    CreateSellerProductResponses,
+    CreateSellerProductErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/discounts/validate',
+    url: '/api/seller/products',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -1448,162 +1556,68 @@ export const validateDiscountCode = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Get stats, earnings and jobs history for the logged-in driver
+ * Delete a product owned by Seller
  */
-export const getDriverStats = <ThrowOnError extends boolean = false>(
-  options?: Options<GetDriverStatsData, ThrowOnError>,
-): RequestResult<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<GetDriverStatsResponses, GetDriverStatsErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/me/stats',
-    ...options,
-  });
-
-/**
- * Get paginated history of completed delivery jobs for the logged-in driver
- */
-export const getDriverJobHistory = <ThrowOnError extends boolean = false>(
-  options?: Options<GetDriverJobHistoryData, ThrowOnError>,
-): RequestResult<GetDriverJobHistoryResponses, GetDriverJobHistoryErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    GetDriverJobHistoryResponses,
-    GetDriverJobHistoryErrors,
+export const deleteSellerProduct = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteSellerProductData, ThrowOnError>,
+): RequestResult<DeleteSellerProductResponses, DeleteSellerProductErrors, ThrowOnError> =>
+  (options.client ?? client).delete<
+    DeleteSellerProductResponses,
+    DeleteSellerProductErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/driver/me/history',
+    url: '/api/seller/products/{id}',
     ...options,
   });
 
 /**
- * List available delivery jobs for drivers
+ * Get details of a product owned by logged-in Seller
  */
-export const listAvailableJobs = <ThrowOnError extends boolean = false>(
-  options?: Options<ListAvailableJobsData, ThrowOnError>,
-): RequestResult<ListAvailableJobsResponses, ListAvailableJobsErrors, ThrowOnError> =>
-  (options?.client ?? client).get<
-    ListAvailableJobsResponses,
-    ListAvailableJobsErrors,
-    ThrowOnError
-  >({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/jobs',
-    ...options,
-  });
-
-/**
- * Get details of a specific delivery job
- */
-export const getDriverJobDetail = <ThrowOnError extends boolean = false>(
-  options: Options<GetDriverJobDetailData, ThrowOnError>,
-): RequestResult<GetDriverJobDetailResponses, GetDriverJobDetailErrors, ThrowOnError> =>
+export const getSellerProductById = <ThrowOnError extends boolean = false>(
+  options: Options<GetSellerProductByIdData, ThrowOnError>,
+): RequestResult<GetSellerProductByIdResponses, GetSellerProductByIdErrors, ThrowOnError> =>
   (options.client ?? client).get<
-    GetDriverJobDetailResponses,
-    GetDriverJobDetailErrors,
+    GetSellerProductByIdResponses,
+    GetSellerProductByIdErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/driver/jobs/{id}',
+    url: '/api/seller/products/{id}',
     ...options,
   });
 
 /**
- * Take a pending delivery job
+ * Update a product owned by Seller
  */
-export const takeDeliveryJob = <ThrowOnError extends boolean = false>(
-  options: Options<TakeDeliveryJobData, ThrowOnError>,
-): RequestResult<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError> =>
-  (options.client ?? client).post<TakeDeliveryJobResponses, TakeDeliveryJobErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/driver/jobs/{id}/take',
-    ...options,
-  });
-
-/**
- * Complete a taken delivery job
- */
-export const completeDeliveryJob = <ThrowOnError extends boolean = false>(
-  options: Options<CompleteDeliveryJobData, ThrowOnError>,
-): RequestResult<CompleteDeliveryJobResponses, CompleteDeliveryJobErrors, ThrowOnError> =>
-  (options.client ?? client).post<
-    CompleteDeliveryJobResponses,
-    CompleteDeliveryJobErrors,
+export const updateSellerProduct = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateSellerProductData, ThrowOnError>,
+): RequestResult<UpdateSellerProductResponses, UpdateSellerProductErrors, ThrowOnError> =>
+  (options.client ?? client).put<
+    UpdateSellerProductResponses,
+    UpdateSellerProductErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/driver/jobs/{id}/complete',
-    ...options,
-  });
-
-/**
- * List all discount vouchers
- */
-export const listVouchers = <ThrowOnError extends boolean = false>(
-  options?: Options<ListVouchersData, ThrowOnError>,
-): RequestResult<ListVouchersResponses, ListVouchersErrors, ThrowOnError> =>
-  (options?.client ?? client).get<ListVouchersResponses, ListVouchersErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/admin/vouchers',
-    ...options,
-  });
-
-/**
- * Create a new discount voucher
- */
-export const createVoucher = <ThrowOnError extends boolean = false>(
-  options: Options<CreateVoucherData, ThrowOnError>,
-): RequestResult<CreateVoucherResponses, CreateVoucherErrors, ThrowOnError> =>
-  (options.client ?? client).post<CreateVoucherResponses, CreateVoucherErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/admin/vouchers',
+    url: '/api/seller/products/{id}',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -1612,56 +1626,22 @@ export const createVoucher = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Get details of a specific voucher
+ * Create a new store
+ *
+ * Create a new store for the currently authenticated seller.
  */
-export const getVoucher = <ThrowOnError extends boolean = false>(
-  options: Options<GetVoucherData, ThrowOnError>,
-): RequestResult<GetVoucherResponses, GetVoucherErrors, ThrowOnError> =>
-  (options.client ?? client).get<GetVoucherResponses, GetVoucherErrors, ThrowOnError>({
+export const createStore = <ThrowOnError extends boolean = false>(
+  options: Options<CreateStoreData, ThrowOnError>,
+): RequestResult<CreateStoreResponses, CreateStoreErrors, ThrowOnError> =>
+  (options.client ?? client).post<CreateStoreResponses, CreateStoreErrors, ThrowOnError>({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/admin/vouchers/{id}',
-    ...options,
-  });
-
-/**
- * List all discount promos
- */
-export const listPromos = <ThrowOnError extends boolean = false>(
-  options?: Options<ListPromosData, ThrowOnError>,
-): RequestResult<ListPromosResponses, ListPromosErrors, ThrowOnError> =>
-  (options?.client ?? client).get<ListPromosResponses, ListPromosErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/admin/promos',
-    ...options,
-  });
-
-/**
- * Create a new discount promo campaign
- */
-export const createPromo = <ThrowOnError extends boolean = false>(
-  options: Options<CreatePromoData, ThrowOnError>,
-): RequestResult<CreatePromoResponses, CreatePromoErrors, ThrowOnError> =>
-  (options.client ?? client).post<CreatePromoResponses, CreatePromoErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/admin/promos',
+    url: '/api/stores',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -1670,82 +1650,74 @@ export const createPromo = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Get details of a specific promo campaign
+ * Generate pre-signed URL for store logo upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a store logo to Cloudflare R2.
  */
-export const getPromo = <ThrowOnError extends boolean = false>(
-  options: Options<GetPromoData, ThrowOnError>,
-): RequestResult<GetPromoResponses, GetPromoErrors, ThrowOnError> =>
-  (options.client ?? client).get<GetPromoResponses, GetPromoErrors, ThrowOnError>({
+export const presignStoreLogo = <ThrowOnError extends boolean = false>(
+  options: Options<PresignStoreLogoData, ThrowOnError>,
+): RequestResult<PresignStoreLogoResponses, PresignStoreLogoErrors, ThrowOnError> =>
+  (options.client ?? client).post<PresignStoreLogoResponses, PresignStoreLogoErrors, ThrowOnError>({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/admin/promos/{id}',
+    url: '/api/stores/{storeId}/logo/presign',
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 /**
- * Get dashboard statistics for admin monitoring
+ * Get current seller store
+ *
+ * Get the store of the currently authenticated seller.
  */
-export const getDashboardStats = <ThrowOnError extends boolean = false>(
-  options?: Options<GetDashboardStatsData, ThrowOnError>,
-): RequestResult<GetDashboardStatsResponses, GetDashboardStatsErrors, ThrowOnError> =>
+export const getCurrentSellerStore = <ThrowOnError extends boolean = false>(
+  options?: Options<GetCurrentSellerStoreData, ThrowOnError>,
+): RequestResult<GetCurrentSellerStoreResponses, GetCurrentSellerStoreErrors, ThrowOnError> =>
   (options?.client ?? client).get<
-    GetDashboardStatsResponses,
-    GetDashboardStatsErrors,
+    GetCurrentSellerStoreResponses,
+    GetCurrentSellerStoreErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/admin/dashboard',
+    url: '/api/stores/me',
     ...options,
   });
 
 /**
- * Process overdue orders by auto-returning and refunding them
+ * Update current seller store
+ *
+ * Update the store of the currently authenticated seller.
  */
-export const processOverdueOrders = <ThrowOnError extends boolean = false>(
-  options?: Options<ProcessOverdueOrdersData, ThrowOnError>,
-): RequestResult<ProcessOverdueOrdersResponses, ProcessOverdueOrdersErrors, ThrowOnError> =>
-  (options?.client ?? client).post<
-    ProcessOverdueOrdersResponses,
-    ProcessOverdueOrdersErrors,
+export const updateCurrentSellerStore = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateCurrentSellerStoreData, ThrowOnError>,
+): RequestResult<UpdateCurrentSellerStoreResponses, UpdateCurrentSellerStoreErrors, ThrowOnError> =>
+  (options.client ?? client).put<
+    UpdateCurrentSellerStoreResponses,
+    UpdateCurrentSellerStoreErrors,
     ThrowOnError
   >({
     security: [
       {
         in: 'cookie',
-        name: '__session',
+        name: '__access',
         type: 'apiKey',
       },
     ],
-    url: '/api/admin/dashboard/overdue/process',
-    ...options,
-  });
-
-/**
- * Simulate system time forward for demo purposes
- */
-export const simulateTime = <ThrowOnError extends boolean = false>(
-  options: Options<SimulateTimeData, ThrowOnError>,
-): RequestResult<SimulateTimeResponses, SimulateTimeErrors, ThrowOnError> =>
-  (options.client ?? client).post<SimulateTimeResponses, SimulateTimeErrors, ThrowOnError>({
-    security: [
-      {
-        in: 'cookie',
-        name: '__session',
-        type: 'apiKey',
-      },
-    ],
-    url: '/api/admin/dashboard/time/simulate',
+    url: '/api/stores/me',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -1754,34 +1726,69 @@ export const simulateTime = <ThrowOnError extends boolean = false>(
   });
 
 /**
- * Get all provinces
+ * Get public store info
+ *
+ * Get public information about a store by ID or slug (name).
  */
-export const getProvinces = <ThrowOnError extends boolean = false>(
-  options?: Options<GetProvincesData, ThrowOnError>,
-): RequestResult<GetProvincesResponses, GetProvincesErrors, ThrowOnError> =>
-  (options?.client ?? client).get<GetProvincesResponses, GetProvincesErrors, ThrowOnError>({
-    url: '/api/locations/provinces',
-    ...options,
-  });
+export const getPublicStoreInfo = <ThrowOnError extends boolean = false>(
+  options: Options<GetPublicStoreInfoData, ThrowOnError>,
+): RequestResult<GetPublicStoreInfoResponses, GetPublicStoreInfoErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetPublicStoreInfoResponses,
+    GetPublicStoreInfoErrors,
+    ThrowOnError
+  >({ url: '/api/stores/public/{slugOrId}', ...options });
 
 /**
- * Get cities by province ID
+ * Update current user profile info
+ *
+ * Update profile information (e.g. name, avatarKey) for the logged-in user.
  */
-export const getCities = <ThrowOnError extends boolean = false>(
-  options: Options<GetCitiesData, ThrowOnError>,
-): RequestResult<GetCitiesResponses, GetCitiesErrors, ThrowOnError> =>
-  (options.client ?? client).get<GetCitiesResponses, GetCitiesErrors, ThrowOnError>({
-    url: '/api/locations/cities',
-    ...options,
-  });
+export const updateUserProfile = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateUserProfileData, ThrowOnError>,
+): RequestResult<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError> =>
+  (options.client ?? client).put<UpdateUserProfileResponses, UpdateUserProfileErrors, ThrowOnError>(
+    {
+      security: [
+        {
+          in: 'cookie',
+          name: '__access',
+          type: 'apiKey',
+        },
+      ],
+      url: '/api/users/me',
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    },
+  );
 
 /**
- * Get districts by city ID
+ * Generate pre-signed URL for avatar upload
+ *
+ * Generates an expiring pre-signed URL for direct upload of a user avatar to Cloudflare R2.
  */
-export const getDistricts = <ThrowOnError extends boolean = false>(
-  options: Options<GetDistrictsData, ThrowOnError>,
-): RequestResult<GetDistrictsResponses, GetDistrictsErrors, ThrowOnError> =>
-  (options.client ?? client).get<GetDistrictsResponses, GetDistrictsErrors, ThrowOnError>({
-    url: '/api/locations/districts',
+export const presignUserAvatar = <ThrowOnError extends boolean = false>(
+  options: Options<PresignUserAvatarData, ThrowOnError>,
+): RequestResult<PresignUserAvatarResponses, PresignUserAvatarErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    PresignUserAvatarResponses,
+    PresignUserAvatarErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: '__access',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/users/me/avatar/presign',
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });

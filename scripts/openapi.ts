@@ -1,28 +1,32 @@
-// Kong does not merge specs: rerun when a public API changes (services must be running).
+// Kong does not merge specs. Each service's app is loaded offline with its test environment (no
+// databases, Consul or RabbitMQ), so this runs in CI and fails when the committed contract is stale.
 const SERVICES = ['identity', 'catalog', 'commerce'] as const;
 const PUBLIC_URL = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
-const consul = process.env.CONSUL_HTTP_ADDR ?? 'http://localhost:8500';
 
 type Spec = { paths?: Record<string, unknown>; components?: { schemas?: Record<string, unknown> } };
 
-async function baseUrl(service: string, index: number) {
-  const explicit = process.argv[2 + index];
-  if (explicit) return explicit;
-  const res = await fetch(`${consul}/v1/health/service/${service}?passing=true`);
-  const [entry] = (await res.json()) as { Service: { Address: string; Port: number } }[];
-  if (!entry) throw new Error(`${service} is not registered in Consul`);
-  return `http://${entry.Service.Address}:${entry.Service.Port}`;
+async function specOf(service: string): Promise<Spec> {
+  const proc = Bun.spawn(
+    [
+      'bun',
+      '--preload',
+      './test/setup.ts',
+      '-e',
+      "const { app } = await import('./src/app.ts'); const r = await app.request('/openapi.json'); process.stdout.write(await r.text()); process.exit(r.ok ? 0 : 1);",
+    ],
+    { cwd: `services/${service}`, env: { ...process.env, NODE_ENV: 'test' }, stderr: 'inherit' },
+  );
+  const out = await new Response(proc.stdout).text();
+  if ((await proc.exited) !== 0) throw new Error(`${service}: could not build its OpenAPI document`);
+  return JSON.parse(out) as Spec;
 }
 
 const paths: Record<string, unknown> = {};
 const schemas: Record<string, unknown> = {};
 const owner = new Map<string, string>();
 
-for (const [index, service] of SERVICES.entries()) {
-  const res = await fetch(`${await baseUrl(service, index)}/openapi.json`);
-  if (!res.ok) throw new Error(`${service} /openapi.json -> ${res.status}`);
-  const spec = (await res.json()) as Spec;
-  if (typeof spec !== 'object' || spec === null) throw new Error(`${service} returned no OpenAPI document`);
+for (const service of SERVICES) {
+  const spec = await specOf(service);
 
   // Two services defining the same path, or one schema name with different shapes, is a contract bug.
   for (const [path, item] of Object.entries(spec.paths ?? {})) {

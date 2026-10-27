@@ -11,7 +11,7 @@
     "format:check": "oxfmt --check",
     "fl": "bun run format && bun run lint",
     "test": "vitest run",
-    "openapi:generate": "openapi-ts && oxfmt --write src/lib/api"
+    "openapi:generate": "openapi-ts && oxfmt --write src/lib/api public/openapi.json"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.13.1",

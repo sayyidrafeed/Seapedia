@@ -35,7 +35,7 @@ jobs:
             echo "services=$all" >> "$GITHUB_OUTPUT"; exit 0
           fi
           files=$(git diff --name-only "$BASE" "$GITHUB_SHA")
-          if echo "$files" | grep -qE '^(packages/platform/|bun\.lock$|package\.json$|tsconfig\.base\.json$|\.github/workflows/)'; then
+          if echo "$files" | grep -qE '^(packages/(platform|contracts)/|bun\.lock$|package\.json$|tsconfig\.base\.json$|\.github/workflows/)'; then
             echo "services=$all" >> "$GITHUB_OUTPUT"; exit 0
           fi
           changed=()
@@ -69,6 +69,7 @@ jobs:
       matrix:
         workspace:
           - packages/platform
+          - packages/contracts
           - services/identity
           - services/catalog
           - services/commerce
@@ -95,6 +96,12 @@ jobs:
         if: startsWith(matrix.workspace, 'services/') || matrix.workspace == 'packages/platform'
         working-directory: ${{ matrix.workspace }}
         run: bun test
+      - name: Public API contract is up to date
+        if: matrix.workspace == 'apps/web'
+        run: |
+          bun scripts/openapi.ts
+          (cd apps/web && bun run openapi:generate)
+          git diff --exit-code -- apps/web/public/openapi.json apps/web/src/lib/api/generated
       - name: Build
         if: matrix.workspace == 'apps/web'
         working-directory: apps/web
