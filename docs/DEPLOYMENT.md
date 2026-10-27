@@ -8,22 +8,24 @@ This is a runbook; nothing in the repository changes the server by itself.
 
 ## Memory budget
 
-UNVERIFIED: phase 2 (Kong, RabbitMQ, Consul, MongoDB, two Postgres) has not been measured yet.
-Limits in `docker-compose.prod.yml`, and estimates:
+Target VPS: 4 GB RAM, 2 vCPU, 60 GB disk, with about 1.8 GB already used by the OS and Dokploy.
+UNVERIFIED: phase 2 has not been measured yet; limits in `docker-compose.prod.yml` /
+`docker-compose.deploy.yml` and estimates:
 
 | Container | Limit | Estimate |
 | --- | --- | --- |
-| elasticsearch (512 MB heap) | 1200 MB | ~900 MB (measured in phase 1) |
-| catalog-db (MongoDB, 0.25 GB cache) | 512 MB | ~250 MB |
-| rabbitmq | 384 MB | ~150 MB |
-| gateway (Kong, 1 worker) | 256 MB | ~150 MB |
-| identity-db, commerce-db (Postgres) | 192 MB each | ~60 MB each |
-| consul | 128 MB | ~60 MB |
-| identity, catalog, commerce, search | 192 MB each | ~45 MB each (measured in phase 1) |
+| elasticsearch (384 MB heap) | 900 MB | ~700 MB (phase 1 measured ~900 MB with a 512 MB heap) |
+| catalog-db (MongoDB 7.0, 0.15 GB cache) | 384 MB | ~200 MB |
+| rabbitmq | 256 MB | ~150 MB |
+| gateway (Kong, 1 worker) | 192 MB | ~150 MB |
+| identity-db, commerce-db (Postgres) | 128 MB each | ~60 MB each |
+| consul | 96 MB | ~60 MB |
+| identity, catalog, commerce, search | 160 MB each | ~45 MB each (phase 1 measured) |
 | web (nginx) | 32 MB | ~12 MB |
 
-Total estimate: about 1.9 GB, plus Dokploy (about 1 GB, estimated). Re-measure with `docker stats`
-on the production-like stack before buying the VPS, and update this table.
+Estimate: about 1.6 GB for Seapedia, about 3.4 GB with the OS and Dokploy. Add 2–4 GB of swap
+(step 1) and never build images on the server: CI builds them and the server only pulls. Measure
+with `docker stats` after the first deploy and update this table.
 
 ## 1. Prepare the server
 
@@ -39,67 +41,61 @@ Point `new-dokploy.sayyidrafee.com` at the server and set it as the panel domain
 ## 2. Secrets and images
 
 Generate production secrets once (`bun scripts/generate-secrets.ts`) and store each value as a
-Dokploy secret. CI publishes `ghcr.io/sayyidrafeed/seapedia-<service>:<sha>` for gateway, identity,
-catalog, commerce, search, and web. GitHub repository variables:
+Dokploy secret. CI publishes `ghcr.io/sayyidrafeed/seapedia-<service>` for gateway, identity, catalog, commerce,
+search, web and seed: `:<sha>` and `:pr-<n>` from pull requests, `:main` and `:latest` from main. GitHub repository variables:
 
 | Variable | Value |
 | --- | --- |
 | `PUBLIC_API_URL` | `https://api-seapedia.sayyidrafee.com` (baked into the web image) |
 | `PUBLIC_WEB_URL` | `https://seapedia.sayyidrafee.com` |
 | `IMAGE_PLATFORMS` | `linux/amd64`, or `linux/arm64` for an ARM VPS |
+| `CI_RUNNER` | optional runner label (default `ubuntu-latest`; Blacksmith needs a GitHub organization) |
 | `DEPLOY_WEBHOOK_URL_<SERVICE>` | each Dokploy application's deploy webhook |
 
-Add GHCR as a registry in Dokploy with a token that can read packages.
+GHCR packages start private. Either make each `seapedia-*` package public (package settings), or
+add GHCR as a registry in Dokploy with a token that has `read:packages`.
 
-## 3. Platform and data stores
+## 3. Deploy the stack (Dokploy Compose)
 
-All in one Dokploy project and one Docker network. None of these get a public domain.
+The quickest path is one Dokploy **Compose** application from this repository using
+`docker-compose.deploy.yml`: the same stack as `docker-compose.prod.yml`, but every Seapedia image
+is pulled from GHCR (`ghcr.io/sayyidrafeed/seapedia-<service>`) and nothing binds host ports.
 
-| Card | Image | Notes |
-| --- | --- | --- |
-| consul | `hashicorp/consul:2.0.4` | command and volume as in `docker-compose.prod.yml`; run `infra/consul/init.sh` once (one-off container) to seed KV |
-| rabbitmq | `rabbitmq:4.2.9-management-alpine` | volume; then run `infra/rabbitmq/init.ts` once (`oven/bun` one-off) to create the vhost and per-service users |
-| identity-db, commerce-db | `postgres:17.11-alpine` | one each, own volume and password |
-| catalog-db | `mongo:7.0.45` (8.0+ crashes on Linux 6.19 to 7.0.13, SERVER-121912) | entrypoint and healthcheck from `infra/mongo` (single-node replica set with keyfile auth); user script creates the `catalog` user |
-| elasticsearch | `elasticsearch:9.5.3` | single node, 512 MB heap, security on, HTTP TLS off (private network) |
+1. Create a Compose application, source: this GitHub repository, compose path
+   `docker-compose.deploy.yml`, branch `main` (or the PR branch while testing).
+2. Environment: paste the output of `bun scripts/generate-secrets.ts` (production secrets), then set
+   `WEB_URL=https://seapedia.sayyidrafee.com`, `API_URL=https://api-seapedia.sayyidrafee.com`, and
+   the image tags: `IDENTITY_TAG`, `CATALOG_TAG`, `COMMERCE_TAG`, `SEARCH_TAG`, `GATEWAY_TAG`,
+   `WEB_TAG`, `SEED_TAG` (`main`, a commit SHA, or `pr-<number>` while testing a PR).
+3. Domains: `gateway` port 8000 → `api-seapedia.sayyidrafee.com`; `web` port 8080 →
+   `seapedia.sayyidrafee.com`.
+4. Deploy. Platform init jobs (`consul-init`, `rabbitmq-init`) run once and exit.
 
-For production, enable Consul ACLs and keep its UI private.
-
-## 4. Services and edge
-
-| Card | Image | Domain | Notes |
-| --- | --- | --- | --- |
-| gateway | `seapedia-gateway` (Kong) | `api-seapedia.sayyidrafee.com` → 8000 | env `JWT_PUBLIC_KEY`, `CORS_ORIGINS=https://seapedia.sayyidrafee.com`, `CONSUL_DNS_HOST=<consul service name>` |
-| web | `seapedia-web` | `seapedia.sayyidrafee.com` → 8080 | also serves `/docs` |
-| identity | `seapedia-identity` | none | `DATABASE_URL`, `JWT_PRIVATE_KEY`, `JWT_PUBLIC_KEY`, `SERVICE_CLIENT_SECRETS`, `RABBITMQ_URL`, `CONSUL_HTTP_ADDR`, `R2_*` |
-| catalog | `seapedia-catalog` | none | `MONGODB_URL`, `SERVICE_CLIENT_SECRET`, `JWT_PUBLIC_KEY`, `RABBITMQ_URL`, `CONSUL_HTTP_ADDR`, `R2_*` |
-| commerce | `seapedia-commerce` | none | `DATABASE_URL`, `JWT_PUBLIC_KEY`, `RABBITMQ_URL`, `CONSUL_HTTP_ADDR` |
-| search | `seapedia-search` | none | `ELASTICSEARCH_*`, `SERVICE_CLIENT_SECRET`, `JWT_PUBLIC_KEY`, `RABBITMQ_URL`, `CONSUL_HTTP_ADDR` |
+Each service still releases on its own: change only its `*_TAG` and redeploy. Splitting into one
+Dokploy application per service later is a matter of moving each block into its own application
+on the same network.
 
 Rules that matter:
 
 - Services register their container IP in Consul; Kong resolves them through Consul DNS. Check in
-  the Consul UI that every service is passing before cutting over.
-- Run one replica of each service to start. More replicas work: consumers share their queue,
-  Consul spreads traffic, and two outbox relays may publish an event twice, which consumers absorb
-  (version guards, inbox).
+  the Consul UI (`ssh -L 8500:localhost:8500`) that every service is passing.
+- More replicas work: consumers share their queue, Consul spreads traffic, and two outbox relays
+  may publish an event twice, which consumers absorb (version guards, inbox).
 - Services apply their own migrations or indexes on start. Rolling back an image does not roll
   back a migration; keep migrations backward compatible.
+- Keep Consul, RabbitMQ and the databases without domains; enable Consul ACLs for production.
 
-## 5. Seed and index
+## 4. Seed and index
 
-Build and run the seed image once (it wipes the databases):
+Run the seed once from the server (it wipes the databases):
 
 ```bash
-docker build -f infra/seed/Dockerfile -t seapedia-seed .
-docker run --rm --network <dokploy-network> \
-  -e IDENTITY_DATABASE_URL=... -e COMMERCE_DATABASE_URL=... -e CATALOG_MONGODB_URL=... \
-  -e CONSUL_HTTP_ADDR=http://<consul>:8500 -e SEED_CLIENT_SECRET=... seapedia-seed
+docker compose -p <dokploy compose project> -f docker-compose.deploy.yml --profile tools run --rm seed
 ```
 
 It rebuilds the search index through the search service (client `seed`, scope `search:reindex`).
 
-## 6. Cut over
+## 5. Cut over
 
 1. `API_URL=https://<new api domain> bun scripts/smoke.ts` against the new stack.
 2. Point `seapedia.sayyidrafee.com` at `web` and `api-seapedia.sayyidrafee.com` at `gateway`.
