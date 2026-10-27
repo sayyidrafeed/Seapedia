@@ -68,16 +68,13 @@ mock.module('@/db', () => {
     },
     select: makeSelect(),
     update: makeUpdate(),
+    // The real outbox inserts its event rows here.
+    insert: () => ({ values: () => Promise.resolve() }),
     transaction: (fn: (tx: unknown) => unknown) => fn(db),
   };
 
   return { db };
 });
-
-mock.module('@/modules/events/events.index', () => ({
-  IdentityEvents: { user: () => ({}) },
-  identityOutbox: { enqueue: () => Promise.resolve() },
-}));
 
 const storageState = {
   deleteCalls: [] as string[],

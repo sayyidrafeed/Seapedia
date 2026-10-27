@@ -77,7 +77,8 @@ Read more: [overview](./docs/architecture/overview.md) · [data ownership](./doc
 | Auth | RS256 access tokens (10 min) + rotating refresh tokens, per-device sessions, client credentials |
 | Web | [React 19](https://react.dev), [Vite](https://vite.dev), [TanStack Router](https://tanstack.com/router) and [Query](https://tanstack.com/query), [Tailwind CSS v4](https://tailwindcss.com), [hey-api](https://heyapi.dev) SDK |
 | Object storage | [Cloudflare R2](https://www.cloudflare.com/en-gb/developer-platform/products/r2/) presigned uploads |
-| Delivery | Docker images on GHCR, one [Dokploy](https://dokploy.com) application per service |
+| Delivery | Docker images built by CI on GitHub runners and pushed to GHCR; deployed on [Dokploy](https://dokploy.com) from `docker-compose.deploy.yml` |
+| Security checks | CI fails on high/critical dependency advisories (`bun audit`); images pinned to exact patched versions ([assessment](./docs/architecture/security.md#vulnerability-management)) |
 
 ## Quick Start
 

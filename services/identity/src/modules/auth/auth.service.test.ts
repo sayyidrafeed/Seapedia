@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { createTokenVerifier } from '@seapedia/platform/auth';
 import type { EventEnvelope } from '@seapedia/platform/events';
 import { getTableName, type Table } from 'drizzle-orm';
-import { IdentityEvents } from '../events/events';
 
 // ─── Database fake: every query chain resolves to the next queued result ─────
 const dbState = {
@@ -60,15 +59,11 @@ const db = {
 
 mock.module('@/db', () => ({ db }));
 
-const published: EventEnvelope[] = [];
-mock.module('@/modules/events/events.index', () => ({
-  IdentityEvents,
-  identityOutbox: {
-    enqueue: async (_tx: unknown, ...events: EventEnvelope[]) => {
-      published.push(...events);
-    },
-  },
-}));
+// The real outbox writes into the fake database; events are read back from the outbox rows.
+const published = () =>
+  dbState.inserts
+    .filter((i) => i.table === 'outbox')
+    .flatMap((i) => (i.values as { payload: EventEnvelope }[]).map((row) => row.payload));
 
 import { AuthService } from './auth.service';
 
@@ -89,7 +84,6 @@ const SESSION = '00000000-0000-4000-8000-0000000000aa';
 
 beforeEach(() => {
   dbState.reset();
-  published.length = 0;
 });
 
 describe('register and login', () => {
@@ -113,7 +107,7 @@ describe('register and login', () => {
     expect(tokens.refreshToken).toBeDefined();
     const claims = await verifier.user(tokens.accessToken);
     expect(claims).toMatchObject({ userId: user.id, sessionId: SESSION, activeRole: 'buyer' });
-    expect(published.map((e) => e.type)).toEqual(['identity.user.registered']);
+    expect(published().map((e) => e.type)).toEqual(['identity.user.registered']);
   });
 
   test('login rejects a wrong password', async () => {
@@ -168,8 +162,8 @@ describe('refresh token rotation', () => {
 
     expect(result.reused).toBe(true);
     expect(dbState.updates[0]).toMatchObject({ table: 'sessions' });
-    expect(published.map((e) => e.type)).toEqual(['identity.session.revoked']);
-    expect(published[0].data).toMatchObject({ sessionId: SESSION });
+    expect(published().map((e) => e.type)).toEqual(['identity.session.revoked']);
+    expect(published()[0].data).toMatchObject({ sessionId: SESSION });
   });
 
   test('an unknown token is refused', async () => {
