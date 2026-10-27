@@ -2,7 +2,7 @@ import { dataOf } from '@seapedia/contracts/events';
 import type { EventEnvelope } from '@seapedia/platform/events';
 import { elastic } from '@/elastic/client';
 import type { IndexedProduct } from '@/elastic/documents';
-import { alias, storesIndex } from '@/elastic/indices';
+import { alias, buildingAlias, storesIndex } from '@/elastic/indices';
 
 // Events may repeat or arrive out of order; tombstones stop a late upsert resurrecting a deletion.
 const VERSION_GUARD = `
@@ -20,8 +20,17 @@ async function guardedUpsert(index: string, id: string, doc: Record<string, unkn
     script: { source: VERSION_GUARD, params: { doc } },
     upsert: {},
     retry_on_conflict: 3,
+    require_alias: index !== storesIndex,
   });
   return result.result !== 'noop';
+}
+
+// The live index, plus the one a rebuild (on any instance) is filling, if there is one.
+async function upsertProductDoc(id: string, doc: Record<string, unknown>) {
+  await guardedUpsert(alias, id, doc);
+  await guardedUpsert(buildingAlias, id, doc).catch((error) => {
+    if (!String(error).includes('index_not_found_exception')) throw error;
+  });
 }
 
 export async function upsertProduct(event: EventEnvelope) {
@@ -48,12 +57,12 @@ export async function upsertProduct(event: EventEnvelope) {
     version: event.version,
     deleted: false,
   };
-  await guardedUpsert(alias, product.id, doc);
+  await upsertProductDoc(product.id, doc);
 }
 
 export async function deleteProduct(event: EventEnvelope) {
   const { id } = dataOf('catalog.product.deleted', event);
-  await guardedUpsert(alias, id, { id, version: event.version, deleted: true });
+  await upsertProductDoc(id, { id, version: event.version, deleted: true });
 }
 
 export async function upsertStore(event: EventEnvelope) {
@@ -66,7 +75,8 @@ export async function upsertStore(event: EventEnvelope) {
   // A stale store event must not rename that store's products back.
   if (!applied) return;
   await elastic.updateByQuery({
-    index: alias,
+    index: [alias, buildingAlias],
+    ignore_unavailable: true,
     conflicts: 'proceed',
     query: { term: { storeId: store.id } },
     script: {
