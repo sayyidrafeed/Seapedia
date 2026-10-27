@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { addressResponseSchema } from '@/modules/buyers/buyers.schemas';
+import { addressResponseSchema } from '@/modules/buyers/buyers.index';
 import { customMsg } from '@seapedia/platform/schemas';
 
 export const checkoutPreviewRequestSchema = z

@@ -10,7 +10,6 @@ import {
   productReviewListResponseSchema,
 } from './product-reviews.schemas';
 import { ProductReviewsService } from './product-reviews.service';
-import { HTTPException } from 'hono/http-exception';
 
 export const productReviewsRouter = factory.createApp();
 
@@ -32,8 +31,6 @@ productReviewsRouter.post(
   validator('json', submitProductReviewSchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
 
@@ -102,8 +99,6 @@ productReviewsRouter.get(
   validator('query', paginationQuerySchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { page, limit } = c.req.valid('query');
     const result = await ProductReviewsService.getMyProductReviews(userId, { page, limit });
 

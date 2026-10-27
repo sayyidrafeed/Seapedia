@@ -11,7 +11,7 @@ import {
   promoListResponseSchema,
   validateDiscountRequestSchema,
   validateDiscountResponseSchema,
-} from './discounts-schemas';
+} from './discounts.schemas';
 import { DiscountsService } from './discounts.service';
 
 export const discountsAdminRouter = factory.createApp();

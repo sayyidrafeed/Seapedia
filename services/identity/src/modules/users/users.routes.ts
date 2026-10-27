@@ -6,11 +6,8 @@ import { presignRequestSchema, presignResponseSchema } from '@seapedia/platform/
 import { updateProfileSchema, userProfileResponseSchema } from './users.schemas';
 import { UsersService } from './users.service';
 import { StorageService } from '@/lib/storage';
-import { HTTPException } from 'hono/http-exception';
 
 export const usersRouter = factory.createApp();
-
-usersRouter.use(requireSession);
 
 usersRouter.post(
   '/me/avatar/presign',
@@ -26,11 +23,10 @@ usersRouter.post(
       ...errorResponses(400, 401, 500),
     },
   }),
+  requireSession,
   validator('json', presignRequestSchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { mimeType } = c.req.valid('json');
     const result = await UsersService.presignAvatar(userId, mimeType);
 
@@ -51,11 +47,10 @@ usersRouter.put(
       ...errorResponses(400, 401, 500),
     },
   }),
+  requireSession,
   validator('json', updateProfileSchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const body = c.req.valid('json');
     const user = await UsersService.updateProfile(userId, body);
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { userResponseSchema } from '@/modules/auth/auth.schemas';
+import { userResponseSchema } from '@/modules/auth/auth.index';
 
 export const updateProfileSchema = z
   .object({

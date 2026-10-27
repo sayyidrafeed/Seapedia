@@ -1,7 +1,6 @@
 import { factory } from '@seapedia/platform/factory';
 import { describeRoute, validator } from 'hono-openapi';
 import { jsonContent, errorResponses } from '@seapedia/platform/openapi';
-import { HTTPException } from 'hono/http-exception';
 import { productSchema, productListResponseSchema } from './products.schemas';
 import { z } from 'zod';
 import { paginationQuerySchema } from '@seapedia/platform/schemas';
@@ -115,8 +114,6 @@ productsRouter.post(
   validator('json', presignRequestSchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { mimeType } = c.req.valid('json');
     const result = await ProductsService.presignImage(userId, mimeType);
 

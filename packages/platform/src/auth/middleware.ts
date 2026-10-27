@@ -1,6 +1,7 @@
 import { getCookie } from 'hono/cookie';
 import { HTTPException } from 'hono/http-exception';
-import { factory } from '../factory';
+import { createMiddleware } from 'hono/factory';
+import { factory, type AuthEnv } from '../factory';
 import type { SessionDenylist } from './denylist';
 import { ACCESS_COOKIE, type TokenVerifier } from './tokens';
 
@@ -23,7 +24,8 @@ export function authenticate(verifier: TokenVerifier, denylist: SessionDenylist)
   });
 }
 
-export const requireSession = factory.createMiddleware(async (c, next) => {
+// Typed as AuthEnv, so handlers after it read `userId` and the other session fields as present.
+export const requireSession = createMiddleware<AuthEnv>(async (c, next) => {
   if (!c.get('userId')) {
     throw new HTTPException(401, { message: 'Unauthorized: No active session' });
   }

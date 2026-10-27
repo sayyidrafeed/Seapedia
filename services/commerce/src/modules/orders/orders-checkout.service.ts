@@ -13,8 +13,8 @@ import {
 } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { NotFoundError, ValidationError } from '@seapedia/platform/errors';
-import { BuyersCartService } from '@/modules/buyers/buyers-cart.service';
-import { DiscountsService } from '@/modules/discounts/discounts.service';
+import { BuyersCartService } from '@/modules/buyers/buyers.index';
+import { DiscountsService } from '@/modules/discounts/discounts.index';
 import { config } from '@/config';
 import { CommerceEvents, commerceOutbox } from '@/modules/events/events.index';
 

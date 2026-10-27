@@ -19,7 +19,7 @@ import {
 import { BuyersService } from './buyers.service';
 import { BuyersCartService } from './buyers-cart.service';
 import { z } from 'zod';
-import { LocationsProvider } from '@/modules/locations/locations.service';
+import { LocationsProvider } from '@/modules/locations/locations.index';
 import { ValidationError } from '@seapedia/platform/errors';
 
 export const buyersRouter = factory.createApp();
@@ -39,7 +39,7 @@ buyersRouter.get(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const wallet = await BuyersService.getOrCreateWallet(userId);
 
     return c.json({
@@ -68,7 +68,7 @@ buyersRouter.post(
   requireRole('buyer'),
   validator('json', topUpRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const { amount } = c.req.valid('json');
 
     const transaction = await BuyersService.directTopUp(userId, amount);
@@ -100,7 +100,7 @@ buyersRouter.get(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const list = await BuyersService.getWalletTransactions(userId);
 
     const formatted = list.map((t) => ({
@@ -132,7 +132,7 @@ buyersRouter.get(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const list = await BuyersService.getAddresses(userId);
 
     const formatted = list.map((a) => ({
@@ -171,7 +171,7 @@ buyersRouter.post(
   requireRole('buyer'),
   validator('json', addressRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const body = c.req.valid('json');
 
     const isValid = await LocationsProvider.validateHierarchy(
@@ -220,7 +220,7 @@ buyersRouter.put(
   requireRole('buyer'),
   validator('json', addressRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const addressId = c.req.param('id');
     const body = c.req.valid('json');
 
@@ -268,7 +268,7 @@ buyersRouter.put(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const addressId = c.req.param('id');
 
     const result = await BuyersService.setDefaultAddress(userId, addressId);
@@ -292,7 +292,7 @@ buyersRouter.delete(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const addressId = c.req.param('id');
 
     const result = await BuyersService.deleteAddress(userId, addressId);
@@ -316,7 +316,7 @@ buyersRouter.get(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const summary = await BuyersCartService.getCartSummary(userId);
     return c.json(summary);
   },
@@ -341,7 +341,7 @@ buyersRouter.post(
   requireRole('buyer'),
   validator('json', cartItemRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const { productId, quantity } = c.req.valid('json');
     const item = await BuyersCartService.addItemToCart(userId, productId, quantity);
     return c.json({
@@ -371,7 +371,7 @@ buyersRouter.put(
   requireRole('buyer'),
   validator('json', updateCartItemRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const cartItemId = c.req.param('id');
     const { quantity } = c.req.valid('json');
     const item = await BuyersCartService.updateCartItemQuantity(userId, cartItemId, quantity);
@@ -398,7 +398,7 @@ buyersRouter.delete(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const cartItemId = c.req.param('id');
     const result = await BuyersCartService.removeCartItem(userId, cartItemId);
     return c.json(result);
@@ -420,7 +420,7 @@ buyersRouter.delete(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const result = await BuyersCartService.clearCart(userId);
     return c.json(result);
   },

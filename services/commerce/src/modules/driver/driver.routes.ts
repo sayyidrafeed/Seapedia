@@ -31,7 +31,7 @@ driverRouter.get(
   requireSession,
   requireRole('driver'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const stats = await DriverService.getDriverStats(userId);
     return c.json(stats);
   },
@@ -54,7 +54,7 @@ driverRouter.get(
   requireRole('driver'),
   validator('query', paginationQuerySchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const { page, limit } = c.req.valid('query');
     const history = await DriverService.getJobHistory(userId, { page, limit });
     return c.json(history);
@@ -137,7 +137,7 @@ driverRouter.post(
   ),
   async (c) => {
     const { id } = c.req.valid('param');
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const result = await DriverService.takeJob(id, userId);
     return c.json(result);
   },
@@ -168,7 +168,7 @@ driverRouter.post(
   ),
   async (c) => {
     const { id } = c.req.valid('param');
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const result = await DriverService.completeJob(id, userId);
     return c.json(result);
   },

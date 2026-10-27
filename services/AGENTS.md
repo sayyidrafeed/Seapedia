@@ -15,7 +15,8 @@ Conventions shared by every service in `services/`. Repository-wide boundary rul
 - Authorize with `requireSession` / `requireRole` (users) and `requireServiceScope` (services)
   from `@seapedia/platform/auth`.
 - Configuration: secrets and addresses in `src/env.ts`; tunables in `src/config.ts` (Consul KV,
-  read through `config.get()` so changes apply live).
+  `sharedConfigSchema.extend(...)`, read through `config.get()` so service keys apply live; shared
+  keys such as `consumerPrefetch` apply at restart).
 - Do not add Redis or Sentry unless explicitly requested.
 
 ## Service layout
@@ -46,6 +47,8 @@ test/setup.ts     test env (bunfig.toml preloads it)
 - Cross-module imports go through `<feature>.index.ts`.
 - Services throw `DomainError` subclasses; `createServiceApp` maps them to JSON. A failing peer
   (`UpstreamError`) becomes 503.
+- Build events with `event()` and read payloads with `dataOf()` from `@seapedia/contracts/events`;
+  never parse `envelope.data` with a local schema.
 - Event handlers must be idempotent: guard replica writes by `version`, and record non-idempotent
   effects in the inbox in the same transaction.
 - Derive types from Drizzle tables or Zod schemas.
@@ -53,9 +56,10 @@ test/setup.ts     test env (bunfig.toml preloads it)
 ## OpenAPI rules
 
 - Every public route has `describeRoute` with a stable `operationId`.
-- `scripts/openapi.ts` merges the services' `/openapi.json` into `apps/web/public/openapi.json`;
-  a path or schema name defined twice with a different shape fails the merge. Keep schema ids
-  (`.meta({ id })`) unique across services.
+- `scripts/openapi.ts` loads each service's app offline (test environment) and merges their
+  `/openapi.json` into `apps/web/public/openapi.json`; a path or schema name defined twice with a
+  different shape fails the merge. Keep schema ids (`.meta({ id })`) unique across services. The
+  file and the generated SDK are committed; CI fails when they are stale.
 - The web SDK is generated from that file: `cd apps/web && rtk bun run openapi:generate`.
 
 ## Database rules

@@ -4,8 +4,7 @@ import { inTransaction, type ProductDoc } from '@/db';
 import { StorageService } from '@/lib/storage';
 import { CatalogEvents, enqueue } from '@/modules/events/events.index';
 import { searchProductIds } from '@/modules/search/search.index';
-import { StoresRepo } from '@/modules/stores/stores.repo';
-import { StoreService } from '@/modules/stores/stores.service';
+import { StoreService, StoresRepo } from '@/modules/stores/stores.index';
 import { ProductsRepo, toSellerProduct } from './products.repo';
 
 export class ProductsService {

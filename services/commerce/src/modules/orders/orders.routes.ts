@@ -12,7 +12,7 @@ import {
   processOrderRequestSchema,
   buyerReportResponseSchema,
   sellerReportResponseSchema,
-} from './orders-schemas';
+} from './orders.schemas';
 import { OrdersCheckoutService } from './orders-checkout.service';
 import { OrdersBuyerService } from './orders-buyer.service';
 import { OrdersSellerService } from './orders-seller.service';
@@ -37,7 +37,7 @@ ordersRouter.post(
   requireRole('buyer'),
   validator('json', checkoutPreviewRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const { deliveryMethod, discountCode } = c.req.valid('json');
 
     const result = await OrdersCheckoutService.preview(userId, deliveryMethod, discountCode);
@@ -62,7 +62,7 @@ ordersRouter.post(
   requireRole('buyer'),
   validator('json', createOrderRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const { deliveryMethod, addressId, discountCode } = c.req.valid('json');
 
     const order = await OrdersCheckoutService.createOrder(
@@ -92,7 +92,7 @@ ordersRouter.get(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const list = await OrdersBuyerService.list(userId);
     return c.json(list);
   },
@@ -114,7 +114,7 @@ ordersRouter.get(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const report = await OrdersBuyerService.getReport(userId);
     return c.json(report);
   },
@@ -136,7 +136,7 @@ ordersRouter.get(
   requireSession,
   requireRole('buyer'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const orderId = c.req.param('id');
 
     const detail = await OrdersBuyerService.getDetail(userId, orderId);
@@ -160,7 +160,7 @@ sellerOrdersRouter.get(
   requireSession,
   requireRole('seller'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const list = await OrdersSellerService.list(userId);
     return c.json(list);
   },
@@ -182,7 +182,7 @@ sellerOrdersRouter.get(
   requireSession,
   requireRole('seller'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const report = await OrdersSellerService.getReport(userId);
     return c.json(report);
   },
@@ -204,7 +204,7 @@ sellerOrdersRouter.get(
   requireSession,
   requireRole('seller'),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const orderId = c.req.param('id');
 
     const detail = await OrdersSellerService.getDetail(userId, orderId);
@@ -229,7 +229,7 @@ sellerOrdersRouter.post(
   requireRole('seller'),
   validator('json', processOrderRequestSchema),
   async (c) => {
-    const userId = c.get('userId') as string;
+    const userId = c.get('userId');
     const orderId = c.req.param('id');
     const { note } = c.req.valid('json');
 

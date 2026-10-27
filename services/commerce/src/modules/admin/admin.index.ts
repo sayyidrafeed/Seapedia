@@ -1,5 +1,5 @@
 import { factory } from '@seapedia/platform/factory';
-import { discountsAdminRouter } from '@/modules/discounts/discounts-routes';
+import { discountsAdminRouter } from '@/modules/discounts/discounts.index';
 import { dashboardRouter } from './admin.routes';
 
 export const adminRouter = factory.createApp();

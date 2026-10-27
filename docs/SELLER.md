@@ -127,5 +127,5 @@ Seller Income = Σ (order.subtotal) for orders where status = 'pesanan_selesai'
 | Product service | `services/catalog/src/modules/products/products.service.ts` |
 | Seller order service | `services/commerce/src/modules/orders/orders-seller.service.ts` |
 | Store routes | `services/catalog/src/modules/stores/stores.routes.ts` |
-| Seller routes | `services/commerce/src/modules/orders/orders-routes.ts` |
+| Seller routes | `services/commerce/src/modules/orders/orders.routes.ts` |
 | Frontend seller features | `apps/web/src/features/seller/` |

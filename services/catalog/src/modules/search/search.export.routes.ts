@@ -2,7 +2,7 @@ import { requireServiceScope } from '@seapedia/platform/auth';
 import { factory } from '@seapedia/platform/factory';
 import { describeRoute, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { ProductsRepo } from '@/modules/products/products.repo';
+import { ProductsRepo } from '@/modules/products/products.index';
 import { runtime } from '@/runtime';
 
 // Full export of the search projection, for the search service's reindex (scope `catalog:export`).

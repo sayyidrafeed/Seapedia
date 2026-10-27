@@ -10,14 +10,10 @@ import {
 } from './products.schemas';
 import { ProductsService } from './products.service';
 import { z } from 'zod';
-import { HTTPException } from 'hono/http-exception';
 import { paginationQuerySchema } from '@seapedia/platform/schemas';
 import { StorageService } from '@/lib/storage';
 
 export const sellerProductsRouter = factory.createApp();
-
-sellerProductsRouter.use(requireSession);
-sellerProductsRouter.use(requireRole('seller'));
 
 sellerProductsRouter.get(
   '/',
@@ -31,11 +27,11 @@ sellerProductsRouter.get(
       ...errorResponses(401, 403, 500),
     },
   }),
+  requireSession,
+  requireRole('seller'),
   validator('query', paginationQuerySchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { page, limit } = c.req.valid('query');
     const { products, total } = await ProductsService.getSellerProducts(userId, { page, limit });
     const formatted = products.map((p) => ({
@@ -64,11 +60,11 @@ sellerProductsRouter.get(
       ...errorResponses(401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('seller'),
   validator('param', z.object({ id: z.string().uuid() })),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { id } = c.req.valid('param');
     const product = await ProductsService.getSellerProductById(userId, id);
 
@@ -93,11 +89,11 @@ sellerProductsRouter.post(
       ...errorResponses(400, 401, 403, 500),
     },
   }),
+  requireSession,
+  requireRole('seller'),
   validator('json', createProductSchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const body = c.req.valid('json');
     const product = await ProductsService.createSellerProduct(userId, body);
 
@@ -122,12 +118,12 @@ sellerProductsRouter.put(
       ...errorResponses(400, 401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('seller'),
   validator('param', z.object({ id: z.string().uuid() })),
   validator('json', updateProductSchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { id } = c.req.valid('param');
     const body = c.req.valid('json');
 
@@ -154,11 +150,11 @@ sellerProductsRouter.delete(
       ...errorResponses(401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('seller'),
   validator('param', z.object({ id: z.string().uuid() })),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { id } = c.req.valid('param');
     await ProductsService.deleteSellerProduct(userId, id);
 

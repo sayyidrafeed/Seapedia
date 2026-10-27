@@ -1,12 +1,8 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
+import { describe, expect, test, mock } from 'bun:test';
 import { LocationsProvider } from './locations.service';
 
+// The provider caches per process; this file's first test is the first to load provinces.
 describe('LocationsProvider', () => {
-  beforeEach(() => {
-    // Clear cache
-    (LocationsProvider as unknown as { cache: Map<string, unknown> }).cache.clear();
-  });
-
   test('getProvinces fetches provinces and maps correctly', async () => {
     const mockProvinces = {
       data: [

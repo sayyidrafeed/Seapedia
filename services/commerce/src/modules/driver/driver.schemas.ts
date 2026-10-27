@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { addressResponseSchema } from '@/modules/buyers/buyers.schemas';
-import { orderItemResponseSchema } from '@/modules/orders/orders-schemas';
+import { addressResponseSchema } from '@/modules/buyers/buyers.index';
+import { orderItemResponseSchema } from '@/modules/orders/orders.index';
 
 export const deliveryJobResponseSchema = z
   .object({
