@@ -36,3 +36,5 @@ export const RETRY_EXCHANGE = 'seapedia.retry';
 export const REDELIVER_EXCHANGE = 'seapedia.redeliver';
 // Messages that failed for good, routed by queue name to `<queue>.parked`.
 export const PARKING_EXCHANGE = 'seapedia.parking';
+// Stream of `identity.session.revoked`, read in full by every service instance.
+export const SESSION_REVOCATIONS = 'session-revocations';

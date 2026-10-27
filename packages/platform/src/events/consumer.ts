@@ -1,26 +1,21 @@
 import type { Channel, ConsumeMessage } from 'amqplib';
-import {
-  envelopeSchema,
-  EXCHANGE,
-  PARKING_EXCHANGE,
-  REDELIVER_EXCHANGE,
-  RETRY_EXCHANGE,
-  type EventEnvelope,
-} from './envelope';
+import { envelopeSchema, PARKING_EXCHANGE, type EventEnvelope } from './envelope';
 import type { Rabbit } from './rabbit';
 
 export type EventHandler = (event: EventEnvelope) => Promise<void>;
 
 export type ConsumerOptions = {
   rabbit: Rabbit;
-  // Durable queue owned by this service, e.g. `commerce`. Omit for a per-instance queue.
-  queue?: string;
-  // Event types to receive; each is also a routing key binding.
+  // Declared by infra/rabbitmq/init.ts with its bindings, retry and parking queues, so events
+  // published before this service first starts are kept.
+  queue: string;
+  // A stream is read from its start on every (re)connect: nothing is consumed away, and a
+  // restarted instance replays what it missed. Failures are logged, not retried.
+  stream?: boolean;
   handlers: Record<string, EventHandler>;
   prefetch?: number;
   // Attempts before a message is parked in `<queue>.parked` for a human to look at.
   maxAttempts?: number;
-  retryDelayMs?: number;
 };
 
 function attempts(msg: ConsumeMessage): number {
@@ -34,10 +29,10 @@ function attempts(msg: ConsumeMessage): number {
 export function createEventConsumer({
   rabbit,
   queue,
+  stream = false,
   handlers,
   prefetch = 20,
   maxAttempts = 5,
-  retryDelayMs = 5000,
 }: ConsumerOptions) {
   let running = false;
   let channel: Channel | null = null;
@@ -45,68 +40,53 @@ export function createEventConsumer({
   async function setup() {
     const ch = await rabbit.channel();
     await ch.prefetch(prefetch);
+    await ch.checkQueue(queue);
+    const park = (msg: ConsumeMessage) => {
+      if (!stream) ch.publish(PARKING_EXCHANGE, queue, msg.content, msg.properties);
+    };
 
-    let name: string;
-    if (queue) {
-      name = queue;
-      await ch.assertQueue(name, {
-        durable: true,
-        arguments: { 'x-dead-letter-exchange': RETRY_EXCHANGE, 'x-dead-letter-routing-key': name },
-      });
-      await ch.assertQueue(`${name}.retry`, {
-        durable: true,
-        arguments: {
-          'x-message-ttl': retryDelayMs,
-          'x-dead-letter-exchange': REDELIVER_EXCHANGE,
-          'x-dead-letter-routing-key': name,
-        },
-      });
-      await ch.assertQueue(`${name}.parked`, { durable: true });
-      await ch.bindQueue(`${name}.parked`, PARKING_EXCHANGE, name);
-      await ch.bindQueue(`${name}.retry`, RETRY_EXCHANGE, name);
-      await ch.bindQueue(name, REDELIVER_EXCHANGE, name);
-    } else {
-      name = (await ch.assertQueue('', { exclusive: true, autoDelete: true })).queue;
-    }
-    for (const type of Object.keys(handlers)) await ch.bindQueue(name, EXCHANGE, type);
-
-    await ch.consume(name, async (msg) => {
-      if (!msg) return;
-      let event: EventEnvelope;
-      try {
-        event = envelopeSchema.parse(JSON.parse(msg.content.toString())) as EventEnvelope;
-      } catch (error) {
-        console.error(
-          JSON.stringify({ queue: name, event: 'malformed_message', error: String(error) }),
-        );
-        if (queue) ch.publish(PARKING_EXCHANGE, name, msg.content, msg.properties);
-        ch.ack(msg);
-        return;
-      }
-
-      const handler = handlers[event.type];
-      try {
-        if (handler) await handler(event);
-        ch.ack(msg);
-      } catch (error) {
-        const attempt = attempts(msg);
-        console.error(
-          JSON.stringify({
-            queue: name,
-            type: event.type,
-            eventId: event.id,
-            attempt,
-            error: String(error),
-          }),
-        );
-        if (!queue) return ch.ack(msg);
-        if (attempt >= maxAttempts) {
-          ch.publish(PARKING_EXCHANGE, name, msg.content, msg.properties);
-          return ch.ack(msg);
+    const consumeOptions = stream ? { arguments: { 'x-stream-offset': 'first' } } : {};
+    await ch.consume(
+      queue,
+      async (msg) => {
+        if (!msg) return;
+        let event: EventEnvelope;
+        try {
+          event = envelopeSchema.parse(JSON.parse(msg.content.toString())) as EventEnvelope;
+        } catch (error) {
+          console.error(
+            JSON.stringify({ queue, event: 'malformed_message', error: String(error) }),
+          );
+          park(msg);
+          ch.ack(msg);
+          return;
         }
-        ch.nack(msg, false, false);
-      }
-    });
+
+        const handler = handlers[event.type];
+        try {
+          if (handler) await handler(event);
+          ch.ack(msg);
+        } catch (error) {
+          const attempt = attempts(msg);
+          console.error(
+            JSON.stringify({
+              queue,
+              type: event.type,
+              eventId: event.id,
+              attempt,
+              error: String(error),
+            }),
+          );
+          if (stream) return ch.ack(msg);
+          if (attempt >= maxAttempts) {
+            park(msg);
+            return ch.ack(msg);
+          }
+          ch.nack(msg, false, false);
+        }
+      },
+      consumeOptions,
+    );
     ch.on('close', () => {
       channel = null;
       if (running) void reconnect();
@@ -121,7 +101,7 @@ export function createEventConsumer({
       } catch (error) {
         console.error(
           JSON.stringify({
-            queue: queue ?? 'exclusive',
+            queue,
             event: 'consumer_connect_failed',
             error: String(error),
           }),

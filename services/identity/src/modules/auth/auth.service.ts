@@ -7,7 +7,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from '@seapedia/platform/errors';
-import { config } from '@/config';
+import { config, MAX_ACCESS_TOKEN_TTL_SECONDS } from '@/config';
 import { db } from '@/db';
 import { refreshTokens, sessions, userRole, users } from '@/db/schema';
 import { signAccessToken } from '@/lib/tokens';
@@ -52,8 +52,9 @@ async function accessFor(userId: string, sessionId: string, roles: string[], act
   return { accessToken: access.token, accessTtl: access.ttl };
 }
 
-// The longest an access token issued now could still be accepted.
-const accessHorizon = () => Math.floor(Date.now() / 1000) + config.get().accessTokenTtlSeconds;
+// The longest any access token of this session could still be accepted. The configured lifetime
+// may have been longer when its tokens were issued, so the cap is used, not the current value.
+const accessHorizon = () => Math.floor(Date.now() / 1000) + MAX_ACCESS_TOKEN_TTL_SECONDS;
 
 export class AuthService {
   static async register(input: {

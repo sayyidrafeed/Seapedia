@@ -4,6 +4,7 @@ import { createServiceTokenProvider } from './auth/service-tokens';
 import { createTokenVerifier } from './auth/tokens';
 import { createResolver, registerService } from './consul/discovery';
 import { createEventConsumer } from './events/consumer';
+import { SESSION_REVOCATIONS } from './events/envelope';
 import { createRabbit } from './events/rabbit';
 
 // Bootstrap settings every service reads from its environment (secrets and addresses only).
@@ -33,8 +34,12 @@ export function createRuntime(name: string, env: RuntimeEnv) {
     clientSecret: env.SERVICE_CLIENT_SECRET ?? '',
   });
 
+  // Every instance reads the whole revocation stream (kept for the longest access-token lifetime),
+  // so a restarted or reconnected instance relearns the sessions revoked while it was away.
   const denylistConsumer = createEventConsumer({
     rabbit,
+    queue: SESSION_REVOCATIONS,
+    stream: true,
     handlers: {
       'identity.session.revoked': async (event) => {
         const data = event.data as { sessionId: string; expiresAt: number };
