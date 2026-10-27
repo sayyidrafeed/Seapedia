@@ -196,23 +196,24 @@ The Admin dashboard provides a trigger to advance simulated time by 1 day. Overd
 
 ## Demo Accounts
 
-After running the seed script, the following accounts are available:
+The seed (`bun run seed`, or the `seed` compose profile) creates 19 users from
+[`infra/seed/src/seed/data/users.data.ts`](./infra/seed/src/seed/data/users.data.ts). Every
+seeded account uses the password `password123`. A few to start with:
 
-| Username | Roles | Password |
-|----------|-------|----------|
-| `admin` | Admin | `admin123` |
-| `seller1` | Seller | `seller123` |
-| `buyer1` | Buyer | `buyer123` |
-| `driver1` | Driver | `driver123` |
-| `multirole` | Seller, Buyer, Driver | `multi123` |
-
-Admin account setup may alternatively be handled through seed data or documented manual setup instructions.
+| Username | Roles |
+|----------|-------|
+| `admin` | Admin |
+| `budi_santoso` | Seller |
+| `dewi_lestari` | Buyer |
+| `joko_widodo` | Driver |
+| `rina_multi` | Seller, Buyer, Driver |
 
 ## API Documentation
 
 Interactive API documentation (Scalar) is served by the web app at `/docs`, from
 `apps/web/public/openapi.json`: the merged contract of identity, catalog and commerce, built by
-`bun scripts/openapi.ts`. The web SDK is generated from the same file
+`bun scripts/openapi.ts`. The file is generated, not committed: run that script with the services
+up whenever a public API changes. The web SDK is generated from the same file
 (`cd apps/web && bun run openapi:generate`).
 
 ## Security Measures
@@ -231,7 +232,7 @@ Every HTTP boundary (path params, query params, request body) is validated using
 
 ### Session & Token Behavior
 
-Authentication uses custom **JWT** tokens with session management stored in the database. Session tokens are set in secure HttpOnly cookies (`__session`) with a 2-hour expiration. Logout invalidates the session by removing the session record from the database.
+The identity service issues an RS256 access token in the HttpOnly `__access` cookie and a rotating refresh token in the HttpOnly `__refresh` cookie, scoped to `/api/auth`. Each login is a per-device session. `POST /api/auth/refresh` rotates the refresh token. `POST /api/auth/logout` revokes the session and clears both cookies. Token lifetimes come from Consul configuration.
 
 ### Role-Based Access Control
 
@@ -242,43 +243,42 @@ Authorization is enforced **server-side** on every protected endpoint. The backe
 This guide describes how to verify the multi-role flows and security features of SEAPEDIA.
 
 ### 1. Setup
-Ensure both servers are running and the database is seeded:
+Start the development stack (see [Quick Start](#quick-start)) and seed the databases:
 ```bash
-# In backend directory
-bun run db:seed
+docker compose up -d
 bun run dev
-
-# In frontend directory
-bun run dev
+bun run seed   # wipes the three databases and rebuilds the search index
 ```
+
+All seeded accounts use the password `password123` (see [Demo Accounts](#demo-accounts)).
 
 ### 2. Admin Walkthrough
 1. Go to [http://localhost:5173/auth/login](http://localhost:5173/auth/login) (or click Login).
-2. Login with `admin` / `admin123`.
+2. Login with `admin` / `password123`.
 3. Verify access to the Admin Dashboard (discounts management, system time simulation).
 4. Go to simulated time controls, advance simulated time by 1 day, and check that overdue orders are processed if any.
 
 ### 3. Seller Walkthrough
-1. Login with `seller1` / `seller123`.
+1. Login with `budi_santoso` / `password123`.
 2. Verify you can view the Seller Dashboard.
 3. Add a new product or edit an existing one.
 4. Verify you can see incoming orders in the orders section.
 
 ### 4. Buyer Walkthrough
-1. Login with `buyer1` / `buyer123`.
+1. Login with `dewi_lestari` / `password123`.
 2. Go to the Catalog, add a product to the cart.
 3. Top up the wallet if the balance is low (go to Wallet tab, select/input amount, and click "Top Up" to add balance immediately).
 4. Complete the checkout using single-store checkout.
 5. Check Order History and verify the status is "Menunggu Konfirmasi" (Pending Confirmation).
 
 ### 5. Driver Walkthrough
-1. Login with `driver1` / `driver123`.
+1. Login with `joko_widodo` / `password123`.
 2. Accept a delivery job from the Driver Dashboard.
 3. Complete the delivery stages.
 4. Verify driver earnings increase by 100% of the delivery fee.
 
 ### 6. Multirole Walkthrough
-1. Login with `multirole` / `multi123`.
+1. Login with `rina_multi` / `password123`.
 2. Use the role switcher in the navigation bar to switch between Seller, Buyer, and Driver dashboards.
 3. Verify role-specific navigation guards restrict access depending on the active role.
 
@@ -293,9 +293,9 @@ To verify the security controls implemented in Level 7:
 - [ ] **Input Validation:**
   Attempt to submit invalid fields (e.g. invalid email format in registration, negative price in product management, rating out of bounds `[1-5]`). Verify that the server rejects these with a `400 Bad Request` and structured Zod validation errors.
 - [ ] **Session Invalidation on Logout:**
-  Authenticate and inspect the cookie `__session` in browser devtools. Copy its value. Click Logout. Replay a request using the copied `__session` token via curl/Postman to a protected endpoint. Verify that the request is rejected with `401 Unauthorized` because the session row was deleted from the database.
+  Log in and copy the `__refresh` cookie from browser devtools. Click Logout. Replay `POST /api/auth/refresh` with the copied cookie via curl/Postman. Verify it is rejected with `401 Unauthorized` because logout revoked the session.
 - [ ] **Role-Based Access Control (RBAC):**
-  Attempt to access a protected endpoint directly (e.g., GET `/api/admin/summary` or POST `/api/products`) without logging in or using a buyer session. Verify the API returns `401 Unauthorized` or `403 Forbidden` rather than exposing the endpoint.
+  Attempt to access a protected endpoint directly (e.g., GET `/api/admin/dashboard` or POST `/api/seller/products`) without logging in or using a buyer session. Verify the API returns `401 Unauthorized` or `403 Forbidden` rather than exposing the endpoint.
 - [ ] **Resource Ownership Enforcement:**
   Attempt to retrieve or modify another buyer's order or another seller's store products using direct API calls (e.g. GET `/api/orders/{orderId}`). Verify that the service scopes queries by the current user ID and denies access.
 
