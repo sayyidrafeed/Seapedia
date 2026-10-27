@@ -36,7 +36,10 @@ async function upsertProductDoc(id: string, doc: Record<string, unknown>) {
 export async function upsertProduct(event: EventEnvelope) {
   const product = dataOf('catalog.product.upserted', event);
   const store = await elastic
-    .get<{ name: string; slug: string }>({ index: storesIndex, id: product.storeId })
+    .get<{ name: string; slug: string; version: number }>({
+      index: storesIndex,
+      id: product.storeId,
+    })
     .catch(() => null);
   // The store event has not been applied yet: fail, and the consumer retries after a delay.
   if (!store?._source) throw new Error(`store ${product.storeId} not indexed yet`);
@@ -54,6 +57,7 @@ export async function upsertProduct(event: EventEnvelope) {
     createdAt: product.createdAt,
     storeName: store._source.name,
     storeSlug: store._source.slug,
+    storeVersion: store._source.version,
     version: event.version,
     deleted: false,
   };
@@ -67,21 +71,27 @@ export async function deleteProduct(event: EventEnvelope) {
 
 export async function upsertStore(event: EventEnvelope) {
   const store = dataOf('catalog.store.upserted', event);
-  const applied = await guardedUpsert(storesIndex, store.id, {
+  await guardedUpsert(storesIndex, store.id, {
     name: store.name,
     slug: store.slug,
     version: event.version,
   });
-  // A stale store event must not rename that store's products back.
-  if (!applied) return;
+  // Guarded per product, not by the lookup above: a retry after a failure here still finishes the
+  // rename, and a stale event never renames products back.
   await elastic.updateByQuery({
     index: [alias, buildingAlias],
     ignore_unavailable: true,
     conflicts: 'proceed',
-    query: { term: { storeId: store.id } },
+    query: {
+      bool: {
+        filter: [{ term: { storeId: store.id } }],
+        must_not: [{ range: { storeVersion: { gte: event.version } } }],
+      },
+    },
     script: {
-      source: 'ctx._source.storeName = params.name; ctx._source.storeSlug = params.slug;',
-      params: { name: store.name, slug: store.slug },
+      source:
+        'ctx._source.storeName = params.name; ctx._source.storeSlug = params.slug; ctx._source.storeVersion = params.version;',
+      params: { name: store.name, slug: store.slug, version: event.version },
     },
   });
 }

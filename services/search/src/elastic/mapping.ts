@@ -29,6 +29,8 @@ export const productMappings: estypes.MappingTypeMapping = {
       fields: { raw: { type: 'keyword', ignore_above: 255 } },
     },
     storeSlug: { type: 'keyword' },
+    // Version of the store event the name and slug came from; renames apply only forward.
+    storeVersion: { type: 'long' },
     version: { type: 'long' },
     deleted: { type: 'boolean' },
   },

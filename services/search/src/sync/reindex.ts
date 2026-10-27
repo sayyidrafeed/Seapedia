@@ -5,12 +5,13 @@ import { elastic } from '@/elastic/client';
 import { productDocumentSchema } from '@/elastic/documents';
 import {
   alias,
-  acquireRebuildLock,
+  acquireRebuildLease,
   aliasExists,
   createIndex,
-  dropBuildingIndex,
   ensureStoresIndex,
-  releaseRebuildLock,
+  newIndexName,
+  releaseRebuildLease,
+  renewRebuildLease,
   storesIndex,
   swapAlias,
 } from '@/elastic/indices';
@@ -33,25 +34,36 @@ const catalog = createInternalClient({
   timeoutMs: 10_000,
 });
 
-// Runs under this instance's writer lock and the cluster-wide rebuild lock; events consumed
+// Runs under this instance's writer lock and the cluster-wide rebuild lease; events consumed
 // meanwhile by any instance are written to both the live and the new index, guarded by version.
 export function reindex() {
   return exclusive(async () => {
-    if (!(await acquireRebuildLock())) throw new ConflictError('A reindex is already running');
+    let lease = await acquireRebuildLease();
+    if (!lease) throw new ConflictError('A reindex is already running');
+    let index: string | null = null;
+    // Each step re-checks the lease: an instance that lost it must stop before swapping.
+    const keepLease = async () => {
+      const renewed = lease && index ? await renewRebuildLease(lease, index) : null;
+      if (!renewed) throw new Error('reindex lease lost to another instance');
+      lease = renewed;
+    };
     try {
-      return await rebuild();
+      await ensureStoresIndex();
+      // Recorded in the lease before it exists, so a takeover after a crash can drop it.
+      index = newIndexName();
+      await keepLease();
+      await createIndex(index);
+      return await rebuild(index, keepLease);
     } catch (error) {
-      await dropBuildingIndex();
+      if (index) await elastic.indices.delete({ index }, { ignore: [404] });
       throw error;
     } finally {
-      await releaseRebuildLock();
+      await releaseRebuildLease(lease);
     }
   });
 }
 
-async function rebuild() {
-  await ensureStoresIndex();
-  const index = await createIndex();
+async function rebuild(index: string, keepLease: () => Promise<void>) {
   let after: string | undefined;
   let count = 0;
   do {
@@ -63,7 +75,7 @@ async function rebuild() {
       const result = await elastic.bulk({
         operations: page.documents.flatMap(({ storeVersion, ...doc }) => [
           { index: { _index: index, _id: doc.id } },
-          { ...doc, deleted: false },
+          { ...doc, storeVersion, deleted: false },
           { index: { _index: storesIndex, _id: doc.storeId } },
           { name: doc.storeName, slug: doc.storeSlug, version: storeVersion },
         ]),
@@ -76,9 +88,11 @@ async function rebuild() {
     }
     count += page.documents.length;
     after = page.next ?? undefined;
+    await keepLease();
   } while (after);
 
   await elastic.indices.refresh({ index });
+  await keepLease();
   await swapAlias(index);
   console.log(JSON.stringify({ event: 'reindexed', alias, index, documents: count }));
   return { index, documents: count };

@@ -18,4 +18,8 @@ export const productDocumentSchema = z.object({
 export type ProductDocument = z.infer<typeof productDocumentSchema>;
 
 // Stored form: the catalog version it came from, and a tombstone flag for deletions.
-export type IndexedProduct = ProductDocument & { version: number; deleted: boolean };
+export type IndexedProduct = ProductDocument & {
+  version: number;
+  storeVersion: number;
+  deleted: boolean;
+};

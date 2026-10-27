@@ -34,6 +34,12 @@ async function applyPendingStock(tx: Tx, productId: string, storeId: string) {
   if (row) await commerceOutbox.enqueue(tx, CommerceEvents.inventoryChanged(row));
 }
 
+// Serializes a product's replica write with a seller setting its stock, so stock accepted while
+// the product was still replicating is always either seen here or applied by the setter.
+export async function lockProduct(tx: Tx, productId: string) {
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${productId}))`);
+}
+
 // Version-guarded writes make redeliveries and reordering harmless; a missing store ref fails and retries.
 export const ReplicaSync = {
   async productUpserted(event: EventEnvelope) {
@@ -47,6 +53,7 @@ export const ReplicaSync = {
       imageKey: p.imageKey,
     };
     await db.transaction(async (tx) => {
+      await lockProduct(tx, p.id);
       const applied = await tx
         .insert(productRefs)
         .values({ ...ref, version: event.version })
