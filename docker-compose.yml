@@ -3,6 +3,7 @@
 #   docker compose up -d
 #   bun run dev
 # Services register in Consul as host.docker.internal, so Kong (in Docker) reaches them on the host.
+# Docker Desktop provides that name; on native Linux the host-gateway mappings below provide it.
 name: seapedia-dev
 
 services:
@@ -10,6 +11,8 @@ services:
     image: hashicorp/consul:2.1.0
     command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0 -data-dir=/consul/data -recursor=127.0.0.11
     ports: ['8500:8500']
+    # Health checks call the host-run services.
+    extra_hosts: ['host.docker.internal:host-gateway']
     healthcheck:
       test: ['CMD', 'consul', 'members']
       interval: 5s
@@ -104,6 +107,8 @@ services:
       CORS_ORIGINS: http://localhost:5173
       CONSUL_DNS_HOST: consul
     ports: ['3001:8000']
+    # Consul DNS answers with this name; Kong's resolver reads it from /etc/hosts.
+    extra_hosts: ['host.docker.internal:host-gateway']
     depends_on: { consul: { condition: service_healthy } }
 
 volumes:
