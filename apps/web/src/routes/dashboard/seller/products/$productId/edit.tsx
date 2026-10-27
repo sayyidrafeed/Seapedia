@@ -1,12 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { updateSellerProduct, presignProductImage } from '@/lib/api/generated';
+import {
+  updateSellerProduct,
+  presignProductImage,
+  setSellerProductStock,
+} from '@/lib/api/generated';
 import {
   getSellerProductByIdOptions,
   listSellerProductsQueryKey,
   getSellerProductByIdQueryKey,
 } from '@/lib/api/generated/@tanstack/react-query.gen';
-import { setProductStock } from '@/features/seller/api/set-product-stock';
 import { ProductForm } from '@/components/products/product-form';
 import type { ProductFormValues } from '@/components/products/product-form';
 import { toast } from 'sonner';
@@ -50,7 +53,10 @@ function EditProductPage() {
 
       // Stock is owned by the commerce service, not by the product record.
       if (values.stock !== product?.stock) {
-        const { error: stockError } = await setProductStock(productId, values.stock);
+        const { error: stockError } = await setSellerProductStock({
+          path: { productId },
+          body: { stock: values.stock },
+        });
         if (stockError) {
           throw new Error(
             (stockError as { error?: string }).error || t('seller.products.editFailed'),

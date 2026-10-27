@@ -1,4 +1,4 @@
-import { integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 // Replicas fed by other services' events; never written by a commerce use case.
 export const storeRefs = pgTable('store_refs', {
@@ -19,6 +19,8 @@ export const productRefs = pgTable('product_refs', {
   slug: varchar('slug', { length: 255 }).notNull(),
   price: integer('price').notNull(), // IDR, catalog's current price
   imageKey: varchar('image_key', { length: 512 }),
+  // Tombstone: a deleted product keeps its row (and version) so a late, older upsert cannot revive it.
+  deleted: boolean('deleted').default(false).notNull(),
   version: integer('version').notNull(),
   syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
 });
@@ -40,4 +42,13 @@ export const userRefs = pgTable('user_refs', {
   roles: varchar('roles', { length: 32 }).array().notNull(),
   version: integer('version').notNull(),
   syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+// A seller's stock for a product catalog created moments ago; applied once the product replicates
+// here and its store is confirmed to belong to that seller.
+export const pendingStock = pgTable('pending_stock', {
+  productId: uuid('product_id').primaryKey(),
+  sellerId: uuid('seller_id').notNull(),
+  stock: integer('stock').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });

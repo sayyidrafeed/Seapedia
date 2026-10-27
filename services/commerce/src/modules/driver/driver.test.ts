@@ -154,7 +154,7 @@ describe('DriverService', () => {
 
   test('completeJob successfully updates status to complete', async () => {
     dbState.addUpdate([{ ...mockJob, status: 'completed', driverId: 'driver-1' }]);
-    dbState.addUpdate([{ id: 'order-1', status: 'pesanan_selesai' }]);
+    dbState.addUpdate([{ id: 'order-1', buyerId: 'buyer-1', status: 'pesanan_selesai' }]);
     dbState.addInsert([{ id: 'history-2' }]);
     const res = await DriverService.completeJob('job-1', 'driver-1');
     expect(res.success).toBe(true);

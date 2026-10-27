@@ -14,5 +14,7 @@ export const stockResponseSchema = z
   .object({
     productId: z.string(),
     stock: z.number().int(),
+    // True when the product has not replicated to commerce yet; the stock applies when it does.
+    pending: z.boolean(),
   })
   .meta({ id: 'StockResponse' });

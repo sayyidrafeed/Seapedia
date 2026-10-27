@@ -1,78 +1,99 @@
-import { createEventConsumer, type EventEnvelope } from '@seapedia/platform/events';
-import { eq, lt, sql } from 'drizzle-orm';
-import { z } from 'zod';
+import { dataOf } from '@seapedia/contracts/events';
+import type { EventEnvelope } from '@seapedia/platform/events';
+import { and, eq, lt, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { inventory, productRefs, storeRefs, userRefs } from '@/db/schema';
-import { runtime } from '@/runtime';
+import { cartItems, inventory, pendingStock, productRefs, storeRefs, userRefs } from '@/db/schema';
+import { CommerceEvents, commerceOutbox } from '@/modules/events/events.index';
 
-const productData = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  price: z.number().int(),
-  imageKey: z.string().nullable(),
-});
-const storeData = z.object({
-  id: z.string(),
-  sellerId: z.string(),
-  name: z.string(),
-  slug: z.string(),
-});
-const userData = z.object({ id: z.string(), roles: z.array(z.string()) });
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+// Stock a seller set before the product replicated: applied now if the store is theirs, else dropped.
+async function applyPendingStock(tx: Tx, productId: string, storeId: string) {
+  const [pending] = await tx
+    .select()
+    .from(pendingStock)
+    .where(eq(pendingStock.productId, productId))
+    .limit(1);
+  if (!pending) return;
+  await tx.delete(pendingStock).where(eq(pendingStock.productId, productId));
+  const [owner] = await tx
+    .select({ id: storeRefs.id })
+    .from(storeRefs)
+    .where(and(eq(storeRefs.id, storeId), eq(storeRefs.sellerId, pending.sellerId)))
+    .limit(1);
+  if (!owner) return;
+  const [row] = await tx
+    .update(inventory)
+    .set({ stock: pending.stock, version: sql`${inventory.version} + 1`, updatedAt: new Date() })
+    .where(eq(inventory.productId, productId))
+    .returning({
+      productId: inventory.productId,
+      stock: inventory.stock,
+      version: inventory.version,
+    });
+  if (row) await commerceOutbox.enqueue(tx, CommerceEvents.inventoryChanged(row));
+}
 
 // Version-guarded writes make redeliveries and reordering harmless; a missing store ref fails and retries.
 export const ReplicaSync = {
   async productUpserted(event: EventEnvelope) {
-    const p = productData.parse(event.data);
+    const p = dataOf('catalog.product.upserted', event);
+    const ref = {
+      id: p.id,
+      storeId: p.storeId,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      imageKey: p.imageKey,
+    };
     await db.transaction(async (tx) => {
-      await tx
+      const applied = await tx
         .insert(productRefs)
-        .values({ ...p, version: event.version })
+        .values({ ...ref, version: event.version })
         .onConflictDoUpdate({
           target: productRefs.id,
-          set: {
-            storeId: p.storeId,
-            name: p.name,
-            slug: p.slug,
-            price: p.price,
-            imageKey: p.imageKey,
-            version: event.version,
-            syncedAt: sql`now()`,
-          },
+          set: { ...ref, version: event.version, syncedAt: sql`now()` },
+          // A tombstoned product stays deleted: its version is above any earlier upsert.
           setWhere: lt(productRefs.version, event.version),
-        });
+        })
+        .returning({ id: productRefs.id, deleted: productRefs.deleted });
+      if (applied.length === 0 || applied[0].deleted) return;
       // New products start with no stock until the seller sets it; existing stock is untouched.
       await tx.insert(inventory).values({ productId: p.id, stock: 0 }).onConflictDoNothing();
+      await applyPendingStock(tx, p.id, p.storeId);
     });
   },
 
   async productDeleted(event: EventEnvelope) {
-    const { id } = z.object({ id: z.string() }).parse(event.data);
-    // Cascades to inventory and cart items; order items keep their name and price snapshot.
-    await db.delete(productRefs).where(eq(productRefs.id, id));
+    const { id } = dataOf('catalog.product.deleted', event);
+    await db.transaction(async (tx) => {
+      const tombstoned = await tx
+        .update(productRefs)
+        .set({ deleted: true, version: event.version, syncedAt: sql`now()` })
+        .where(and(eq(productRefs.id, id), lt(productRefs.version, event.version)))
+        .returning({ id: productRefs.id });
+      if (tombstoned.length === 0) return;
+      await tx.delete(cartItems).where(eq(cartItems.productId, id));
+      await tx.delete(inventory).where(eq(inventory.productId, id));
+      await tx.delete(pendingStock).where(eq(pendingStock.productId, id));
+    });
   },
 
   async storeUpserted(event: EventEnvelope) {
-    const s = storeData.parse(event.data);
+    const s = dataOf('catalog.store.upserted', event);
+    const ref = { id: s.id, sellerId: s.sellerId, name: s.name, slug: s.slug };
     await db
       .insert(storeRefs)
-      .values({ ...s, version: event.version })
+      .values({ ...ref, version: event.version })
       .onConflictDoUpdate({
         target: storeRefs.id,
-        set: {
-          sellerId: s.sellerId,
-          name: s.name,
-          slug: s.slug,
-          version: event.version,
-          syncedAt: sql`now()`,
-        },
+        set: { ...ref, version: event.version, syncedAt: sql`now()` },
         setWhere: lt(storeRefs.version, event.version),
       });
   },
 
   async userUpserted(event: EventEnvelope) {
-    const u = userData.parse(event.data);
+    const u = dataOf('identity.user.updated', event);
     await db
       .insert(userRefs)
       .values({ id: u.id, roles: u.roles, version: event.version })
@@ -87,20 +108,8 @@ export const ReplicaSync = {
     const [row] = await db
       .select({ id: productRefs.id })
       .from(productRefs)
-      .where(eq(productRefs.id, productId))
+      .where(and(eq(productRefs.id, productId), eq(productRefs.deleted, false)))
       .limit(1);
     return Boolean(row);
   },
 };
-
-export const replicaConsumer = createEventConsumer({
-  rabbit: runtime.rabbit,
-  queue: 'commerce',
-  handlers: {
-    'catalog.product.upserted': ReplicaSync.productUpserted,
-    'catalog.product.deleted': ReplicaSync.productDeleted,
-    'catalog.store.upserted': ReplicaSync.storeUpserted,
-    'identity.user.registered': ReplicaSync.userUpserted,
-    'identity.user.updated': ReplicaSync.userUpserted,
-  },
-});

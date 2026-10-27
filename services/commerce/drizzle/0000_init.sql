@@ -137,6 +137,13 @@ CREATE TABLE "inventory" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "pending_stock" (
+	"product_id" uuid PRIMARY KEY NOT NULL,
+	"seller_id" uuid NOT NULL,
+	"stock" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "product_refs" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"store_id" uuid NOT NULL,
@@ -144,6 +151,7 @@ CREATE TABLE "product_refs" (
 	"slug" varchar(255) NOT NULL,
 	"price" integer NOT NULL,
 	"image_key" varchar(512),
+	"deleted" boolean DEFAULT false NOT NULL,
 	"version" integer NOT NULL,
 	"synced_at" timestamp with time zone DEFAULT now() NOT NULL
 );

@@ -1,1 +1,2 @@
-export { ReplicaSync, replicaConsumer } from './catalog-sync.service';
+export { ReplicaSync } from './catalog-sync.service';
+export { replicaConsumer } from './catalog-sync.consumer';

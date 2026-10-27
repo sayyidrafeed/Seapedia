@@ -69,7 +69,10 @@ export class AdminService {
         .from(userRefs)
         .groupBy(sql`1`),
       db.select({ count: sql<number>`count(*)::int` }).from(storeRefs),
-      db.select({ count: sql<number>`count(*)::int` }).from(productRefs),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(productRefs)
+        .where(eq(productRefs.deleted, false)),
       // 5. Orders count
       db.select({ count: sql<number>`count(${orders.id})::int` }).from(orders),
       // 6. Order statuses count

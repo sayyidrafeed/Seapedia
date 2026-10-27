@@ -2,15 +2,11 @@ import { factory } from '@seapedia/platform/factory';
 import { requireRole, requireSession } from '@seapedia/platform/auth';
 import { errorResponses, jsonContent } from '@seapedia/platform/openapi';
 import { describeRoute, validator } from 'hono-openapi';
-import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import { setStockSchema, stockResponseSchema } from './inventory.schemas';
 import { InventoryService } from './inventory.service';
 
 export const sellerInventoryRouter = factory.createApp();
-
-sellerInventoryRouter.use(requireSession);
-sellerInventoryRouter.use(requireRole('seller'));
 
 sellerInventoryRouter.put(
   '/:productId',
@@ -23,17 +19,19 @@ sellerInventoryRouter.put(
     security: [{ cookieAuth: [] }],
     responses: {
       200: jsonContent(stockResponseSchema, 'Stock updated'),
+      202: jsonContent(stockResponseSchema, 'Product not replicated yet; stock applies when it is'),
       ...errorResponses(400, 401, 403, 404, 500),
     },
   }),
+  requireSession,
+  requireRole('seller'),
   validator('param', z.object({ productId: z.string().uuid() })),
   validator('json', setStockSchema),
   async (c) => {
     const userId = c.get('userId');
-    if (!userId) throw new HTTPException(401, { message: 'Unauthorized' });
-
     const { productId } = c.req.valid('param');
     const { stock } = c.req.valid('json');
-    return c.json(await InventoryService.setStock(userId, productId, stock));
+    const result = await InventoryService.setStock(userId, productId, stock);
+    return c.json(result, result.pending ? 202 : 200);
   },
 );
