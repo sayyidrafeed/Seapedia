@@ -1,20 +1,13 @@
+import { dataOf } from '@seapedia/contracts/events';
 import { createEventConsumer, type EventEnvelope } from '@seapedia/platform/events';
 import { MongoServerError } from 'mongodb';
-import { z } from 'zod';
 import { collections, inTransaction } from '@/db';
+import { config } from '@/config';
 import { runtime } from '@/runtime';
 import { CatalogEvents, enqueue } from './events';
 
-const userData = z.object({ id: z.string(), displayName: z.string() });
-const inventoryData = z.object({ productId: z.string(), stock: z.number().int() });
-const orderCompletedData = z.object({
-  orderId: z.string(),
-  buyerId: z.string(),
-  items: z.array(z.object({ productId: z.string().nullable(), quantity: z.number().int() })),
-});
-
 async function upsertUser(event: EventEnvelope) {
-  const user = userData.parse(event.data);
+  const user = dataOf('identity.user.updated', event);
   await collections.users
     .updateOne(
       { _id: user.id, $or: [{ version: { $lt: event.version } }, { version: { $exists: false } }] },
@@ -30,12 +23,13 @@ async function upsertUser(event: EventEnvelope) {
 export const consumer = createEventConsumer({
   rabbit: runtime.rabbit,
   queue: 'catalog',
+  prefetch: config.get().consumerPrefetch,
   handlers: {
     'identity.user.registered': upsertUser,
     'identity.user.updated': upsertUser,
 
     'commerce.inventory.changed': async (event) => {
-      const { productId, stock } = inventoryData.parse(event.data);
+      const { productId, stock } = dataOf('commerce.inventory.changed', event);
       await collections.products.updateOne(
         { _id: productId, stockVersion: { $lt: event.version } },
         { $set: { stock, stockVersion: event.version } },
@@ -45,7 +39,7 @@ export const consumer = createEventConsumer({
     // Not idempotent by itself (it increments), so the inbox records the event id in the same
     // transaction and a redelivery is skipped.
     'commerce.order.completed': async (event) => {
-      const order = orderCompletedData.parse(event.data);
+      const order = dataOf('commerce.order.completed', event);
       await inTransaction(async (session) => {
         if (await collections.inbox.findOne({ _id: event.id }, { session })) return;
         await collections.inbox.insertOne(

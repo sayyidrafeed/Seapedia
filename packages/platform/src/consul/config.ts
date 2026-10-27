@@ -1,4 +1,11 @@
-import type { z } from 'zod';
+import { z } from 'zod';
+
+// `config/shared/*`, read once at boot: the relay and consumers are built with these values.
+export const sharedConfigSchema = z.object({
+  outboxIntervalMs: z.number().int().min(100).default(500),
+  consumerPrefetch: z.number().int().min(1).max(500).default(20),
+});
+const RESTART_REQUIRED = Object.keys(sharedConfigSchema.shape);
 
 type KvEntry = { Key: string; Value: string | null };
 
@@ -28,7 +35,8 @@ async function readPrefix(consulUrl: string, prefix: string, index?: string) {
 }
 
 // An invalid KV change is rejected and the last valid config stays; read via get() to follow changes.
-export async function loadConfig<S extends z.ZodType>(options: {
+// Shared keys keep their boot value until restart.
+export async function loadConfig<S extends z.ZodType<Record<string, unknown>>>(options: {
   consulUrl: string;
   service: string;
   schema: S;
@@ -81,7 +89,16 @@ export async function loadConfig<S extends z.ZodType>(options: {
             );
             continue;
           }
-          current = result.data;
+          const next: Record<string, unknown> = { ...result.data };
+          const previous: Record<string, unknown> = current;
+          const pending = RESTART_REQUIRED.filter((key) => next[key] !== previous[key]);
+          for (const key of pending) next[key] = previous[key];
+          if (pending.length > 0) {
+            console.warn(
+              JSON.stringify({ service, event: 'config_restart_required', keys: pending }),
+            );
+          }
+          current = next as z.infer<S>;
           console.log(JSON.stringify({ service, event: 'config_reloaded' }));
           options.onChange?.(current);
         } catch (error) {

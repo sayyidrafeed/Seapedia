@@ -3,11 +3,16 @@
 # alone, so changes made at runtime (consul kv put ...) survive restarts.
 set -eu
 
+# Create-only (check-and-set on index 0), so two init runs cannot race over a runtime change.
 put() {
-  if ! consul kv get "$1" >/dev/null 2>&1; then
-    consul kv put "$1" "$2" >/dev/null
+  if out=$(consul kv put -cas -modify-index=0 "$1" "$2" 2>&1); then
     echo "set $1"
+    return
   fi
+  case "$out" in
+    *'CAS failed'*) ;;
+    *) echo "$out" >&2; exit 1 ;;
+  esac
 }
 
 # Shared by every service
