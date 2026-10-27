@@ -2,7 +2,14 @@ import { env } from '@/config';
 import { client } from './generated/client.gen';
 
 // Access tokens live 10 minutes. On a 401 the client rotates the refresh token once (shared by
-// concurrent requests) and replays the original request; auth endpoints are never retried.
+// concurrent requests) and replays the original request. Only the credential endpoints are never
+// retried; account reads such as /api/auth/me must refresh, or a reload would sign the user out.
+const CREDENTIAL_PATHS = new Set([
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/refresh',
+  '/api/auth/logout',
+]);
 const replayable = new WeakMap<Request, Request>();
 let refreshing: Promise<boolean> | null = null;
 
@@ -25,7 +32,7 @@ client.interceptors.request.use((request) => {
 });
 
 client.interceptors.response.use(async (response, request) => {
-  if (response.status !== 401 || new URL(request.url).pathname.startsWith('/api/auth/'))
+  if (response.status !== 401 || CREDENTIAL_PATHS.has(new URL(request.url).pathname))
     return response;
   const replay = replayable.get(request);
   if (!replay || !(await refreshSession())) return response;
