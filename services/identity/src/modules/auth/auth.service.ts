@@ -36,12 +36,15 @@ async function rolesOf(executor: Pick<Tx, 'select'>, userId: string) {
 async function newRefreshToken(tx: Tx, sessionId: string) {
   const token = randomBytes(32).toString('base64url');
   const ttlDays = config.get().refreshTokenTtlDays;
-  await tx.insert(refreshTokens).values({
-    sessionId,
-    tokenHash: hashToken(token),
-    expiresAt: new Date(Date.now() + ttlDays * 86_400_000),
-  });
-  return { refreshToken: token, refreshTtl: ttlDays * 86_400 };
+  const [row] = await tx
+    .insert(refreshTokens)
+    .values({
+      sessionId,
+      tokenHash: hashToken(token),
+      expiresAt: new Date(Date.now() + ttlDays * 86_400_000),
+    })
+    .returning({ id: refreshTokens.id });
+  return { id: row.id, refresh: { refreshToken: token, refreshTtl: ttlDays * 86_400 } };
 }
 
 async function accessFor(userId: string, sessionId: string, roles: string[], activeRole: string) {
@@ -91,7 +94,7 @@ export class AuthService {
         .returning();
 
       await identityOutbox.enqueue(tx, IdentityEvents.user('registered', newUser, ['buyer']));
-      const refresh = await newRefreshToken(tx, session.id);
+      const { refresh } = await newRefreshToken(tx, session.id);
       const tokens: IssuedTokens = {
         ...(await accessFor(newUser.id, session.id, ['buyer'], 'buyer')),
         ...refresh,
@@ -129,7 +132,7 @@ export class AuthService {
         .insert(sessions)
         .values({ userId: user.id, activeRole: roles[0] })
         .returning();
-      const refresh = await newRefreshToken(tx, session.id);
+      const { refresh } = await newRefreshToken(tx, session.id);
       const tokens: IssuedTokens = {
         ...(await accessFor(user.id, session.id, roles, roles[0])),
         ...refresh,
@@ -166,17 +169,17 @@ export class AuthService {
       }
 
       await tx
-        .update(refreshTokens)
-        .set({ usedAt: new Date() })
-        .where(eq(refreshTokens.id, row.id));
-      await tx
         .update(sessions)
         .set({ lastUsedAt: new Date() })
         .where(eq(sessions.id, row.sessionId));
 
       const roles = await rolesOf(tx, row.userId);
       const activeRole = roles.includes(row.activeRole) ? row.activeRole : roles[0];
-      const refresh = await newRefreshToken(tx, row.sessionId);
+      const { id: replacedBy, refresh } = await newRefreshToken(tx, row.sessionId);
+      await tx
+        .update(refreshTokens)
+        .set({ usedAt: new Date(), replacedBy })
+        .where(eq(refreshTokens.id, row.id));
       const tokens: IssuedTokens = {
         ...(await accessFor(row.userId, row.sessionId, roles, activeRole)),
         ...refresh,

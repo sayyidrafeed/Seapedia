@@ -30,9 +30,10 @@ const CATALOG_COLLECTIONS = [
 ];
 
 // Seeding starts clean: every service table is emptied (migration history is untouched).
+// service_clients is identity's boot-time copy of its environment, not data.
 async function wipePostgres(tx: Tx) {
   const tables = await tx.execute<{ tablename: string }>(
-    sql`select tablename from pg_tables where schemaname = 'public'`,
+    sql`select tablename from pg_tables where schemaname = 'public' and tablename <> 'service_clients'`,
   );
   if (tables.length === 0) return;
   const names = tables.map((t) => `"public"."${t.tablename}"`).join(', ');

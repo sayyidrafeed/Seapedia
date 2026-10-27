@@ -1,16 +1,9 @@
-import { timingSafeEqual } from 'node:crypto';
 import { factory } from '@seapedia/platform/factory';
 import { describeRoute, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { env } from '@/env';
 import { jwks, signServiceToken } from '@/lib/tokens';
 import { SERVICE_POLICY } from './oauth.policy';
-
-const sameSecret = (a: string, b: string) => {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  return left.length === right.length && timingSafeEqual(left, right);
-};
+import { OAuthService } from './oauth.service';
 
 // OAuth2 client-credentials for service-to-service calls. Not routed by the gateway.
 export const oauthRouter = factory.createApp();
@@ -30,8 +23,7 @@ oauthRouter.post(
   ),
   async (c) => {
     const req = c.req.valid('json');
-    const secret = env.SERVICE_CLIENT_SECRETS[req.client_id];
-    if (!secret || !sameSecret(secret, req.client_secret)) {
+    if (!(await OAuthService.authenticate(req.client_id, req.client_secret))) {
       return c.json({ error: 'invalid_client' }, 401);
     }
 

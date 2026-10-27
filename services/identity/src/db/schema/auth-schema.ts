@@ -1,4 +1,6 @@
 import {
+  type AnyPgColumn,
+  char,
   pgTable,
   text,
   timestamp,
@@ -59,7 +61,18 @@ export const refreshTokens = pgTable(
     tokenHash: text('token_hash').notNull().unique(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     usedAt: timestamp('used_at', { withTimezone: true }),
+    // The token this one was rotated into; the session is the token family.
+    replacedBy: uuid('replaced_by').references((): AnyPgColumn => refreshTokens.id, {
+      onDelete: 'set null',
+    }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [index('refresh_tokens_session_id_idx').on(t.sessionId)],
 );
+
+// Client-credentials callers (catalog, search, seed). Synced from SERVICE_CLIENT_SECRETS at boot.
+export const serviceClients = pgTable('service_clients', {
+  clientId: varchar('client_id', { length: 64 }).primaryKey(),
+  secretHash: char('secret_hash', { length: 64 }).notNull(), // sha256 hex
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});

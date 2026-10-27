@@ -96,7 +96,7 @@ describe('register and login', () => {
 
   test('register creates a buyer session and announces the new user', async () => {
     dbState.selects.push([]); // uniqueness check
-    dbState.insertResults.push([user], [], [{ id: SESSION }]); // user, role, session
+    dbState.insertResults.push([user], [], [{ id: SESSION }], [], [{ id: 'rt-1' }]); // user, role, session, outbox, refresh token
 
     const { tokens } = await AuthService.register({
       username: 'dewi',
@@ -119,7 +119,7 @@ describe('register and login', () => {
 
   test('each login opens its own session, so devices sign out independently', async () => {
     dbState.selects.push([user], [{ role: 'buyer' }, { role: 'seller' }]);
-    dbState.insertResults.push([{ id: SESSION }]);
+    dbState.insertResults.push([{ id: SESSION }], [{ id: 'rt-1' }]);
 
     const { tokens } = await AuthService.login({ username: 'dewi', password: 'password123' });
 
@@ -142,14 +142,16 @@ describe('refresh token rotation', () => {
     activeRole: 'seller',
   });
 
-  test('a fresh token is rotated: marked used, and a new pair issued', async () => {
+  test('a fresh token is rotated: marked used and linked to the new one', async () => {
     dbState.selects.push([stored(null)], [{ role: 'buyer' }, { role: 'seller' }]);
+    dbState.insertResults.push([{ id: 'rt-2' }]);
 
     const result = await AuthService.refresh('presented-token');
 
     expect(result.reused).toBe(false);
     if (result.reused) return;
-    expect(dbState.updates[0]).toMatchObject({ table: 'refresh_tokens' });
+    const rotated = dbState.updates.find((u) => u.table === 'refresh_tokens');
+    expect(rotated?.values).toMatchObject({ replacedBy: 'rt-2', usedAt: expect.any(Date) });
     expect(dbState.inserts.map((i) => i.table)).toEqual(['refresh_tokens']);
     expect(await verifier.user(result.tokens.accessToken)).toMatchObject({ activeRole: 'seller' });
   });
