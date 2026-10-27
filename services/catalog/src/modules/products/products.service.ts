@@ -139,9 +139,10 @@ export class ProductsService {
     }
 
     await inTransaction(async (session) => {
-      await ProductsRepo.remove(productId, session);
+      const deleted = await ProductsRepo.remove(productId, session);
+      if (!deleted) throw new NotFoundError('Product not found or does not belong to your store');
       const updatedStore = await ProductsRepo.adjustStoreProductCount(store.id, -1, session);
-      await enqueue(session, CatalogEvents.productDeleted(product));
+      await enqueue(session, CatalogEvents.productDeleted(deleted));
       if (updatedStore) await enqueue(session, CatalogEvents.storeUpserted(updatedStore));
     });
 

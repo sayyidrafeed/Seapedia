@@ -72,7 +72,7 @@ mock.module('./products.repo', () => ({
     adjustStoreProductCount: async () => state.store,
     owned: async () => state.owned,
     update: async (id: string, set: object) => ({ ...product(id), ...set, version: 2 }),
-    remove: async () => undefined,
+    remove: async () => state.owned,
     publicInOrder: async (ids: string[]) =>
       ids.filter((id) => state.inOrder.includes(id)).map((id) => ({ id })),
     textFilter: (q: string) => ({ text: q }),

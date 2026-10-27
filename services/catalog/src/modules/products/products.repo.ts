@@ -142,8 +142,9 @@ export const ProductsRepo = {
     );
   },
 
+  // Returns the document as deleted inside the transaction, so its version is the latest one.
   remove: (id: string, session: ClientSession) =>
-    collections.products.deleteOne({ _id: id }, { session }),
+    collections.products.findOneAndDelete({ _id: id }, { session }),
 
   adjustStoreProductCount: (storeId: string, delta: number, session: ClientSession) =>
     collections.stores.findOneAndUpdate(

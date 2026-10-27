@@ -1,7 +1,11 @@
+import { MongoServerError } from 'mongodb';
 import { HTTPException } from 'hono/http-exception';
 import { inTransaction } from '@/db';
 import { CatalogEvents, enqueue } from '@/modules/events/events.index';
 import { ProductReviewsRepo, toReview } from './product-reviews.repo';
+
+const alreadyReviewed = () =>
+  new HTTPException(400, { message: 'Anda sudah mengirimkan ulasan untuk produk ini' });
 
 // Running average after adding one rating.
 export const addToAverage = (average: number, count: number, rating: number) =>
@@ -21,9 +25,7 @@ export class ProductReviewsService {
       });
     }
 
-    if (await ProductReviewsRepo.alreadyReviewed(buyerId, productId)) {
-      throw new HTTPException(400, { message: 'Anda sudah mengirimkan ulasan untuk produk ini' });
-    }
+    if (await ProductReviewsRepo.alreadyReviewed(buyerId, productId)) throw alreadyReviewed();
 
     // Display names are replicated from identity's `user.*` events.
     const reviewerName = (await ProductReviewsRepo.displayName(buyerId)) ?? 'Pembeli';
@@ -43,7 +45,10 @@ export class ProductReviewsService {
         comment: input.comment,
         createdAt: new Date(),
       };
-      await ProductReviewsRepo.insert(review, session);
+      // A concurrent submission passed the check too; the unique (buyer, product) index decides.
+      await ProductReviewsRepo.insert(review, session).catch((error) => {
+        throw error instanceof MongoServerError && error.code === 11000 ? alreadyReviewed() : error;
+      });
 
       const updatedProduct = await ProductReviewsRepo.setProductRating(
         productId,
