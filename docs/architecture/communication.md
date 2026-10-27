@@ -35,14 +35,16 @@ call the producer back.
   `<queue>.retry` (TTL 5 s) → `seapedia.redeliver` → back to the same queue only. After 5 attempts
   it is published to `seapedia.parking` and lands in `<queue>.parked` for inspection. Each consumer
   takes `consumerPrefetch` unacknowledged messages at a time (Consul, default 20).
-- **Topology.** `infra/rabbitmq/init.ts` declares the four exchanges; services only check that they
-  exist and declare their own queues. Search declares its queue before building its index, so no
-  event published during its first boot is lost; handlers wait until the index exists.
+- **Topology.** `infra/rabbitmq/init.ts` declares every exchange, queue and binding (the
+  `subscriptions` list) before any service starts, so an event published before its consumer
+  first runs is kept. Services declare nothing; a new subscription is added there. Search starts
+  consuming before its index exists; handlers wait until it does.
 - **Idempotent consumers.** Version guards and the inbox (see
   [data ownership](./data-ownership.md#ordering-and-duplicates)) make redeliveries and reordering
   harmless.
-- **Session revocations** use an exclusive, auto-deleted queue per instance, so every replica of
-  every service updates its in-memory denylist.
+- **Session revocations** go to the stream `session-revocations` (kept 1 hour, the longest
+  access-token lifetime). Every instance of every service reads it from the start on each
+  (re)connect, so a restarted instance relearns the sessions revoked while it was away.
 
 Producers keep working when RabbitMQ is down: events wait in their outbox and are published when
 the broker returns.

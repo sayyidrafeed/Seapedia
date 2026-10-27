@@ -12,7 +12,9 @@
   new pair, recording the successor in `replaced_by` (a session is one token family). Presenting a
   used token again means it leaked: the whole session is revoked.
 - **Immediate revocation.** Logging out or a detected reuse publishes `identity.session.revoked`;
-  every service instance denies that session's access tokens until they would have expired.
+  every service instance denies that session's access tokens for the longest lifetime any of
+  them could have (1 hour, the cap on `accessTokenTtlSeconds`), and replays the revocation
+  stream after a restart.
 - **Role switch** (`POST /api/auth/select-role`) and onboarding re-issue the access token with the
   new role.
 - The web app refreshes once on a 401 and replays the request.
@@ -56,11 +58,11 @@
 
 Each service has its own RabbitMQ user in vhost `seapedia` (`infra/rabbitmq/init.ts`):
 
-- configure only its own queues (`<service>`, `<service>.retry`, `<service>.parked`) and
-  server-named ones; exchanges are declared by the init job, not by services;
-- write only `seapedia.events`, `seapedia.parking` and its own queues. Not the default exchange and
-  not `seapedia.retry`/`seapedia.redeliver` (the broker dead-letters into those itself), so a service
+- configure nothing: exchanges, queues and bindings belong to the init job;
+- write only `seapedia.events` and `seapedia.parking`. Not the default exchange and not
+  `seapedia.retry`/`seapedia.redeliver` (the broker dead-letters into those itself), so a service
   cannot push a message straight into another service's queue;
+- read only its own queue and the `session-revocations` stream;
 - **topic permissions**: on `seapedia.events` it may publish only routing keys starting with its own
   name, so no service can forge another's events; on `seapedia.parking` only its own queue name.
 

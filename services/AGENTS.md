@@ -49,6 +49,8 @@ test/setup.ts     test env (bunfig.toml preloads it)
   (`UpstreamError`) becomes 503.
 - Build events with `event()` and read payloads with `dataOf()` from `@seapedia/contracts/events`;
   never parse `envelope.data` with a local schema.
+- A new event subscription is a routing key in the `subscriptions` list of
+  `infra/rabbitmq/init.ts` plus a handler in the service's consumer; services declare no queues.
 - Event handlers must be idempotent: guard replica writes by `version`, and record non-idempotent
   effects in the inbox in the same transaction.
 - Derive types from Drizzle tables or Zod schemas.
