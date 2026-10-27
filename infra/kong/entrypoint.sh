@@ -6,7 +6,10 @@ set -eu
 key=$(printf '%s' "$JWT_PUBLIC_KEY" | sed 's/\\n/\n/g' | awk 'BEGIN{ORS="\\n"} {print}' | sed 's/\\n$//')
 origins=$(printf '%s' "$CORS_ORIGINS" | awk -F, '{printf "["; for (i=1;i<=NF;i++) printf "%s\"%s\"", (i>1?", ":""), $i; printf "]"}')
 
-sed -e "s|__JWT_PUBLIC_KEY__|$key|" \
+# sed would turn "\n" in the replacement into real newlines: escape the backslashes first.
+key_for_sed=$(printf '%s' "$key" | sed 's/\\/\\\\/g')
+
+sed -e "s|__JWT_PUBLIC_KEY__|$key_for_sed|" \
     -e "s|__CORS_ORIGINS__|$origins|" \
     -e "s|__UPSTREAM_IDENTITY__|${UPSTREAM_IDENTITY:-identity.service.consul:4001}|" \
     -e "s|__UPSTREAM_CATALOG__|${UPSTREAM_CATALOG:-catalog.service.consul:4002}|" \

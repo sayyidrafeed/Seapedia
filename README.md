@@ -70,7 +70,7 @@ Read more: [overview](./docs/architecture/overview.md) · [data ownership](./doc
 |-------|--------|
 | Runtime | [Bun](https://bun.sh) workspace monorepo |
 | Services | [Hono](https://hono.dev), [Zod](https://zod.dev), OpenAPI via `hono-openapi` |
-| Data | PostgreSQL 17 ([Drizzle ORM](https://orm.drizzle.team)), MongoDB 8, Elasticsearch 9 |
+| Data | PostgreSQL 17 ([Drizzle ORM](https://orm.drizzle.team)), MongoDB 7.0, Elasticsearch 9 |
 | Integration | [RabbitMQ](https://www.rabbitmq.com) 4 (topic exchange, retry and parking queues) |
 | Edge | [Kong](https://konghq.com) 3.9 OSS, DB-less |
 | Platform | [Consul](https://www.consul.io) (KV configuration, registry, DNS) |

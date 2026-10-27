@@ -60,7 +60,7 @@ All in one Dokploy project and one Docker network. None of these get a public do
 | consul | `hashicorp/consul:2.0.4` | command and volume as in `docker-compose.prod.yml`; run `infra/consul/init.sh` once (one-off container) to seed KV |
 | rabbitmq | `rabbitmq:4.2.9-management-alpine` | volume; then run `infra/rabbitmq/init.ts` once (`oven/bun` one-off) to create the vhost and per-service users |
 | identity-db, commerce-db | `postgres:17.11-alpine` | one each, own volume and password |
-| catalog-db | `mongo:8.0.34` | entrypoint and healthcheck from `infra/mongo` (single-node replica set with keyfile auth); user script creates the `catalog` user |
+| catalog-db | `mongo:7.0.45` (8.0+ crashes on Linux 6.19 to 7.0.13, SERVER-121912) | entrypoint and healthcheck from `infra/mongo` (single-node replica set with keyfile auth); user script creates the `catalog` user |
 | elasticsearch | `elasticsearch:9.5.3` | single node, 512 MB heap, security on, HTTP TLS off (private network) |
 
 For production, enable Consul ACLs and keep its UI private.
