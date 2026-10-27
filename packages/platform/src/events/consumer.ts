@@ -2,6 +2,7 @@ import type { Channel, ConsumeMessage } from 'amqplib';
 import {
   envelopeSchema,
   EXCHANGE,
+  PARKING_EXCHANGE,
   REDELIVER_EXCHANGE,
   RETRY_EXCHANGE,
   type EventEnvelope,
@@ -61,6 +62,7 @@ export function createEventConsumer({
         },
       });
       await ch.assertQueue(`${name}.parked`, { durable: true });
+      await ch.bindQueue(`${name}.parked`, PARKING_EXCHANGE, name);
       await ch.bindQueue(`${name}.retry`, RETRY_EXCHANGE, name);
       await ch.bindQueue(name, REDELIVER_EXCHANGE, name);
     } else {
@@ -77,7 +79,7 @@ export function createEventConsumer({
         console.error(
           JSON.stringify({ queue: name, event: 'malformed_message', error: String(error) }),
         );
-        if (queue) ch.sendToQueue(`${name}.parked`, msg.content, msg.properties);
+        if (queue) ch.publish(PARKING_EXCHANGE, name, msg.content, msg.properties);
         ch.ack(msg);
         return;
       }
@@ -99,7 +101,7 @@ export function createEventConsumer({
         );
         if (!queue) return ch.ack(msg);
         if (attempt >= maxAttempts) {
-          ch.sendToQueue(`${name}.parked`, msg.content, msg.properties);
+          ch.publish(PARKING_EXCHANGE, name, msg.content, msg.properties);
           return ch.ack(msg);
         }
         ch.nack(msg, false, false);

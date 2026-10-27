@@ -4,7 +4,7 @@ import {
   type ChannelModel,
   type ConfirmChannel,
 } from 'amqplib';
-import { EXCHANGE, REDELIVER_EXCHANGE, RETRY_EXCHANGE } from './envelope';
+import { EXCHANGE, PARKING_EXCHANGE, REDELIVER_EXCHANGE, RETRY_EXCHANGE } from './envelope';
 
 export type RabbitOptions = { url: string; service: string };
 
@@ -36,10 +36,11 @@ export function createRabbit({ url, service }: RabbitOptions) {
     return connection;
   }
 
+  // Exchanges belong to infra/rabbitmq/init.ts; services may not declare them, only check.
   async function declareExchanges(channel: Channel) {
-    await channel.assertExchange(EXCHANGE, 'topic', { durable: true });
-    await channel.assertExchange(RETRY_EXCHANGE, 'direct', { durable: true });
-    await channel.assertExchange(REDELIVER_EXCHANGE, 'direct', { durable: true });
+    for (const name of [EXCHANGE, RETRY_EXCHANGE, REDELIVER_EXCHANGE, PARKING_EXCHANGE]) {
+      await channel.checkExchange(name);
+    }
   }
 
   return {

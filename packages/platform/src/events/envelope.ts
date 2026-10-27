@@ -34,3 +34,5 @@ export const EXCHANGE = 'seapedia.events';
 // Failed deliveries wait here (per-queue TTL) before being redelivered to the same queue only.
 export const RETRY_EXCHANGE = 'seapedia.retry';
 export const REDELIVER_EXCHANGE = 'seapedia.redeliver';
+// Messages that failed for good, routed by queue name to `<queue>.parked`.
+export const PARKING_EXCHANGE = 'seapedia.parking';

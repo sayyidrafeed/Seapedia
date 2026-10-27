@@ -122,12 +122,9 @@ const created = await seller.call('POST', '/api/seller/products', {
 const productId = String(created.json.id ?? '');
 check('seller creates a product (catalog, MongoDB)', created.status === 200 && productId !== '', created.json);
 
-let stockStatus = 0;
-await eventually(async () => {
-  stockStatus = (await seller.call('PUT', `/api/seller/inventory/${productId}`, { stock: 7 })).status;
-  return stockStatus === 200;
-});
-check('commerce learns the product from its event, then accepts stock', stockStatus === 200, stockStatus);
+// Usually sent before commerce has the product: kept as pending (202) and applied when it arrives.
+const stockStatus = (await seller.call('PUT', `/api/seller/inventory/${productId}`, { stock: 7 })).status;
+check('commerce accepts stock right after creation (200, or 202 pending)', [200, 202].includes(stockStatus), stockStatus);
 check(
   'the product becomes searchable (catalog event -> search)',
   await eventually(async () => (await searchFor(marker)).products.some((p) => p.id === productId)),
@@ -187,6 +184,10 @@ check(
   'commerce drops its replica (cart refuses it)',
   await eventually(async () => (await buyer.call('POST', '/api/buyers/cart/items', { productId, quantity: 1 })).status === 409),
 );
+check(
+  'a deleted product stays deleted in commerce (tombstone refuses stock)',
+  (await seller.call('PUT', `/api/seller/inventory/${productId}`, { stock: 3 })).status === 404,
+);
 
 // ── Logout ────────────────────────────────────────────────────────────────────
 const staleAccess = buyer.cookies.get('__access')!;
@@ -219,6 +220,25 @@ const forgedEvent = await inContainer(
    process.exit(0);`,
 ).catch((e) => String(e));
 check("catalog cannot publish identity's events (topic permission)", forgedEvent.endsWith('refused'), forgedEvent);
+
+// Straight into another service's queue: via the default exchange or the redeliver exchange.
+for (const [label, exchange] of [['default exchange', ''], ['redeliver exchange', 'seapedia.redeliver']]) {
+  const injected = await inContainer(
+    'catalog',
+    '/repo/packages/platform',
+    `import { connect } from 'amqplib';
+     const conn = await connect(process.env.RABBITMQ_URL);
+     const ch = await conn.createConfirmChannel();
+     let outcome = 'published';
+     ch.on('error', (e) => { outcome = String(e.message).includes('ACCESS_REFUSED') ? 'refused' : String(e.message); });
+     ch.publish('${exchange}', 'commerce', Buffer.from('{}'));
+     await ch.waitForConfirms().catch(() => {});
+     await Bun.sleep(300);
+     console.log(outcome);
+     process.exit(0);`,
+  ).catch((e) => String(e));
+  check(`catalog cannot inject into commerce's queue (${label})`, injected.endsWith('refused'), injected);
+}
 
 // ── Consul configuration (hot reload) ─────────────────────────────────────────
 // putri_anggraini has a seeded cart, so the checkout preview includes a delivery fee.
