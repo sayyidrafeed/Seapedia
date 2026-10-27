@@ -10,7 +10,7 @@ async function specOf(service: string): Promise<Spec> {
     [
       'bun',
       '--preload',
-      './test/setup.ts',
+      './test/env.ts',
       '-e',
       "const { app } = await import('./src/app.ts'); const r = await app.request('/openapi.json'); process.stdout.write(await r.text()); process.exit(r.ok ? 0 : 1);",
     ],

@@ -36,7 +36,8 @@ src/
     <feature>.schemas.ts           Zod schemas
     <feature>.index.ts             the module's public exports
 drizzle/          this service's migrations
-test/setup.ts     test env (bunfig.toml preloads it); Postgres services swap `@/db` for an
+test/env.ts       test env values (also preloaded by scripts/openapi.ts)
+test/setup.ts     bunfig.toml preloads it: test/env.ts, and for Postgres services swap `@/db` for an
                   in-process PGlite with the real migrations (test/db.ts), emptied before each test
 ```
 
