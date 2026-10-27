@@ -244,6 +244,10 @@ Authorization is enforced **server-side** on every protected endpoint. The backe
 
 This guide describes how to verify the multi-role flows and security features of SEAPEDIA.
 
+Automated checks: `bun run test` runs the unit tests (identity and commerce against an in-process
+Postgres via PGlite, with the real migrations; no Docker needed), and `bun run smoke` runs the
+end-to-end checks against a running stack.
+
 ### 1. Setup
 Start the development stack (see [Quick Start](#quick-start)) and seed the databases:
 ```bash
