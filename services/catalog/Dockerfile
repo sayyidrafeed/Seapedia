@@ -1,6 +1,6 @@
 # Build context: repository root (bun workspace). Example:
 #   docker build -f services/catalog/Dockerfile -t seapedia-catalog .
-FROM oven/bun:1.4.2-alpine AS base
+FROM oven/bun:1.4.4-alpine AS base
 WORKDIR /repo
 
 # ── Dependencies: only this service's production dependency graph ──────────

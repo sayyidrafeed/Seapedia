@@ -11,7 +11,7 @@ Deployment is in [DEPLOYMENT.md](./DEPLOYMENT.md); the architecture in
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) 1.4.2 (the version in CI and the Dockerfiles)
+- [Bun](https://bun.sh) 1.4.4 (the version in CI and the Dockerfiles)
 - Docker with Compose v2, with at least 4 GB of memory for Docker
 
 ## Production-like stack

@@ -1,6 +1,6 @@
 # The gateway image: Kong 3.9 (OSS) in DB-less mode with Seapedia's declarative config.
 #   docker build -f infra/kong/Dockerfile -t seapedia-gateway .
-FROM kong:3.9.3
+FROM kong:3.9.4
 USER root
 COPY infra/kong/kong.yml.tmpl /kong/kong.yml.tmpl
 COPY infra/kong/entrypoint.sh /kong/entrypoint.sh

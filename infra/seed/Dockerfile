@@ -1,6 +1,6 @@
 # One-off ops image: wipes and seeds the service databases.
 #   docker build -f infra/seed/Dockerfile -t seapedia-seed .
-FROM oven/bun:1.4.2-alpine AS deps
+FROM oven/bun:1.4.4-alpine AS deps
 WORKDIR /repo
 COPY package.json bun.lock ./
 COPY apps/web/package.json apps/web/
@@ -13,7 +13,7 @@ COPY services/search/package.json services/search/
 RUN bun install --frozen-lockfile --production --filter @seapedia/seed --filter @seapedia/identity \
   --filter @seapedia/commerce
 
-FROM oven/bun:1.4.2-alpine
+FROM oven/bun:1.4.4-alpine
 WORKDIR /repo
 COPY --from=deps /repo /repo
 COPY tsconfig.base.json ./

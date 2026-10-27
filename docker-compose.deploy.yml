@@ -24,7 +24,7 @@ x-platform-ready: &platform-ready
 services:
   # ── Platform ───────────────────────────────────────────────────────────────
   consul:
-    image: hashicorp/consul:2.0.4
+    image: hashicorp/consul:2.1.0
     command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0 -data-dir=/consul/data -recursor=127.0.0.11
     volumes: [consuldata:/consul/data]
     mem_limit: 96m
@@ -35,14 +35,14 @@ services:
     restart: unless-stopped
 
   consul-init:
-    image: hashicorp/consul:2.0.4
+    image: hashicorp/consul:2.1.0
     entrypoint: ['/bin/sh', '/init.sh']
     environment: { CONSUL_HTTP_ADDR: http://consul:8500 }
     volumes: ['./infra/consul/init.sh:/init.sh:ro']
     depends_on: { consul: { condition: service_healthy } }
 
   rabbitmq:
-    image: rabbitmq:4.2.9-management-alpine
+    image: rabbitmq:4.3.7-management-alpine
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_ADMIN_PASSWORD:?}
@@ -55,7 +55,7 @@ services:
     restart: unless-stopped
 
   rabbitmq-init:
-    image: oven/bun:1.4.2-alpine
+    image: oven/bun:1.4.4-alpine
     command: ['bun', '/init.ts']
     environment:
       RABBITMQ_API: http://rabbitmq:15672
@@ -117,7 +117,7 @@ services:
     restart: unless-stopped
 
   elasticsearch:
-    image: elasticsearch:9.5.3
+    image: elasticsearch:9.5.5
     environment:
       discovery.type: single-node
       ES_JAVA_OPTS: -Xms384m -Xmx384m

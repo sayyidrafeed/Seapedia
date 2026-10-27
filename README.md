@@ -81,7 +81,7 @@ Read more: [overview](./docs/architecture/overview.md) · [data ownership](./doc
 
 ## Quick Start
 
-Requires Bun 1.4.2 and Docker. Everything from production images:
+Requires Bun 1.4.4 and Docker. Everything from production images:
 
 ```bash
 bun install

@@ -62,3 +62,27 @@ Each service has its own RabbitMQ user in vhost `seapedia` (`infra/rabbitmq/init
 Secrets come from the environment (Dokploy secrets in production): database passwords, the JWT
 private key (identity only), the public key (Kong and services), RabbitMQ passwords, client
 secrets. Consul KV holds only non-secret configuration.
+
+## Vulnerability management
+
+- CI fails on any high or critical advisory in the dependency tree (`bun audit --audit-level=high`),
+  and images are pinned to exact versions.
+- Assessment of 2026-10-27 (no critical advisory affected a pinned image):
+
+  | Component | Was | Now | Why |
+  | --- | --- | --- | --- |
+  | zod, undici | 4.6.5, 7.30.0 | 4.6.6, 7.30.1 | high: memory exhaustion on oversized input (every service), DoS (search) |
+  | tinypool, js-yaml (tooling only) | 2.1.0, 4.1.1 | 2.1.2, 4.3.2 (root `overrides`) | critical / high in the formatter and SDK generator |
+  | Bun | 1.4.2 | 1.4.4 | high: brotli decoder out-of-bounds write, distrusted CAs in the root store |
+  | RabbitMQ | 4.2.9 | 4.3.7 | high: AMQP memory DoS; 4.2 is out of community support with no public fix |
+  | Consul | 2.0.4 | 2.1.0 | HCSEC-2026-46 to 49, including unauthenticated memory DoS on the HTTP API |
+  | Elasticsearch | 9.5.3 | 9.5.5 | high privilege escalation (needs `manage_roles`) and authenticated DoS |
+  | Kong | 3.9.3 | 3.9.4 | high: SQL injection in hybrid-mode clustering (not used in DB-less mode) |
+  | nginx | 1.30.5 | 1.30.6 | medium items only |
+  | MongoDB 7.0.45, Postgres 17.11 | | unchanged | no open advisories found |
+
+  Accepted: esbuild 0.18 (moderate, dev-server issue) inside `drizzle-kit`, which never runs a
+  dev server.
+- Configuration risks a CVE scan does not catch: Elasticsearch HTTP without TLS and Consul without
+  ACLs are acceptable only because neither is reachable outside the private Docker network;
+  enable Consul ACLs on the VPS.

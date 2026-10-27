@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  BUN_VERSION: '1.4.2'
+  BUN_VERSION: '1.4.4'
 
 jobs:
   # Which deployables changed? A service is affected by its own directory, the shared platform
@@ -46,6 +46,19 @@ jobs:
           echo "$files" | grep -q '^apps/web/' && changed+=('"web"')
           echo "$files" | grep -qE '^(infra/seed/|services/(identity|commerce)/src/db/)' && changed+=('"seed"')
           echo "services=[$(IFS=,; echo "${changed[*]}")]" >> "$GITHUB_OUTPUT"
+
+  # Fails on any high or critical advisory in the dependency tree (runtime and tooling).
+  audit:
+    name: Dependency audit
+    # Set the CI_RUNNER repository variable to switch runners (e.g. a Blacksmith label).
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - run: bun audit --audit-level=high
 
   check:
     name: Check ${{ matrix.workspace }}
@@ -89,7 +102,7 @@ jobs:
 
   publish:
     name: Publish ${{ matrix.service }}
-    needs: [changes, check]
+    needs: [changes, check, audit]
     # main publishes :main/:latest and deploys; same-repo PRs publish :<sha> and :pr-<n> so a test
     # server can pull them before merge (fork PRs get a read-only token and are skipped).
     if: >-
