@@ -5,8 +5,9 @@ import { ensureIndex } from './sync/reindex';
 
 await runtime.start(app.fetch);
 
-// Build the index on first boot, then follow catalog's events. Until then catalog falls back to
-// database search.
+// The queue is declared first so no catalog event published during bootstrap is lost; handlers
+// wait for the index. Until it exists catalog falls back to database search.
+consumer.start();
 for (;;) {
   try {
     await ensureIndex();
@@ -16,4 +17,3 @@ for (;;) {
     await Bun.sleep(5000);
   }
 }
-consumer.start();

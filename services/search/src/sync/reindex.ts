@@ -62,8 +62,15 @@ export function reindex() {
   });
 }
 
-// First boot (or a wiped cluster): build the index before syncing.
+let markReady = () => {};
+// Resolves once the index exists; event handlers wait on it instead of writing to a missing alias.
+export const indexReady = new Promise<void>((resolve) => {
+  markReady = resolve;
+});
+
+// First boot (or a wiped cluster): build the index before applying events.
 export async function ensureIndex() {
   await ensureStoresIndex();
   if (!(await aliasExists())) await reindex();
+  markReady();
 }
