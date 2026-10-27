@@ -1,174 +1,88 @@
-# SEAPEDIA Setup & Deployment
+# Seapedia setup
 
-This document covers local development setup, environment configuration, and production deployment.
+Two ways to run Seapedia locally:
+
+- **Production-like**: every service, Kong, and the infrastructure from their production images,
+  with the memory limits planned for the server. Use this to verify before deploying.
+- **Development**: infrastructure and Kong in Docker, the services on the host with hot reload.
+
+Deployment is in [DEPLOYMENT.md](./DEPLOYMENT.md); the architecture in
+[architecture/overview.md](./architecture/overview.md).
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) >= 1.2
-- [PostgreSQL](https://www.postgresql.org/) >= 15
-- [Docker](https://www.docker.com/) (optional, for containerized setup)
+- [Bun](https://bun.sh) 1.4.4 (the version in CI and the Dockerfiles)
+- Docker with Compose v2, with at least 4 GB of memory for Docker
 
-## Local Development
-
-### 1. Clone the Repository
+## Production-like stack
 
 ```bash
-git clone https://github.com/your-username/seapedia.git
-cd seapedia
-```
-
-### 2. Backend Setup
-
-```bash
-cd backend
-cp .env.example .env    # Configure environment variables
 bun install
-bun run db:migrate      # Apply database migrations
-bun run db:seed         # Seed demo accounts
-bun run dev             # Start dev server on :3001
+bun scripts/generate-secrets.ts > .env.prod.local        # random secrets + RS256 key pair
+docker compose -f docker-compose.prod.yml --env-file .env.prod.local up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.prod.local --profile tools run --rm seed
+bun run smoke                                            # end-to-end checks through Kong
+bun run smoke -- --resilience                            # also stops RabbitMQ, Elasticsearch, catalog
 ```
 
-### 3. Frontend Setup
+| What | URL |
+| --- | --- |
+| Web app (and `/docs`) | http://localhost:8080 (`WEB_PORT`) |
+| API through Kong | http://localhost:3001 |
+| Consul UI | http://localhost:8500 |
+| RabbitMQ management | http://localhost:15672 (user `admin`, password `RABBITMQ_ADMIN_PASSWORD`) |
+
+## Development
 
 ```bash
-cd frontend
-cp .env.example .env    # Configure environment variables
 bun install
-bun run dev             # Start dev server on :5173
+bun scripts/generate-secrets.ts --dev      # writes services/*/.env, infra/seed/.env, infra/kong/.env once
+docker compose up -d                       # Consul, RabbitMQ, 2× Postgres, MongoDB, Elasticsearch, Kong
+for s in identity commerce; do (cd services/$s && bun run db:migrate); done
+bun run dev                                # identity, catalog, commerce, search, web with hot reload
+bun run seed                               # demo data; wipes the databases, rebuilds the search index
 ```
 
-### 4. Docker (Alternative)
+Services register in Consul as `host.docker.internal`, so Kong (in Docker) reaches them on the host.
+The web app runs at http://localhost:5173 and calls Kong at http://localhost:3001.
+
+Demo accounts are in [SEED-DATA.md](./SEED-DATA.md); every password is `password123`.
+
+`--dev` never overwrites an existing `.env`. A `.env` left over from the old monolith (for example
+`services/commerce/.env`) must be moved away first, or it keeps the old settings.
+
+## Configuration
+
+Secrets and bootstrap addresses come from each service's environment (`src/env.ts`,
+`.env.example`). Tunables come from Consul KV; service keys apply without a restart, shared keys
+(`config/shared/*`) at the next restart:
 
 ```bash
-docker compose up --build
+docker compose exec consul consul kv get -recurse config/
+docker compose exec consul consul kv put config/catalog/searchEnabled false   # search falls back to MongoDB
+docker compose exec consul consul kv put config/commerce/deliveryFees '{"instant":35000,"next_day":15000,"regular":10000}'
 ```
 
-This starts PostgreSQL, backend, and frontend in containers.
+See [architecture/platform.md](./architecture/platform.md).
 
-## Environment Variables
+## Public API contract
 
-### Backend (`backend/.env`)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `JWT_SECRET` | Yes | Secret key for signing JWTs (min 8 chars) |
-| `PORT` | No | Server port (default: 3001) |
-| `NODE_ENV` | No | `development`, `production`, or `test` |
-| `FRONTEND_URL` | No | Allowed CORS origin (default: `http://localhost:5173`) |
-| `R2_ACCOUNT_ID` | Yes | Cloudflare R2 account ID |
-| `R2_ACCESS_KEY_ID` | Yes | Cloudflare R2 access key ID |
-| `R2_SECRET_ACCESS_KEY` | Yes | Cloudflare R2 secret access key |
-| `R2_BUCKET_NAME` | Yes | R2 bucket name (e.g., `seapedia`) |
-| `R2_PUBLIC_DOMAIN` | Yes | Public CDN domain (e.g., `cdn.seapedia.com`) |
-
-### Frontend (`frontend/.env`)
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `VITE_API_URL` | Yes | `http://localhost:3001` | Backend API base URL |
-| `VITE_APP_URL` | No | `http://localhost:5173` | Public frontend URL |
-
-## Production Deployment
-
-### Live URLs
-
-| Component | URL | Hosting |
-|-----------|-----|---------|
-| Frontend | `seapedia.sayyidrafee.com` | Vercel (Hobby plan, static build) |
-| Backend API | `api-seapedia.sayyidrafee.com` | Self-hosted VPS (Dokploy) |
-| Database | — | PostgreSQL on same VPS |
-
-### Architecture
-
-```mermaid
-graph LR
-    A[User Browser] --> B[Vercel CDN]
-    B --> C[Frontend Static Files]
-    A --> D[Let's Encrypt SSL]
-    D --> E[Dokploy Reverse Proxy]
-    E --> F[Backend Container - GHCR]
-    F --> G[PostgreSQL]
-    F --> H[Cloudflare R2]
-```
-
-### Backend Deployment (Dokploy)
-
-1. Backend image is built and pushed to GitHub Container Registry (GHCR) via GitHub Actions
-2. Dokploy watches for new images via webhook
-3. Dokploy pulls the latest image and deploys it
-4. SSL is managed by Let's Encrypt through Dokploy
-5. Environment variables are configured in Dokploy dashboard
-
-### Frontend Deployment (Vercel)
-
-1. Frontend is built as a static SPA (`bun run build`)
-2. Vercel deploys the `dist/` output
-3. The `VITE_API_URL` environment variable points to the production backend
-
-### Database
-
-PostgreSQL runs on the same VPS as the backend container. The `DATABASE_URL` in the Dokploy configuration points to `localhost:5432` (or the configured port) with the appropriate database credentials.
-
-## Useful Commands
-
-### Backend
-
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start dev server with hot reload |
-| `bun run check` | TypeScript type check |
-| `bun run lint` | Run oxlint |
-| `bun run format` | Run oxfmt |
-| `bun run fl` | Format then lint |
-| `bun test` | Run tests |
-| `bun run db:generate` | Create Drizzle migration |
-| `bun run db:migrate` | Apply migration |
-| `bun run db:seed` | Seed demo accounts |
-| `bun run db:studio` | Open Drizzle Studio |
-
-### Frontend
-
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start Vite dev server |
-| `bun run build` | Production build |
-| `bun run preview` | Preview production build |
-| `bun run check` | TypeScript type check |
-| `bun run lint` | Run oxlint |
-| `bun run format` | Run oxfmt |
-| `bun run test` | Run Vitest tests |
-| `bun run openapi:generate` | Regenerate API SDK |
-
-## API Documentation
-
-Interactive API documentation is available via Scalar:
-
-| Environment | URL |
-|-------------|-----|
-| Local | [http://localhost:3001/docs](http://localhost:3001/docs) |
-| Production | [https://api-seapedia.sayyidrafee.com/docs](https://api-seapedia.sayyidrafee.com/docs) |
-
-The OpenAPI JSON spec is served at `/openapi.json`.
-
-## Troubleshooting
-
-### Database Connection Issues
+The web SDK and `/docs` read `apps/web/public/openapi.json`, merged from the services' OpenAPI
+documents. Both files are committed and CI fails when they are stale, so regenerate them after
+changing a public route or schema (no running stack needed):
 
 ```bash
-# Check PostgreSQL is running
-pg_isready -h localhost -p 5432
-
-# Reset database
-cd backend
-bun run db:migrate
-bun run db:seed
+bun scripts/openapi.ts                      # loads each service offline with its test environment
+cd apps/web && bun run openapi:generate
 ```
 
-### CORS Issues
+## Commands
 
-Ensure `FRONTEND_URL` in the backend `.env` matches the frontend URL exactly (including protocol and port).
-
-### R2 Upload Failures
-
-Verify all `R2_*` environment variables are set correctly. The backend uses presigned URLs — the frontend uploads directly to R2, so R2 must be accessible from the client's browser.
+| Command | What it does |
+| --- | --- |
+| `bun run check` | type-check every workspace |
+| `bun run fl` | format and lint every workspace |
+| `bun run test` | unit tests of the services and `packages/*` |
+| `bun run seed` | wipe and seed the three databases, rebuild search |
+| `bun run smoke` | end-to-end checks against a running stack |
+| `cd services/<identity or commerce> && bun run db:generate` | create a Postgres migration |

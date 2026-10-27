@@ -1,0 +1,23 @@
+{
+  "name": "seapedia",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*",
+    "infra/seed"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '@seapedia/*' dev",
+    "check": "bun run --filter '*' check",
+    "fl": "bun run --filter '*' fl",
+    "test": "bun run --filter './services/*' --filter './packages/*' test",
+    "seed": "bun run --filter '@seapedia/seed' seed",
+    "smoke": "bun scripts/smoke.ts"
+  },
+  "overrides": {
+    "tinypool": "2.1.2",
+    "js-yaml": "4.3.2"
+  }
+}

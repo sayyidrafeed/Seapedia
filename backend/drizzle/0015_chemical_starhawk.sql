@@ -1,1 +1,0 @@
-ALTER TABLE "wallet_transactions" DROP COLUMN "payment_method";

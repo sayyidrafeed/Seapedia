@@ -173,9 +173,9 @@ After the seller processes an order, a delivery job is created:
 
 | Component | File |
 |-----------|------|
-| Checkout (creates order) | `backend/src/modules/orders/orders-checkout.service.ts` |
-| Seller processing | `backend/src/modules/orders/orders-seller.service.ts` |
-| Driver take/complete | `backend/src/modules/driver/driver.service.ts` |
-| Overdue processing | `backend/src/modules/admin/admin.service.ts` |
-| Order status schema | `backend/src/db/schema/order-schema.ts` |
-| Delivery job schema | `backend/src/db/schema/delivery-schema.ts` |
+| Checkout (creates order) | `services/commerce/src/modules/orders/orders-checkout.service.ts` |
+| Seller processing | `services/commerce/src/modules/orders/orders-seller.service.ts` |
+| Driver take/complete | `services/commerce/src/modules/driver/driver.service.ts` |
+| Overdue processing | `services/commerce/src/modules/admin/admin.service.ts` |
+| Order status schema | `services/commerce/src/db/schema/order-schema.ts` |
+| Delivery job schema | `services/commerce/src/db/schema/delivery-schema.ts` |

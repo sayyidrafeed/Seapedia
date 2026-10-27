@@ -51,56 +51,67 @@ flowchart TD
 1. User selects which roles they want: Buyer (mandatory), Seller, Driver
 2. Selected roles are created in `user_role` table
 3. User is marked as `isOnboarded: true`
-4. Active session is created with the primary role
+4. The access token is re-issued with the new roles
 
 ### Login
 
 1. User submits username/email and password
 2. Password is verified against stored bcrypt hash
-3. JWT is generated (HS256, 2-hour expiry)
-4. JWT is stored in HttpOnly cookie `__session`
-5. Session record is created in `active_session` table
-6. If user has multiple non-admin roles → role selection page
-7. If user has one role → direct to that role's dashboard
+3. identity opens a new **session for this device** (`sessions`) and issues:
+   - an **access token**: RS256 JWT, 10 minutes, cookie `__access` (carries user id, session id, roles, active role)
+   - a **refresh token**: random, stored hashed, 7 days, cookie `__refresh` (sent only to `/api/auth`)
+4. If user has multiple non-admin roles → role selection page
+5. If user has one role → direct to that role's dashboard
 
 ### Session Management
 
 ```mermaid
 sequenceDiagram
-    participant C as Client
-    participant S as Server
-    participant DB as Database
+    participant C as Browser
+    participant K as Kong
+    participant I as identity
+    participant S as Any service
+    participant Q as RabbitMQ
 
-    C->>S: POST /api/auth/login
-    S->>DB: Verify credentials
-    S->>S: Generate JWT (HS256, 2h)
-    S->>DB: Create session record
-    S-->>C: Set-Cookie: __session=<jwt>
+    C->>K: POST /api/auth/login
+    K->>I: (rate limited)
+    I-->>C: __access (10 min) + __refresh (7 days)
 
-    C->>S: GET /api/private/me (with cookie)
-    S->>S: Read __session cookie
-    S->>S: Verify JWT signature
-    S->>DB: Validate session exists
-    S->>DB: Get active role
-    S-->>C: User profile + active role
+    C->>K: GET /api/orders (cookie __access)
+    K->>K: verify RS256 signature + exp
+    K->>S: forward
+    S->>S: verify again, check denylist, role, ownership
+    S-->>C: 200
+
+    C->>K: any request after 10 min → 401
+    C->>K: POST /api/auth/refresh (cookie __refresh)
+    K->>I: rotate refresh token
+    I-->>C: new __access + __refresh
+
+    C->>K: POST /api/auth/logout
+    K->>I: revoke session
+    I->>Q: identity.session.revoked
+    Q-->>S: every instance denies that session's tokens
 ```
 
 ### Logout
 
-1. Client calls `POST /api/auth/logout`
-2. Backend deletes the session record from `active_session`
-3. Cookie is cleared
-4. Subsequent requests with the old JWT are rejected (session no longer exists)
+1. Client calls `POST /api/auth/logout` (works even with an expired access token: the refresh cookie identifies the session)
+2. identity revokes the session and publishes `identity.session.revoked`
+3. Both cookies are cleared
+4. Every service rejects access tokens of that session right away (denylist), until they would have expired
 
 ### Token Behavior
 
-| Property | Value |
-|----------|-------|
-| Algorithm | HS256 |
-| Expiry | 2 hours |
-| Storage | HttpOnly cookie `__session` |
-| Renewal | New token on each login |
-| Invalidated by | Session record deletion |
+| Property | Access token | Refresh token |
+|----------|--------------|---------------|
+| Format | RS256 JWT | 256-bit random, stored as SHA-256 |
+| Expiry | 10 minutes | 7 days |
+| Storage | HttpOnly cookie `__access` | HttpOnly cookie `__refresh`, path `/api/auth` |
+| Renewal | `POST /api/auth/refresh` | rotated on every refresh |
+| Invalidated by | session revocation (denylist) or expiry | use (rotation), reuse (revokes the session), logout |
+
+See [architecture/security.md](./architecture/security.md) for Kong, service-to-service tokens and broker permissions.
 
 ## Role-Based Access Control (RBAC)
 
@@ -108,19 +119,22 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A[Request] --> B[requireSession]
-    B --> C{Session valid?}
+    R[Request] --> K[Kong: verify JWT signature + exp]
+    K --> A[authenticate: verify again + denylist]
+    A --> B[requireSession]
+    B --> C{User resolved?}
     C -->|No| D[401 Unauthorized]
     C -->|Yes| E[requireRole]
     E --> F{Active role matches?}
     F -->|No| G[403 Forbidden]
-    F -->|Yes| H[Handler]
+    F -->|Yes| H[Handler: ownership checks]
 ```
 
 ### Implementation
 
-- **`requireSession`**: Reads `__session` cookie, verifies JWT, validates session exists in DB, sets `userId`, `sessionId`, `activeRole` in context
-- **`requireRole`**: Checks if `activeRole` matches the endpoint's required role
+- **Kong** (`infra/kong/kong.yml.tmpl`): the jwt plugin verifies identity's RS256 access token. Routes that always need a user reject requests without a valid token; public routes let anonymous requests through.
+- **`authenticate`** (`packages/platform/src/auth/middleware.ts`): every service verifies the token again (issuer, audience, expiry) and checks the session denylist, then sets `userId`, `sessionId`, `roles`, `activeRole`.
+- **`requireSession`** / **`requireRole`**: 401 without a user, 403 when the active role does not match.
 
 ### Route Protection Examples
 
@@ -156,7 +170,7 @@ flowchart LR
 ## Security Measures
 
 1. **Password hashing**: bcrypt via Bun's native `Bun.password.hash()`
-2. **HttpOnly cookies**: JWT stored in `__session` cookie, not accessible via JavaScript
+2. **HttpOnly cookies**: tokens stored in `__access` / `__refresh` cookies, not accessible via JavaScript
 3. **Server-side verification**: Backend always verifies JWT signature and session existence
 4. **Active role check**: Every protected endpoint verifies the active role server-side
 5. **Session invalidation**: Logout deletes the session record, making old JWTs invalid
@@ -166,9 +180,9 @@ flowchart LR
 
 | Component | File |
 |-----------|------|
-| JWT sign/verify | `backend/src/lib/jwt.ts` |
-| Auth middleware | `backend/src/middleware/auth.ts` |
-| Auth service | `backend/src/modules/auth/auth.service.ts` |
-| Auth routes | `backend/src/modules/auth/auth.routes.ts` |
-| Frontend auth context | `frontend/src/lib/auth/context.tsx` |
-| Route guards | `frontend/src/lib/auth/guards.ts` |
+| JWT sign/verify | `services/identity/src/lib/jwt.ts` |
+| Auth middleware | `packages/platform/src/internal-auth.ts` |
+| Auth service | `services/identity/src/modules/auth/auth.service.ts` |
+| Auth routes | `services/identity/src/modules/auth/auth.routes.ts` |
+| Frontend auth context | `apps/web/src/lib/auth/context.tsx` |
+| Route guards | `apps/web/src/lib/auth/guards.ts` |

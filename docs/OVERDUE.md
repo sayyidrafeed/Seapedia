@@ -209,7 +209,7 @@ sequenceDiagram
 
 | Component | File |
 |-----------|------|
-| Admin service (overdue + time sim) | `backend/src/modules/admin/admin.service.ts` |
-| Admin constants (SLA hours) | `backend/src/modules/admin/admin.constants.ts` |
-| Time offset schema | `backend/src/db/schema/system-time-offset-schema.ts` |
-| Frontend admin time controls | `frontend/src/features/admin/` |
+| Admin service (overdue + time sim) | `services/commerce/src/modules/admin/admin.service.ts` |
+| Admin constants (SLA hours) | `services/commerce/src/modules/admin/admin.constants.ts` |
+| Time offset schema | `services/commerce/src/db/schema/system-time-offset-schema.ts` |
+| Frontend admin time controls | `apps/web/src/features/admin/` |

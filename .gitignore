@@ -8,3 +8,5 @@ dist/
 .DS_Store
 PLAN.md
 PRODUCT.md
+node_modules/
+.env.prod.local

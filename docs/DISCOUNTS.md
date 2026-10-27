@@ -186,8 +186,8 @@ After running `bun run db:seed`, the following discount codes are available:
 
 | Component | File |
 |-----------|------|
-| Discount service | `backend/src/modules/discounts/discounts.service.ts` |
-| Discount routes | `backend/src/modules/discounts/discounts-routes.ts` |
-| Discount schemas | `backend/src/modules/discounts/discounts-schemas.ts` |
-| Discount schema | `backend/src/db/schema/discount-schema.ts` |
-| Checkout integration | `backend/src/modules/orders/orders-checkout.service.ts:65-73` |
+| Discount service | `services/commerce/src/modules/discounts/discounts.service.ts` |
+| Discount routes | `services/commerce/src/modules/discounts/discounts.routes.ts` |
+| Discount schemas | `services/commerce/src/modules/discounts/discounts.schemas.ts` |
+| Discount schema | `services/commerce/src/db/schema/discount-schema.ts` |
+| Checkout integration | `services/commerce/src/modules/orders/orders-checkout.service.ts:65-73` |

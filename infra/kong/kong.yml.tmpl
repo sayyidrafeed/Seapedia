@@ -1,0 +1,117 @@
+# Kong DB-less configuration. Rendered at container start by entrypoint.sh
+# (__JWT_PUBLIC_KEY__, __CORS_ORIGINS__, __UPSTREAM_*__ placeholders).
+#
+# Upstreams resolve through Consul DNS (server-side discovery): `<name>.service.consul` returns the
+# healthy instances registered by each service.
+#
+# Authentication at the edge: the jwt plugin verifies identity's RS256 access token (cookie
+# `__access` or `Authorization: Bearer`) and its expiry. Kong services without `anonymous` reject
+# requests lacking a valid token; the ones with it let anonymous requests reach public routes.
+# Every service verifies the token again and does the authorization (roles, ownership).
+_format_version: "3.0"
+_transform: true
+
+consumers:
+  - username: seapedia-identity
+    jwt_secrets:
+      - key: seapedia-identity
+        algorithm: RS256
+        rsa_public_key: "__JWT_PUBLIC_KEY__"
+  - username: anonymous
+    id: 6f1e3f0e-8a7b-4c1d-9e2f-000000000001
+
+services:
+  # Sign-in, sign-up, refresh, logout and the public key: no access token yet (or an expired one).
+  - name: identity-public
+    url: http://__UPSTREAM_IDENTITY__
+    routes:
+      - name: auth-credentials
+        paths: [/api/auth/login, /api/auth/register, /api/auth/refresh]
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config: { minute: 20, policy: local, limit_by: ip }
+      - name: auth-logout
+        paths: [/api/auth/logout]
+        strip_path: false
+      - name: jwks
+        paths: [/.well-known/jwks.json]
+        strip_path: false
+
+  - name: identity
+    url: http://__UPSTREAM_IDENTITY__
+    routes:
+      - name: identity-api
+        paths: [/api/auth, /api/users, /api/private]
+        strip_path: false
+    plugins:
+      - name: jwt
+        config: &jwt-strict
+          cookie_names: [__access]
+          header_names: [authorization]
+          key_claim_name: iss
+          claims_to_verify: [exp]
+
+  # Catalog browsing is public; writes are guarded by catalog itself.
+  - name: catalog
+    url: http://__UPSTREAM_CATALOG__
+    routes:
+      - name: catalog-api
+        paths: [/api/products, /api/stores, /api/reviews]
+        strip_path: false
+    plugins:
+      - name: jwt
+        config: &jwt-optional
+          cookie_names: [__access]
+          header_names: [authorization]
+          key_claim_name: iss
+          claims_to_verify: [exp]
+          anonymous: 6f1e3f0e-8a7b-4c1d-9e2f-000000000001
+
+  - name: catalog-seller
+    url: http://__UPSTREAM_CATALOG__
+    routes:
+      - name: seller-products
+        paths: [/api/seller/products]
+        strip_path: false
+    plugins:
+      - name: jwt
+        config: *jwt-strict
+
+  - name: commerce
+    url: http://__UPSTREAM_COMMERCE__
+    routes:
+      - name: commerce-api
+        paths:
+          - /api/buyers
+          - /api/orders
+          - /api/seller/orders
+          - /api/seller/inventory
+          - /api/discounts
+          - /api/driver
+          - /api/admin
+        strip_path: false
+    plugins:
+      - name: jwt
+        config: *jwt-strict
+
+  - name: commerce-public
+    url: http://__UPSTREAM_COMMERCE__
+    routes:
+      - name: locations
+        paths: [/api/locations]
+        strip_path: false
+
+plugins:
+  - name: cors
+    config:
+      origins: __CORS_ORIGINS__
+      credentials: true
+      methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+      headers: [Content-Type, Authorization, X-Request-Id]
+      exposed_headers: [X-Request-Id]
+      max_age: 600
+  - name: correlation-id
+    config: { header_name: X-Request-Id, generator: uuid, echo_downstream: true }
+  - name: request-size-limiting
+    config: { allowed_payload_size: 1, size_unit: megabytes }

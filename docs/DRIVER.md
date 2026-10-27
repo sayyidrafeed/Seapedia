@@ -131,7 +131,7 @@ stateDiagram-v2
 
 | Component | File |
 |-----------|------|
-| Driver service | `backend/src/modules/driver/driver.service.ts` |
-| Driver routes | `backend/src/modules/driver/driver.routes.ts` |
-| Delivery job schema | `backend/src/db/schema/delivery-schema.ts` |
-| Frontend driver features | `frontend/src/features/driver/` |
+| Driver service | `services/commerce/src/modules/driver/driver.service.ts` |
+| Driver routes | `services/commerce/src/modules/driver/driver.routes.ts` |
+| Delivery job schema | `services/commerce/src/db/schema/delivery-schema.ts` |
+| Frontend driver features | `apps/web/src/features/driver/` |

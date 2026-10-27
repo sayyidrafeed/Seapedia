@@ -1,0 +1,16 @@
+{
+  "$schema": "https://oxlint.io/schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-unused-vars": "error",
+    "no-explicit-any": "error",
+    "max-lines": ["warn", 220]
+  },
+  "env": {
+    "builtin": true
+  },
+  "ignorePatterns": ["dist", "node_modules", "drizzle/meta"]
+}

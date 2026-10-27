@@ -37,7 +37,9 @@ After selecting the Seller role, the seller accesses the Seller Dashboard with t
 2. Click "Add Product"
 3. Fill in: name, description, price (IDR), stock
 4. Upload product image (via R2 presigned URL)
-5. Save
+5. Save. The form creates the product in catalog, then sets its stock in commerce
+   (`PUT /api/seller/inventory/{productId}`). Commerce owns stock so checkout can reserve it in
+   the same transaction as the payment; the product list shows the new stock within a few seconds.
 
 ### Update Product
 
@@ -121,9 +123,9 @@ Seller Income = Σ (order.subtotal) for orders where status = 'pesanan_selesai'
 
 | Component | File |
 |-----------|------|
-| Store service | `backend/src/modules/stores/stores.service.ts` |
-| Product service | `backend/src/modules/products/products.service.ts` |
-| Seller order service | `backend/src/modules/orders/orders-seller.service.ts` |
-| Store routes | `backend/src/modules/stores/stores.routes.ts` |
-| Seller routes | `backend/src/modules/orders/orders-routes.ts` |
-| Frontend seller features | `frontend/src/features/seller/` |
+| Store service | `services/catalog/src/modules/stores/stores.service.ts` |
+| Product service | `services/catalog/src/modules/products/products.service.ts` |
+| Seller order service | `services/commerce/src/modules/orders/orders-seller.service.ts` |
+| Store routes | `services/catalog/src/modules/stores/stores.routes.ts` |
+| Seller routes | `services/commerce/src/modules/orders/orders.routes.ts` |
+| Frontend seller features | `apps/web/src/features/seller/` |

@@ -1,6 +1,6 @@
 # API Reference
 
-SEAPEDIA's backend API is built with Hono and documented via Scalar (OpenAPI). The API is fully typed with Zod validation.
+SEAPEDIA's public API is served by Kong, which routes each `/api` prefix to the service that owns it (identity, catalog, or commerce). `scripts/openapi.ts` merges the services' OpenAPI documents into one contract, shown in Scalar at `/docs` on the web app. Services validate every request with Zod. Internal service-to-service routes (`/internal/*`) are not reachable through the gateway; see [architecture/communication.md](./architecture/communication.md).
 
 ## Base URLs
 
@@ -13,15 +13,14 @@ SEAPEDIA's backend API is built with Hono and documented via Scalar (OpenAPI). T
 
 | Format | URL |
 |--------|-----|
-| Scalar UI | `/docs` |
-| OpenAPI JSON | `/openapi.json` |
+| Scalar UI | `/docs` (web app) |
+| OpenAPI JSON | `/openapi.json` (web app) |
 
 ## Authentication
 
-All protected endpoints require the `__session` cookie (HttpOnly JWT). The backend verifies:
-1. JWT signature and expiry
-2. Session existence in `active_session` table
-3. Active role matches endpoint requirements
+Protected endpoints require the `__access` cookie (RS256 JWT, 10 minutes); refresh it with `POST /api/auth/refresh` (uses the `__refresh` cookie).
+1. Kong verifies the token's signature and expiry.
+2. The owning service verifies it again, checks the session has not been revoked, then checks the active role and ownership.
 
 ## Endpoint Overview
 
@@ -52,6 +51,15 @@ All protected endpoints require the `__session` cookie (HttpOnly JWT). The backe
 | POST | `/` | Seller | Create product |
 | PUT | `/:productId` | Seller | Update product |
 | DELETE | `/:productId` | Seller | Delete product |
+
+Product create and update do not take `stock`; the `stock` in responses is catalog's copy of
+commerce's inventory.
+
+### Seller Inventory (`/api/seller/inventory`, commerce)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| PUT | `/:productId` | Seller | Set stock of a product in the seller's store |
 
 ### Stores (`/api/stores`)
 
@@ -196,7 +204,7 @@ All errors follow a consistent format:
 ## Request/Response Format
 
 - Content-Type: `application/json`
-- Authentication: Cookie-based (`__session`)
+- Authentication: cookie-based (`__access`, refreshed with `__refresh`)
 - Currency: IDR (integer, no decimals)
 - Timestamps: ISO 8601 format
 - IDs: UUID v4
