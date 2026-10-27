@@ -1,235 +1,60 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
-
-// ─── Mock state ──────────────────────────────────────────────────────────────
-const dbState = {
-  selectQueue: [] as unknown[][],
-  insertQueue: [] as unknown[][],
-  updateQueue: [] as unknown[][],
-  deleteQueue: [] as unknown[][],
-  selectIdx: 0,
-  insertIdx: 0,
-  updateIdx: 0,
-  deleteIdx: 0,
-
-  reset() {
-    this.selectQueue = [];
-    this.insertQueue = [];
-    this.updateQueue = [];
-    this.deleteQueue = [];
-    this.selectIdx = 0;
-    this.insertIdx = 0;
-    this.updateIdx = 0;
-    this.deleteIdx = 0;
-  },
-
-  addSelect(data: unknown[]) {
-    this.selectQueue.push(data);
-  },
-  addInsert(data: unknown[]) {
-    this.insertQueue.push(data);
-  },
-  addUpdate(data: unknown[]) {
-    this.updateQueue.push(data);
-  },
-  addDelete(data: unknown[]) {
-    this.deleteQueue.push(data);
-  },
-};
-
-// ─── Mock @/db ───────────────────────────────────────────────────────────────
-mock.module('@/db', () => {
-  function makeSelect() {
-    return () => ({
-      from: () => ({
-        where: () => {
-          const idx = dbState.selectIdx++;
-          const data = dbState.selectQueue[idx] ?? [];
-          return Object.assign(Promise.resolve(data), {
-            limit: (n: number) => Promise.resolve(data.slice(0, n)),
-            orderBy: () => Promise.resolve(data),
-          });
-        },
-      }),
-    });
-  }
-
-  function makeInsert() {
-    return () => ({
-      values: () => {
-        const idx = dbState.insertIdx;
-        return Object.assign(Promise.resolve(undefined), {
-          returning: () => {
-            dbState.insertIdx++;
-            return Promise.resolve(dbState.insertQueue[idx] ?? []);
-          },
-        });
-      },
-    });
-  }
-
-  function makeUpdate() {
-    return () => ({
-      set: () => ({
-        where: () => {
-          const idx = dbState.updateIdx;
-          return Object.assign(Promise.resolve(undefined), {
-            returning: () => {
-              dbState.updateIdx++;
-              return Promise.resolve(dbState.updateQueue[idx] ?? []);
-            },
-          });
-        },
-      }),
-    });
-  }
-
-  function makeDelete() {
-    return () => ({
-      where: () => {
-        dbState.deleteIdx++;
-        return Promise.resolve({ success: true });
-      },
-    });
-  }
-
-  const db = {
-    select: makeSelect(),
-    insert: makeInsert(),
-    update: makeUpdate(),
-    delete: makeDelete(),
-    transaction: (fn: (tx: unknown) => unknown) => {
-      const tx = {
-        select: makeSelect(),
-        insert: makeInsert(),
-        update: makeUpdate(),
-        delete: makeDelete(),
-      };
-      return fn(tx);
-    },
-  };
-
-  return { db };
-});
-
-// ─── Import SUT ──────────────────────────────────────────────────────────────
+import { describe, expect, test } from 'bun:test';
+import { randomUUID } from 'node:crypto';
+import { db } from '@/db';
+import { addresses, wallets } from '@/db/schema';
 import { BuyersService } from './buyers.service';
 
-const userId = 'user-buyer-1';
+const userId = randomUUID();
+const home = {
+  label: 'Rumah',
+  recipientName: 'Dewi',
+  phoneNumber: '08123456789',
+  province: 'DKI Jakarta',
+  city: 'Jakarta Selatan',
+  district: 'Kebayoran Baru',
+  postalCode: '12110',
+  fullAddress: 'Jl. Sudirman No. 1',
+};
 
-describe('BuyersService', () => {
-  beforeEach(() => {
-    dbState.reset();
+describe('wallet', () => {
+  test('is created empty on first use and reused afterwards', async () => {
+    const first = await BuyersService.getOrCreateWallet(userId);
+    const second = await BuyersService.getOrCreateWallet(userId);
+    expect(first).toMatchObject({ balance: 0 });
+    expect(second.id).toBe(first.id);
   });
 
-  test('should get or create a wallet (creates new wallet)', async () => {
-    // 1. select query returns no wallet
-    dbState.addSelect([]);
-    // 2. insert query returns new wallet
-    dbState.addInsert([
-      { id: 'wallet-1', userId, balance: 0, createdAt: new Date(), updatedAt: new Date() },
-    ]);
+  test('a top-up credits the balance and appears in the history', async () => {
+    await BuyersService.directTopUp(userId, 50_000);
+    await BuyersService.directTopUp(userId, 25_000);
 
-    const wallet = await BuyersService.getOrCreateWallet(userId);
-    expect(wallet.id).toBe('wallet-1');
-    expect(wallet.balance).toBe(0);
-    expect(dbState.selectIdx).toBe(1);
-    expect(dbState.insertIdx).toBe(1);
-  });
-
-  test('should get or create a wallet (returns existing wallet)', async () => {
-    // 1. select query returns existing wallet
-    dbState.addSelect([{ id: 'wallet-1', userId, balance: 150000 }]);
-
-    const wallet = await BuyersService.getOrCreateWallet(userId);
-    expect(wallet.id).toBe('wallet-1');
-    expect(wallet.balance).toBe(150000);
-    expect(dbState.selectIdx).toBe(1);
-    expect(dbState.insertIdx).toBe(0); // no insert
-  });
-
-  test('should perform direct top up', async () => {
-    // 1. getOrCreateWallet select
-    dbState.addSelect([{ id: 'wallet-1', userId, balance: 10000 }]);
-    // 2. insert transaction inside db transaction
-    dbState.addInsert([
-      {
-        id: 'tx-1',
-        walletId: 'wallet-1',
-        amount: 50000,
-        type: 'topup',
-        status: 'success',
-        reference: '8801234567',
-        createdAt: new Date(),
-      },
-    ]);
-    // 3. update wallet balance inside db transaction
-    dbState.addUpdate([]);
-
-    const transaction = await BuyersService.directTopUp(userId, 50000);
-    expect(transaction.id).toBe('tx-1');
-    expect(transaction.amount).toBe(50000);
-    expect(transaction.status).toBe('success');
-    expect(dbState.selectIdx).toBe(1);
-    expect(dbState.insertIdx).toBe(1);
-    expect(dbState.updateIdx).toBe(0);
-  });
-
-  test('should get wallet transactions', async () => {
-    // 1. getOrCreateWallet select
-    dbState.addSelect([{ id: 'wallet-1', userId, balance: 60000 }]);
-    // 2. select transactions
-    dbState.addSelect([
-      {
-        id: 'tx-1',
-        walletId: 'wallet-1',
-        amount: 50000,
-        type: 'topup',
-        status: 'success',
-        createdAt: new Date(),
-      },
-    ]);
-
+    const [wallet] = await db.select().from(wallets);
+    expect(wallet.balance).toBe(75_000);
     const history = await BuyersService.getWalletTransactions(userId);
-    expect(history.length).toBe(1);
-    expect(history[0].id).toBe('tx-1');
+    expect(history.map((t) => t.amount).sort((a, b) => a - b)).toEqual([25_000, 50_000]);
+    expect(history[0]).toMatchObject({ type: 'topup', status: 'success' });
+  });
+});
+
+describe('addresses', () => {
+  test('the first address becomes the default even if not asked', async () => {
+    const address = await BuyersService.createAddress(userId, { ...home, isDefault: false });
+    expect(address.isDefault).toBe(true);
   });
 
-  test('should create address default if first address', async () => {
-    // 1. getAddresses (returns empty)
-    dbState.addSelect([]);
-    // 2. insert address
-    dbState.addInsert([
-      {
-        id: 'addr-1',
-        userId,
-        label: 'Home',
-        recipientName: 'Alice',
-        phoneNumber: '08123456789',
-        province: 'DKI Jakarta',
-        city: 'Jakarta Selatan',
-        district: 'Kebayoran Baru',
-        postalCode: '12110',
-        fullAddress: 'Jl. Jenderal Sudirman No. 1',
-        isDefault: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-
-    const addr = await BuyersService.createAddress(userId, {
-      label: 'Home',
-      recipientName: 'Alice',
-      phoneNumber: '08123456789',
-      province: 'DKI Jakarta',
-      city: 'Jakarta Selatan',
-      district: 'Kebayoran Baru',
-      postalCode: '12110',
-      fullAddress: 'Jl. Jenderal Sudirman No. 1',
-      isDefault: false,
+  test('a new default address takes over, and deleting it hands default back', async () => {
+    const first = await BuyersService.createAddress(userId, home);
+    const office = await BuyersService.createAddress(userId, {
+      ...home,
+      label: 'Kantor',
+      isDefault: true,
     });
 
-    expect(addr.isDefault).toBe(true); // forced default
-    expect(dbState.selectIdx).toBe(1);
-    expect(dbState.insertIdx).toBe(1);
+    const defaults = async () =>
+      (await db.select().from(addresses)).filter((a) => a.isDefault).map((a) => a.id);
+    expect(await defaults()).toEqual([office.id]);
+
+    await BuyersService.deleteAddress(userId, office.id);
+    expect(await defaults()).toEqual([first.id]);
   });
 });

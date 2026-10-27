@@ -1,419 +1,166 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+import { randomUUID } from 'node:crypto';
+import { NotFoundError, ValidationError } from '@seapedia/platform/errors';
+import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import {
+  cartItems,
+  carts,
+  inventory,
+  orderItems,
+  orders,
+  vouchers,
+  wallets,
+  walletTransactions,
+} from '@/db/schema';
+import { outboxEvents } from '../../../test/db';
+import { seedAddress, seedProduct, seedStore, seedWallet } from '../../../test/fixtures';
+import { OrdersCheckoutService } from './orders-checkout.service';
 
-const dbState = {
-  selectQueue: [] as unknown[][],
-  insertQueue: [] as unknown[][],
-  updateQueue: [] as unknown[][],
-  deleteQueue: [] as unknown[][],
-  selectIdx: 0,
-  insertIdx: 0,
-  updateIdx: 0,
-  deleteIdx: 0,
+const buyerId = randomUUID();
 
-  reset() {
-    this.selectQueue = [];
-    this.insertQueue = [];
-    this.updateQueue = [];
-    this.deleteQueue = [];
-    this.selectIdx = 0;
-    this.insertIdx = 0;
-    this.updateIdx = 0;
-    this.deleteIdx = 0;
-  },
-
-  addSelect(data: unknown[]) {
-    this.selectQueue.push(data);
-  },
-  addInsert(data: unknown[]) {
-    this.insertQueue.push(data);
-  },
-  addUpdate(data: unknown[]) {
-    this.updateQueue.push(data);
-  },
-  addDelete(data: unknown[]) {
-    this.deleteQueue.push(data);
-  },
-};
-
-mock.module('@/db', () => {
-  function makeSelect() {
-    return () => ({
-      from: () => ({
-        // cart items join product_refs and inventory
-        innerJoin: () => ({
-          innerJoin: () => ({
-            where: () => {
-              const idx = dbState.selectIdx++;
-              const data = dbState.selectQueue[idx] ?? [];
-              return Object.assign(Promise.resolve(data), {
-                limit: (n: number) => Promise.resolve(data.slice(0, n)),
-                orderBy: () => Promise.resolve(data),
-              });
-            },
-          }),
-        }),
-        where: () => {
-          const idx = dbState.selectIdx++;
-          const data = dbState.selectQueue[idx] ?? [];
-          return Object.assign(Promise.resolve(data), {
-            limit: (n: number) => Promise.resolve(data.slice(0, n)),
-            orderBy: () => Promise.resolve(data),
-          });
-        },
-      }),
-    });
+// A buyer with an address, a wallet, and a cart holding `quantity` of each product.
+async function readyToCheckout(
+  products: { stock: number; quantity: number; id?: string }[],
+  balance = 200_000,
+) {
+  const store = await seedStore();
+  const address = await seedAddress(buyerId);
+  await seedWallet(buyerId, balance);
+  const [cart] = await db.insert(carts).values({ buyerId, storeId: store.id }).returning();
+  const seeded = [];
+  for (const p of products) {
+    const product = await seedProduct(store.id, { stock: p.stock, id: p.id });
+    await db
+      .insert(cartItems)
+      .values({ cartId: cart.id, productId: product.id, quantity: p.quantity });
+    seeded.push(product);
   }
+  return { address, products: seeded };
+}
 
-  function makeInsert() {
-    return () => ({
-      values: () => {
-        const idx = dbState.insertIdx;
-        const returningFn = () => {
-          dbState.insertIdx++;
-          return Promise.resolve(dbState.insertQueue[idx] ?? []);
-        };
-        return {
-          returning: returningFn,
-        };
-      },
+const stockOf = async (productId: string) =>
+  (await db.select().from(inventory).where(eq(inventory.productId, productId)))[0];
+
+describe('calculateTotals', () => {
+  test('adds the configured delivery fee and 12% PPN', () => {
+    expect(OrdersCheckoutService.calculateTotals(100_000, 'instant')).toMatchObject({
+      deliveryFee: 30_000,
+      ppn: 15_600,
+      totalAmount: 145_600,
     });
-  }
-
-  function makeUpdate() {
-    return () => ({
-      set: () => ({
-        where: () => {
-          const idx = dbState.updateIdx;
-          return Object.assign(Promise.resolve(undefined), {
-            returning: () => {
-              dbState.updateIdx++;
-              return Promise.resolve(dbState.updateQueue[idx] ?? []);
-            },
-          });
-        },
-      }),
+    expect(OrdersCheckoutService.calculateTotals(100_000, 'regular')).toMatchObject({
+      deliveryFee: 10_000,
+      ppn: 13_200,
+      totalAmount: 123_200,
     });
-  }
+  });
 
-  function makeDelete() {
-    return () => ({
-      where: () => {
-        dbState.deleteIdx++;
-        return Promise.resolve({ success: true });
-      },
+  test('taxes the discounted subtotal', () => {
+    expect(OrdersCheckoutService.calculateTotals(100_000, 'regular', 20_000)).toMatchObject({
+      discountedSubtotal: 80_000,
+      taxBase: 90_000,
+      ppn: 10_800,
+      totalAmount: 100_800,
     });
-  }
-
-  const dbSelect = makeSelect();
-  const dbInsert = makeInsert();
-  const dbUpdate = makeUpdate();
-  const dbDelete = makeDelete();
-
-  const db = {
-    select: dbSelect,
-    insert: dbInsert,
-    update: dbUpdate,
-    delete: dbDelete,
-    transaction: <T>(
-      cb: (tx: {
-        select: typeof dbSelect;
-        insert: typeof dbInsert;
-        update: typeof dbUpdate;
-        delete: typeof dbDelete;
-      }) => Promise<T>,
-    ) =>
-      cb({
-        select: dbSelect,
-        insert: dbInsert,
-        update: dbUpdate,
-        delete: dbDelete,
-      }),
-  };
-
-  return { db };
+  });
 });
 
-mock.module('@/modules/events/events.index', () => ({
-  commerceOutbox: { enqueue: () => Promise.resolve() },
-  CommerceEvents: { inventoryChanged: () => ({}) },
-}));
-
-import { OrdersCheckoutService } from './orders-checkout.service';
-import { ValidationError, NotFoundError } from '@seapedia/platform/errors';
-
-describe('OrdersCheckoutService', () => {
-  beforeEach(() => {
-    dbState.reset();
+describe('createOrder', () => {
+  test('refuses an address the buyer does not own', async () => {
+    const someoneElses = await seedAddress(randomUUID());
+    await expect(
+      OrdersCheckoutService.createOrder(buyerId, 'regular', someoneElses.id),
+    ).rejects.toThrow(NotFoundError);
   });
 
-  test('calculateTotals computes correctly for instant delivery', () => {
-    const { deliveryFee, taxBase, ppn, totalAmount } = OrdersCheckoutService.calculateTotals(
-      100000,
-      'instant',
-    );
-    expect(deliveryFee).toBe(30000);
-    expect(taxBase).toBe(130000);
-    expect(ppn).toBe(15600); // 130000 * 0.12 = 15600
-    expect(totalAmount).toBe(145600);
-  });
-
-  test('calculateTotals computes correctly for regular delivery', () => {
-    const { deliveryFee, taxBase, ppn, totalAmount } = OrdersCheckoutService.calculateTotals(
-      100000,
-      'regular',
-    );
-    expect(deliveryFee).toBe(10000);
-    expect(taxBase).toBe(110000);
-    expect(ppn).toBe(13200); // 110000 * 0.12 = 13200
-    expect(totalAmount).toBe(123200);
-  });
-
-  test('createOrder throws NotFoundError if address not found or not owned', async () => {
-    dbState.addSelect([]); // select address returns empty
-
-    expect(OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1')).rejects.toThrow(
-      NotFoundError,
-    );
-  });
-
-  test('createOrder throws ValidationError if cart is empty', async () => {
-    const address = {
-      id: 'addr1',
-      userId: 'buyer1',
-      label: 'Home',
-      recipientName: 'Rafee',
-      phoneNumber: '08123456789',
-      province: 'DKI Jakarta',
-      city: 'Jakarta Selatan',
-      district: 'Kebayoran Baru',
-      postalCode: '12110',
-      fullAddress: 'Jl. Sudirman No. 1',
-      isDefault: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    dbState.addSelect([address]); // select address
-    dbState.addSelect([]); // select cart returns empty
-
-    expect(OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1')).rejects.toThrow(
+  test('refuses an empty cart', async () => {
+    const address = await seedAddress(buyerId);
+    await expect(OrdersCheckoutService.createOrder(buyerId, 'regular', address.id)).rejects.toThrow(
       ValidationError,
     );
   });
 
-  test('createOrder throws ValidationError if wallet balance is insufficient', async () => {
-    const address = {
-      id: 'addr1',
-      userId: 'buyer1',
-      label: 'Home',
-      recipientName: 'Rafee',
-      phoneNumber: '08123456789',
-      province: 'DKI Jakarta',
-      city: 'Jakarta Selatan',
-      district: 'Kebayoran Baru',
-      postalCode: '12110',
-      fullAddress: 'Jl. Sudirman No. 1',
-      isDefault: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const cart = { id: 'cart1', buyerId: 'buyer1', storeId: 'store1' };
-    const cartItemWithProduct = [
-      {
-        cartItemId: 'ci1',
-        productId: 'prod1',
-        quantity: 2,
-        product: {
-          id: 'prod1',
-          name: 'Super Product',
-          price: 50000,
-          stock: 10,
-          storeId: 'store1',
-        },
-      },
-    ];
-    const wallet = { id: 'wallet1', userId: 'buyer1', balance: 5000 }; // 5000 < (100000 + 10000) * 1.12 = 123200
-
-    dbState.addSelect([address]); // select address
-    dbState.addSelect([cart]); // select cart
-    dbState.addSelect(cartItemWithProduct); // select cartItems innerJoin products
-    dbState.addSelect([wallet]); // select wallet
-
-    expect(OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1')).rejects.toThrow(
-      ValidationError,
+  test('refuses when the wallet cannot cover the total', async () => {
+    const { address } = await readyToCheckout([{ stock: 10, quantity: 2 }], 5_000);
+    await expect(OrdersCheckoutService.createOrder(buyerId, 'regular', address.id)).rejects.toThrow(
+      'Insufficient wallet balance',
     );
   });
 
-  test('createOrder throws ValidationError if product stock is insufficient', async () => {
-    const address = {
-      id: 'addr1',
-      userId: 'buyer1',
-      label: 'Home',
-      recipientName: 'Rafee',
-      phoneNumber: '08123456789',
-      province: 'DKI Jakarta',
-      city: 'Jakarta Selatan',
-      district: 'Kebayoran Baru',
-      postalCode: '12110',
-      fullAddress: 'Jl. Sudirman No. 1',
-      isDefault: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const cart = { id: 'cart1', buyerId: 'buyer1', storeId: 'store1' };
-    const cartItemWithProduct = [
-      {
-        cartItemId: 'ci1',
-        productId: 'prod1',
-        quantity: 2,
-        product: {
-          id: 'prod1',
-          name: 'Super Product',
-          price: 50000,
-          stock: 1, // stock is 1, quantity is 2
-          storeId: 'store1',
-        },
-      },
-    ];
-    const wallet = { id: 'wallet1', userId: 'buyer1', balance: 200000 };
-
-    dbState.addSelect([address]); // select address
-    dbState.addSelect([cart]); // select cart
-    dbState.addSelect(cartItemWithProduct); // select cartItems innerJoin products
-    dbState.addSelect([wallet]); // select wallet
-
-    expect(OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1')).rejects.toThrow(
-      ValidationError,
+  test('a short item rolls back the stock already taken for the others', async () => {
+    // Checkout takes stock in product id order, so the short item is reached second.
+    const { address, products } = await readyToCheckout(
+      [
+        { stock: 10, quantity: 2, id: '00000000-0000-4000-8000-000000000001' },
+        { stock: 1, quantity: 2, id: '00000000-0000-4000-8000-000000000002' },
+      ],
+      500_000,
     );
+
+    await expect(OrdersCheckoutService.createOrder(buyerId, 'regular', address.id)).rejects.toThrow(
+      'Insufficient stock',
+    );
+
+    for (const [i, stock] of [10, 1].entries()) {
+      expect(await stockOf(products[i].id)).toMatchObject({ stock, version: 0 });
+    }
+    expect(await db.select().from(orders)).toEqual([]);
+    expect(await outboxEvents()).toEqual([]);
   });
 
-  test('createOrder successfully processes order when all conditions met', async () => {
-    const address = {
-      id: 'addr1',
-      userId: 'buyer1',
-      label: 'Home',
-      recipientName: 'Rafee',
-      phoneNumber: '08123456789',
-      province: 'DKI Jakarta',
+  test('pays from the wallet, takes stock, records the order, and empties the cart', async () => {
+    const { address, products } = await readyToCheckout([{ stock: 10, quantity: 2 }]);
+
+    const order = await OrdersCheckoutService.createOrder(buyerId, 'regular', address.id);
+
+    expect(order).toMatchObject({
+      subtotal: 100_000,
+      totalAmount: 123_200,
+      status: 'sedang_dikemas',
+    });
+    expect(JSON.parse(order.addressSnapshot)).toMatchObject({
+      id: address.id,
       city: 'Jakarta Selatan',
-      district: 'Kebayoran Baru',
-      postalCode: '12110',
-      fullAddress: 'Jl. Sudirman No. 1',
-      isDefault: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const cart = { id: 'cart1', buyerId: 'buyer1', storeId: 'store1' };
-    const cartItemWithProduct = [
+    });
+    expect(await stockOf(products[0].id)).toMatchObject({ stock: 8, version: 1 });
+    expect(await outboxEvents()).toMatchObject([
       {
-        cartItemId: 'ci1',
-        productId: 'prod1',
-        quantity: 2,
-        product: {
-          id: 'prod1',
-          name: 'Super Product',
-          price: 50000,
-          stock: 10,
-          storeId: 'store1',
-        },
+        type: 'commerce.inventory.changed',
+        version: 1,
+        data: { productId: products[0].id, stock: 8 },
       },
-    ];
-    const wallet = { id: 'wallet1', userId: 'buyer1', balance: 200000 };
-    const order = { id: 'order1', buyerId: 'buyer1', storeId: 'store1' };
-
-    dbState.addSelect([address]); // select address
-    dbState.addSelect([cart]); // select cart
-    dbState.addSelect(cartItemWithProduct); // select cartItems innerJoin products
-    dbState.addSelect([wallet]); // select wallet
-
-    // Updates
-    dbState.addUpdate([{ id: 'prod1', stock: 8 }]); // update stock returning
-    dbState.addUpdate([{ id: 'wallet1', balance: 76800 }]); // update wallet balance returning
-
-    // Inserts
-    dbState.addInsert([{ id: 'wt1' }]); // insert wallet transaction returning
-    dbState.addInsert([order]); // insert order returning
-    dbState.addInsert([{ id: 'oi1' }]); // insert order item returning
-    dbState.addInsert([{ id: 'osh1' }]); // insert order status history returning
-
-    const result = await OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1');
-    expect(result as unknown).toEqual(order);
+    ]);
+    const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, buyerId));
+    expect(wallet.balance).toBe(200_000 - 123_200);
+    expect(await db.select().from(walletTransactions)).toMatchObject([
+      { amount: -123_200, type: 'payment' },
+    ]);
+    expect(await db.select().from(orderItems)).toMatchObject([
+      { orderId: order.id, productId: products[0].id, quantity: 2, productPrice: 50_000 },
+    ]);
+    expect(await db.select().from(cartItems)).toEqual([]);
+    expect((await db.select().from(carts))[0].storeId).toBeNull();
   });
 
-  test('calculateTotals computes correctly with discountAmount', () => {
-    const { deliveryFee, taxBase, ppn, totalAmount, discountedSubtotal } =
-      OrdersCheckoutService.calculateTotals(
-        100000,
-        'regular',
-        20000, // Rp 20.000 discount
-      );
-    expect(deliveryFee).toBe(10000);
-    expect(discountedSubtotal).toBe(80000);
-    expect(taxBase).toBe(90000);
-    expect(ppn).toBe(10800); // 90000 * 0.12 = 10800
-    expect(totalAmount).toBe(100800);
-  });
-
-  test('createOrder with voucher applies discount and decrements usage', async () => {
-    const address = {
-      id: 'addr1',
-      userId: 'buyer1',
-      label: 'Home',
-      recipientName: 'Rafee',
-      phoneNumber: '08123456789',
-      province: 'DKI Jakarta',
-      city: 'Jakarta Selatan',
-      district: 'Kebayoran Baru',
-      postalCode: '12110',
-      fullAddress: 'Jl. Sudirman No. 1',
-      isDefault: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const cart = { id: 'cart1', buyerId: 'buyer1', storeId: 'store1' };
-    const cartItemWithProduct = [
-      {
-        cartItemId: 'ci1',
-        productId: 'prod1',
-        quantity: 2,
-        product: {
-          id: 'prod1',
-          name: 'Super Product',
-          price: 50000,
-          stock: 10,
-          storeId: 'store1',
-        },
-      },
-    ];
-    const wallet = { id: 'wallet1', userId: 'buyer1', balance: 200000 };
-    const voucher = {
-      id: 'v1',
+  test('a voucher discounts the order and uses one redemption', async () => {
+    const { address } = await readyToCheckout([{ stock: 10, quantity: 2 }]);
+    await db.insert(vouchers).values({
       code: 'SAVE20',
-      discountAmount: 20000,
-      minOrderAmount: 50000,
-      expiresAt: new Date(Date.now() + 100000),
+      discountAmount: 20_000,
+      minOrderAmount: 50_000,
+      expiresAt: new Date(Date.now() + 86_400_000),
       remainingUsage: 5,
-    };
-    const order = { id: 'order1', buyerId: 'buyer1', storeId: 'store1' };
+    });
 
-    // Selects inside createOrder:
-    dbState.addSelect([address]); // 1. select address
-    dbState.addSelect([cart]); // 2. select cart
-    dbState.addSelect(cartItemWithProduct); // 3. select cartItems innerJoin products
-    dbState.addSelect([voucher]); // 4. select voucher (inside validateCode query)
-    dbState.addSelect([wallet]); // 5. select wallet
+    const order = await OrdersCheckoutService.createOrder(buyerId, 'regular', address.id, 'save20');
 
-    // Updates inside createOrder:
-    dbState.addUpdate([{ id: 'prod1', stock: 8 }]); // update stock returning
-    dbState.addUpdate([{ id: 'wallet1', balance: 100000 }]); // update wallet balance returning
-    dbState.addUpdate([{ id: 'v1', remainingUsage: 4 }]); // update voucher usage returning
-
-    // Inserts inside createOrder:
-    dbState.addInsert([{ id: 'wt1' }]); // insert wallet transaction returning
-    dbState.addInsert([order]); // insert order returning
-    dbState.addInsert([{ id: 'oi1' }]); // insert order item returning
-    dbState.addInsert([{ id: 'osh1' }]); // insert order status history returning
-
-    const result = await OrdersCheckoutService.createOrder('buyer1', 'regular', 'addr1', 'SAVE20');
-    expect(result as unknown).toEqual(order);
+    expect(order).toMatchObject({
+      discountAmount: 20_000,
+      discountCode: 'SAVE20',
+      discountType: 'voucher',
+      totalAmount: 100_800,
+    });
+    expect((await db.select().from(vouchers))[0].remainingUsage).toBe(4);
   });
 });

@@ -1,234 +1,82 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
-
-const dbState = {
-  selectQueue: [] as unknown[][],
-  insertQueue: [] as unknown[][],
-  updateQueue: [] as unknown[][],
-  deleteQueue: [] as unknown[][],
-  selectIdx: 0,
-  insertIdx: 0,
-  updateIdx: 0,
-  deleteIdx: 0,
-
-  reset() {
-    this.selectQueue = [];
-    this.insertQueue = [];
-    this.updateQueue = [];
-    this.deleteQueue = [];
-    this.selectIdx = 0;
-    this.insertIdx = 0;
-    this.updateIdx = 0;
-    this.deleteIdx = 0;
-  },
-
-  addSelect(data: unknown[]) {
-    this.selectQueue.push(data);
-  },
-  addInsert(data: unknown[]) {
-    this.insertQueue.push(data);
-  },
-  addUpdate(data: unknown[]) {
-    this.updateQueue.push(data);
-  },
-  addDelete(data: unknown[]) {
-    this.deleteQueue.push(data);
-  },
-};
-
-mock.module('@/db', () => {
-  function makeSelect() {
-    const where = () => {
-      const idx = dbState.selectIdx++;
-      const data = dbState.selectQueue[idx] ?? [];
-      return Object.assign(Promise.resolve(data), {
-        limit: (n: number) => Promise.resolve(data.slice(0, n)),
-        innerJoin: () => ({
-          where: () => Promise.resolve(data),
-        }),
-      });
-    };
-    // product_refs joined with inventory
-    const joined = { where, innerJoin: () => joined };
-    return () => ({
-      from: () => ({ where, innerJoin: () => joined }),
-    });
-  }
-
-  function makeInsert() {
-    return () => ({
-      values: () => {
-        const idx = dbState.insertIdx;
-        const returningFn = () => {
-          dbState.insertIdx++;
-          return Promise.resolve(dbState.insertQueue[idx] ?? []);
-        };
-        return {
-          returning: returningFn,
-          onConflictDoUpdate: () => ({
-            returning: returningFn,
-          }),
-        };
-      },
-    });
-  }
-
-  function makeUpdate() {
-    return () => ({
-      set: () => ({
-        where: () => {
-          const idx = dbState.updateIdx;
-          return Object.assign(Promise.resolve(undefined), {
-            returning: () => {
-              dbState.updateIdx++;
-              return Promise.resolve(dbState.updateQueue[idx] ?? []);
-            },
-          });
-        },
-      }),
-    });
-  }
-
-  function makeDelete() {
-    return () => ({
-      where: () => {
-        dbState.deleteIdx++;
-        return Promise.resolve({ success: true });
-      },
-    });
-  }
-
-  const dbSelect = makeSelect();
-  const dbInsert = makeInsert();
-  const dbUpdate = makeUpdate();
-  const dbDelete = makeDelete();
-
-  const db = {
-    select: dbSelect,
-    insert: dbInsert,
-    update: dbUpdate,
-    delete: dbDelete,
-    transaction: <T>(
-      cb: (tx: {
-        select: typeof dbSelect;
-        insert: typeof dbInsert;
-        update: typeof dbUpdate;
-        delete: typeof dbDelete;
-      }) => Promise<T>,
-    ) =>
-      cb({
-        select: dbSelect,
-        insert: dbInsert,
-        update: dbUpdate,
-        delete: dbDelete,
-      }),
-  };
-
-  return { db };
-});
-
-mock.module('@/modules/catalog-sync/catalog-sync.index', () => ({
-  ReplicaSync: { hasProduct: () => Promise.resolve(true) },
-}));
-
-import { BuyersCartService } from './buyers-cart.service';
+import { describe, expect, test } from 'bun:test';
+import { randomUUID } from 'node:crypto';
 import { ConflictError, ValidationError } from '@seapedia/platform/errors';
+import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { cartItems, carts, productRefs } from '@/db/schema';
+import { ProductSyncingError } from '@/modules/inventory/inventory.index';
+import { seedProduct, seedStore } from '../../../test/fixtures';
+import { BuyersCartService } from './buyers-cart.service';
+
+const buyerId = randomUUID();
+
+async function product(stock = 10) {
+  const store = await seedStore();
+  return await seedProduct(store.id, { stock });
+}
 
 describe('BuyersCartService', () => {
-  beforeEach(() => {
-    dbState.reset();
+  test('getOrCreateCart creates one cart per buyer and reuses it', async () => {
+    const first = await BuyersCartService.getOrCreateCart(buyerId);
+    const second = await BuyersCartService.getOrCreateCart(buyerId);
+    expect(second.id).toBe(first.id);
+    expect(await db.select().from(carts)).toHaveLength(1);
   });
 
-  test('getOrCreateCart returns existing cart', async () => {
-    const existing = {
-      id: 'c1',
-      buyerId: 'b1',
-      storeId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    dbState.addSelect([existing]);
+  test('getOrCreateCart releases the store of a cart left without items', async () => {
+    const store = await seedStore();
+    await db.insert(carts).values({ buyerId, storeId: store.id });
 
-    const cart = await BuyersCartService.getOrCreateCart('b1');
-    expect(cart).toEqual(existing);
-    expect(dbState.selectIdx).toBe(1);
+    expect((await BuyersCartService.getOrCreateCart(buyerId)).storeId).toBeNull();
   });
 
-  test('getOrCreateCart creates new cart when none exists', async () => {
-    dbState.addSelect([]); // select returns empty
-    const created = {
-      id: 'c1',
-      buyerId: 'b1',
-      storeId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    dbState.addInsert([created]);
-
-    const cart = await BuyersCartService.getOrCreateCart('b1');
-    expect(cart).toEqual(created);
-    expect(dbState.selectIdx).toBe(1);
-    expect(dbState.insertIdx).toBe(1);
+  test('a quantity of zero or less is refused', async () => {
+    const p = await product();
+    await expect(BuyersCartService.addItemToCart(buyerId, p.id, 0)).rejects.toThrow(
+      ValidationError,
+    );
+    await expect(BuyersCartService.addItemToCart(buyerId, p.id, -2)).rejects.toThrow(
+      ValidationError,
+    );
   });
 
-  test('addItemToCart throws ConflictError if store mismatch', async () => {
-    // 1. select product (exists in store A)
-    dbState.addSelect([{ id: 'p1', storeId: 'storeA', name: 'Product 1', price: 1000, stock: 10 }]);
-    // 2. select cart (belongs to store B)
-    dbState.addSelect([
-      { id: 'c1', buyerId: 'b1', storeId: 'storeB', createdAt: new Date(), updatedAt: new Date() },
-    ]);
-
-    expect(BuyersCartService.addItemToCart('b1', 'p1', 1)).rejects.toThrow(ConflictError);
+  test('a product not replicated yet, or deleted, asks the client to retry', async () => {
+    await expect(BuyersCartService.addItemToCart(buyerId, randomUUID(), 1)).rejects.toThrow(
+      ProductSyncingError,
+    );
+    const p = await product();
+    await db.update(productRefs).set({ deleted: true }).where(eq(productRefs.id, p.id));
+    await expect(BuyersCartService.addItemToCart(buyerId, p.id, 1)).rejects.toThrow(
+      ProductSyncingError,
+    );
   });
 
-  test('addItemToCart inserts new cart item successfully', async () => {
-    const product = { id: 'p1', storeId: 'storeA', name: 'Product 1', price: 1000, stock: 10 };
-    const cart = {
-      id: 'c1',
-      buyerId: 'b1',
-      storeId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const newItem = {
-      id: 'ci1',
-      cartId: 'c1',
-      productId: 'p1',
-      quantity: 2,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  test('adding binds the cart to the store and accumulates up to the stock', async () => {
+    const p = await product(3);
 
-    dbState.addSelect([product]);
-    dbState.addSelect([cart]);
-    dbState.addUpdate([cart]); // update cart storeId
-    dbState.addSelect([]); // no existing item in cart
-    dbState.addInsert([newItem]);
+    await BuyersCartService.addItemToCart(buyerId, p.id, 2);
 
-    const result = await BuyersCartService.addItemToCart('b1', 'p1', 2);
-    expect(result).toEqual(newItem);
+    expect((await BuyersCartService.getCartSummary(buyerId)).storeId).toBe(p.storeId);
+    await expect(BuyersCartService.addItemToCart(buyerId, p.id, 2)).rejects.toThrow(
+      'Total quantity in cart would exceed stock (3)',
+    );
+    const item = await BuyersCartService.addItemToCart(buyerId, p.id, 1);
+    expect(item.quantity).toBe(3);
   });
 
-  test('addItemToCart throws ValidationError if quantity is zero or negative', async () => {
-    expect(BuyersCartService.addItemToCart('b1', 'p1', 0)).rejects.toThrow(ValidationError);
-    expect(BuyersCartService.addItemToCart('b1', 'p1', -2)).rejects.toThrow(ValidationError);
+  test('a cart holds products from one store only', async () => {
+    await BuyersCartService.addItemToCart(buyerId, (await product()).id, 1);
+    await expect(BuyersCartService.addItemToCart(buyerId, (await product()).id, 1)).rejects.toThrow(
+      ConflictError,
+    );
   });
 
-  test('getOrCreateCart resets storeId to null if cart has storeId but contains no items (self-healing)', async () => {
-    const corruptedCart = {
-      id: 'c1',
-      buyerId: 'b1',
-      storeId: 'storeA',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const fixedCart = { ...corruptedCart, storeId: null };
+  test('removing the last item frees the cart for another store', async () => {
+    const item = await BuyersCartService.addItemToCart(buyerId, (await product()).id, 1);
 
-    dbState.addSelect([corruptedCart]);
-    dbState.addSelect([]); // cartItems empty
-    dbState.addUpdate([fixedCart]); // update resets storeId
+    await BuyersCartService.removeCartItem(buyerId, item.id);
 
-    const result = await BuyersCartService.getOrCreateCart('b1');
-    expect(result.storeId).toBeNull();
+    expect(await db.select().from(cartItems)).toEqual([]);
+    expect((await db.select().from(carts))[0].storeId).toBeNull();
   });
 });

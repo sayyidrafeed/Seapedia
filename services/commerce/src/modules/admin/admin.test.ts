@@ -1,387 +1,160 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
-
-const testState = {
-  hasSession: true,
-  activeRole: 'admin',
-};
-
-const dbState = {
-  selectQueue: [] as unknown[][],
-  insertQueue: [] as unknown[][],
-  updateQueue: [] as unknown[][],
-  selectIdx: 0,
-  insertIdx: 0,
-  updateIdx: 0,
-
-  reset() {
-    this.selectQueue = [];
-    this.insertQueue = [];
-    this.updateQueue = [];
-    this.selectIdx = 0;
-    this.insertIdx = 0;
-    this.updateIdx = 0;
-  },
-
-  addSelect(data: unknown[]) {
-    this.selectQueue.push(data);
-  },
-  addInsert(data: unknown[]) {
-    this.insertQueue.push(data);
-  },
-  addUpdate(data: unknown[]) {
-    this.updateQueue.push(data);
-  },
-};
-
-mock.module('@/modules/events/events.index', () => ({
-  commerceOutbox: { enqueue: () => Promise.resolve() },
-  CommerceEvents: { inventoryChanged: () => ({}), orderCompleted: () => ({}) },
-}));
-
-mock.module('@/db', () => {
-  function makeSelect() {
-    return () => ({
-      from: () => {
-        const idx = dbState.selectIdx++;
-        const data = dbState.selectQueue[idx] ?? [];
-        const createQueryBuilder = (res: unknown): unknown => {
-          const builder = Object.assign(Promise.resolve(res), {
-            where: () => createQueryBuilder(res),
-            limit: (n: number) => createQueryBuilder(Array.isArray(res) ? res.slice(0, n) : res),
-            orderBy: () => createQueryBuilder(res),
-            for: () => createQueryBuilder(res),
-          });
-          return builder;
-        };
-        return createQueryBuilder(data);
-      },
-    });
-  }
-
-  function makeInsert() {
-    return () => ({
-      values: () => {
-        const idx = dbState.insertIdx;
-        const returningFn = () => {
-          dbState.insertIdx++;
-          return Promise.resolve(dbState.insertQueue[idx] ?? []);
-        };
-        return {
-          returning: returningFn,
-          onConflictDoUpdate: () => ({ returning: returningFn }),
-          onConflictDoNothing: () => ({ returning: returningFn }),
-        };
-      },
-    });
-  }
-
-  function makeUpdate() {
-    return () => ({
-      set: () => ({
-        where: () => {
-          const idx = dbState.updateIdx;
-          return Object.assign(Promise.resolve(undefined), {
-            returning: () => {
-              dbState.updateIdx++;
-              return Promise.resolve(dbState.updateQueue[idx] ?? []);
-            },
-          });
-        },
-      }),
-    });
-  }
-
-  const dbSelect = makeSelect();
-  const dbInsert = makeInsert();
-  const dbUpdate = makeUpdate();
-
-  return {
-    db: {
-      select: dbSelect,
-      insert: dbInsert,
-      update: dbUpdate,
-      delete: () => ({ where: () => Promise.resolve(undefined) }),
-      transaction: <T>(
-        cb: (tx: {
-          select: typeof dbSelect;
-          insert: typeof dbInsert;
-          update: typeof dbUpdate;
-        }) => Promise<T>,
-      ) =>
-        cb({
-          select: dbSelect,
-          insert: dbInsert,
-          update: dbUpdate,
-        }),
-    },
-    schema: {},
-  };
-});
-
+import { describe, expect, test } from 'bun:test';
+import { randomUUID } from 'node:crypto';
 import { authenticate } from '@seapedia/platform/auth';
 import type { ServiceEnv } from '@seapedia/platform/factory';
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { db } from '@/db';
+import {
+  inventory,
+  orders,
+  orderStatusHistory,
+  productRefs,
+  userRefs,
+  wallets,
+  walletTransactions,
+} from '@/db/schema';
 import { runtime } from '@/runtime';
+import { outboxEvents } from '../../../test/db';
+import { seedOrder, seedProduct, seedStore, seedWallet } from '../../../test/fixtures';
 import { accessCookie } from '../../../test/tokens';
 import { adminRouter } from './admin.index';
 import { AdminService } from './admin.service';
 
-// Requests carry an access token signed like identity's, verified like in production.
-const cookies = Object.fromEntries(
-  await Promise.all(
-    ['admin', 'buyer'].map(async (role) => [role, await accessCookie(role)] as const),
-  ),
-);
+const app = new Hono<ServiceEnv>();
+app.use('*', authenticate(runtime.verifier, runtime.denylist));
+app.route('/api/admin', adminRouter);
 
-function identityHeaders(): Record<string, string> {
-  if (!testState.hasSession) return {};
-  return { cookie: cookies[testState.activeRole] };
-}
+const adminCookie = await accessCookie('admin');
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000);
 
-function createTestApp() {
-  const app = new Hono<ServiceEnv>();
-  app.use('*', authenticate(runtime.verifier, runtime.denylist));
-  app.route('/api/admin', adminRouter);
-  return app;
-}
-
-const originalGetDashboardStats = AdminService.getDashboardStats;
-const originalProcessOverdueOrders = AdminService.processOverdueOrders;
-const originalSimulateTime = AdminService.simulateTime;
-
-describe('Admin Dashboard Route Authorization', () => {
-  beforeEach(() => {
-    testState.hasSession = true;
-    testState.activeRole = 'admin';
-    dbState.reset();
-
-    // Stub service methods for routes testing
-    AdminService.getDashboardStats = () =>
-      Promise.resolve({
-        users: { total: 4, roles: { admin: 1, buyer: 1, seller: 1, driver: 1 } },
-        stores: { total: 2 },
-        products: { total: 10 },
-        orders: {
-          total: 5,
-          statuses: {
-            sedang_dikemas: 1,
-            menunggu_pengirim: 1,
-            sedang_dikirim: 1,
-            pesanan_selesai: 1,
-            dikembalikan: 1,
-          },
-        },
-        discounts: { vouchers: 2, promos: 3 },
-        deliveries: { total: 3, statuses: { pending: 1, taken: 1, completed: 1 } },
-        overdueOrders: { total: 0 },
-      });
-    AdminService.processOverdueOrders = () =>
-      Promise.resolve({
-        processedCount: 1,
-        results: [
-          {
-            orderId: 'order-1',
-            buyerId: 'buyer-1',
-            refundAmount: 100000,
-            itemsRestored: 2,
-            note: 'mocked note',
-          },
-        ],
-      });
-    AdminService.simulateTime = (hours: number) =>
-      Promise.resolve({
-        newOffsetHours: hours,
-        effectiveTime: '2026-07-01T18:17:07.000Z',
-      });
+describe('admin routes', () => {
+  test('refuse requests without a token or without the admin role', async () => {
+    expect((await app.request('/api/admin/dashboard')).status).toBe(401);
+    const asBuyer = { headers: { cookie: await accessCookie('buyer') } };
+    expect((await app.request('/api/admin/dashboard', asBuyer)).status).toBe(403);
   });
 
-  test('returns 401 when no session cookie is provided', async () => {
-    testState.hasSession = false;
-    const app = createTestApp();
-    const res = await app.request('/api/admin/dashboard', { headers: identityHeaders() });
-
-    expect(res.status).toBe(401);
-  });
-
-  test('returns 403 when active role is not admin', async () => {
-    testState.activeRole = 'buyer';
-    const app = createTestApp();
-    const res = await app.request('/api/admin/dashboard', { headers: identityHeaders() });
-
-    expect(res.status).toBe(403);
-  });
-
-  test('returns 200 and stats when authorized as admin', async () => {
-    testState.activeRole = 'admin';
-    const app = createTestApp();
-    const res = await app.request('/api/admin/dashboard', { headers: identityHeaders() });
-
-    expect(res.status).toBe(200);
-    const data = (await res.json()) as {
-      users: { total: number };
-      stores: { total: number };
-      products: { total: number };
-    };
-    expect(data.users.total).toBe(4);
-    expect(data.stores.total).toBe(2);
-    expect(data.products.total).toBe(10);
-  });
-
-  test('POST /api/admin/dashboard/overdue/process returns 200 and processed count', async () => {
-    const app = createTestApp();
-    const res = await app.request('/api/admin/dashboard/overdue/process', {
-      method: 'POST',
-      headers: identityHeaders(),
+  test('dashboard counts replicas, live products, orders by status, and overdue orders', async () => {
+    await db.insert(userRefs).values([
+      { id: randomUUID(), roles: ['buyer', 'seller'], version: 1 },
+      { id: randomUUID(), roles: ['buyer', 'driver'], version: 1 },
+      { id: randomUUID(), roles: ['admin'], version: 1 },
+    ]);
+    const store = await seedStore();
+    await seedProduct(store.id);
+    const deleted = await seedProduct(store.id);
+    await db.update(productRefs).set({ deleted: true }).where(eq(productRefs.id, deleted.id));
+    const buyerId = randomUUID();
+    await seedOrder({ buyerId, storeId: store.id, status: 'pesanan_selesai' });
+    await seedOrder({
+      buyerId,
+      storeId: store.id,
+      deliveryMethod: 'instant',
+      createdAt: hoursAgo(3),
+    });
+    await seedOrder({
+      buyerId,
+      storeId: store.id,
+      deliveryMethod: 'regular',
+      createdAt: hoursAgo(3),
     });
 
+    const res = await app.request('/api/admin/dashboard', { headers: { cookie: adminCookie } });
+
     expect(res.status).toBe(200);
-    const data = (await res.json()) as {
-      processedCount: number;
-      results: Array<{ orderId: string }>;
-    };
-    expect(data.processedCount).toBe(1);
-    expect(data.results[0].orderId).toBe('order-1');
+    expect(await res.json()).toMatchObject({
+      users: { total: 3, roles: { admin: 1, buyer: 2, seller: 1, driver: 1 } },
+      stores: { total: 1 },
+      products: { total: 1 },
+      orders: { total: 3, statuses: { pesanan_selesai: 1, sedang_dikemas: 2 } },
+      overdueOrders: { total: 1 },
+    });
   });
 
-  test('POST /api/admin/dashboard/time/simulate returns 200 and simulated offset info', async () => {
-    const app = createTestApp();
+  test('time simulation rejects more than 240 hours', async () => {
     const res = await app.request('/api/admin/dashboard/time/simulate', {
       method: 'POST',
-      headers: {
-        ...identityHeaders(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ hoursToAdvance: 24 }),
+      headers: { cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hoursToAdvance: 300 }),
     });
-
-    expect(res.status).toBe(200);
-    const data = (await res.json()) as { newOffsetHours: number; effectiveTime: string };
-    expect(data.newOffsetHours).toBe(24);
-    expect(data.effectiveTime).toBe('2026-07-01T18:17:07.000Z');
-  });
-
-  test('POST /api/admin/dashboard/time/simulate returns 400 for invalid request body', async () => {
-    const app = createTestApp();
-    const res = await app.request('/api/admin/dashboard/time/simulate', {
-      method: 'POST',
-      headers: {
-        ...identityHeaders(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ hoursToAdvance: 300 }), // max is 240
-    });
-
     expect(res.status).toBe(400);
   });
 });
 
-describe('AdminService Time Simulation', () => {
-  beforeEach(() => {
-    dbState.reset();
-    AdminService.getDashboardStats = originalGetDashboardStats;
-    AdminService.processOverdueOrders = originalProcessOverdueOrders;
-    AdminService.simulateTime = originalSimulateTime;
+describe('time simulation', () => {
+  test('advances accumulate, are capped at 240 hours, and 0 resets', async () => {
+    await AdminService.simulateTime(1);
+    expect((await AdminService.simulateTime(2)).newOffsetHours).toBe(3);
+    expect((await AdminService.simulateTime(239)).newOffsetHours).toBe(240);
+    expect((await AdminService.simulateTime(0)).newOffsetHours).toBe(0);
   });
 
-  test('simulateTime updates offsetSeconds', async () => {
-    dbState.addSelect([{ id: 1, offsetSeconds: 0 }]); // initial offset check
-    dbState.addInsert([{ id: 1, offsetSeconds: 3600 }]); // returning from simulateTime insert
+  test('simulated time makes an order overdue', async () => {
+    const store = await seedStore();
+    await seedOrder({ buyerId: randomUUID(), storeId: store.id, deliveryMethod: 'next_day' });
+    expect((await AdminService.getDashboardStats()).overdueOrders.total).toBe(0);
 
-    const result = await AdminService.simulateTime(1);
-    expect(result.newOffsetHours).toBe(1);
-    expect(result.effectiveTime).toBeDefined();
-  });
+    await AdminService.simulateTime(25);
 
-  test('simulateTime resets when hoursToAdvance is 0', async () => {
-    dbState.addSelect([{ id: 1, offsetSeconds: 3600 }]); // current offset is 1 hour
-    dbState.addInsert([{ id: 1, offsetSeconds: 0 }]); // reset offset returning
-
-    const result = await AdminService.simulateTime(0);
-    expect(result.newOffsetHours).toBe(0);
+    expect((await AdminService.getDashboardStats()).overdueOrders.total).toBe(1);
   });
 });
 
-describe('AdminService Overdue Processing', () => {
-  beforeEach(() => {
-    dbState.reset();
-    AdminService.getDashboardStats = originalGetDashboardStats;
-    AdminService.processOverdueOrders = originalProcessOverdueOrders;
-    AdminService.simulateTime = originalSimulateTime;
+describe('overdue processing', () => {
+  async function overdueOrder(status = 'menunggu_pengirim') {
+    const store = await seedStore();
+    const product = await seedProduct(store.id, { price: 45_000, stock: 5 });
+    const buyerId = randomUUID();
+    await seedWallet(buyerId, 50_000);
+    const order = await seedOrder(
+      { buyerId, storeId: store.id, deliveryMethod: 'instant', status, createdAt: hoursAgo(3) },
+      [{ productId: product.id, quantity: 2, price: 45_000 }],
+    );
+    return { order, product, buyerId };
+  }
+
+  test('returns the order, refunds the wallet, restores stock, and announces it', async () => {
+    const { order, product, buyerId } = await overdueOrder();
+
+    const res = await app.request('/api/admin/dashboard/overdue/process', {
+      method: 'POST',
+      headers: { cookie: adminCookie },
+    });
+
+    expect(await res.json()).toMatchObject({
+      processedCount: 1,
+      results: [{ orderId: order.id, refundAmount: 100_000, itemsRestored: 2 }],
+    });
+    const [returned] = await db.select().from(orders).where(eq(orders.id, order.id));
+    expect(returned.status).toBe('dikembalikan');
+    const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, buyerId));
+    expect(wallet.balance).toBe(150_000);
+    expect(await db.select().from(walletTransactions)).toMatchObject([
+      { walletId: wallet.id, amount: 100_000, type: 'refund', reference: `REFUND-${order.id}` },
+    ]);
+    const [stock] = await db.select().from(inventory).where(eq(inventory.productId, product.id));
+    expect(stock).toMatchObject({ stock: 7, version: 1 });
+    expect(await outboxEvents()).toMatchObject([
+      { type: 'commerce.inventory.changed', version: 1, data: { productId: product.id, stock: 7 } },
+    ]);
+    expect(await db.select().from(orderStatusHistory)).toHaveLength(1);
   });
 
-  test('processes overdue orders correctly and refunds wallet and stock', async () => {
-    // 1. getEffectiveNow offset check
-    dbState.addSelect([{ id: 1, offsetSeconds: 25 * 3600 }]); // simulate 25 hours offset (enough for instant or next_day)
+  test('a second run refunds nothing', async () => {
+    const { buyerId } = await overdueOrder();
+    await AdminService.processOverdueOrders();
 
-    // 2. allOrders query
-    const sampleOrder = {
-      id: 'order-1',
-      buyerId: 'buyer-1',
-      storeId: 'store-1',
-      deliveryMethod: 'instant',
-      status: 'menunggu_pengirim',
-      totalAmount: 100000,
-      createdAt: new Date(Date.now() - 3 * 3600 * 1000), // created 3 hours ago (SLA: 2 hours)
-    };
-    dbState.addSelect([sampleOrder]);
-
-    // 3. transaction select orders for update
-    dbState.addSelect([sampleOrder]);
-
-    // 4. select wallets for refund
-    dbState.addSelect([{ id: 'wallet-1', userId: 'buyer-1', balance: 50000 }]);
-
-    // 5. select orderItems
-    dbState.addSelect([{ id: 'item-1', productId: 'product-1', quantity: 2 }]);
-
-    const result = await AdminService.processOverdueOrders();
-    expect(result.processedCount).toBe(1);
-    expect(result.results[0].refundAmount).toBe(100000);
-    expect(result.results[0].itemsRestored).toBe(2);
+    expect((await AdminService.processOverdueOrders()).processedCount).toBe(0);
+    const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, buyerId));
+    expect(wallet.balance).toBe(150_000);
   });
 
-  test('prevents double refund/stock restore if order status is already completed or returned', async () => {
-    // Test that if status is 'dikembalikan' it is skipped
-    dbState.addSelect([{ id: 1, offsetSeconds: 25 * 3600 }]); // getEffectiveNow
+  test('completed or returned orders are never refunded', async () => {
+    await overdueOrder('pesanan_selesai');
+    await overdueOrder('dikembalikan');
 
-    const sampleOrder = {
-      id: 'order-1',
-      buyerId: 'buyer-1',
-      storeId: 'store-1',
-      deliveryMethod: 'instant',
-      status: 'dikembalikan', // already returned!
-      totalAmount: 100000,
-      createdAt: new Date(Date.now() - 3 * 3600 * 1000),
-    };
-    dbState.addSelect([sampleOrder]); // allOrders select
-
-    // Since it's filtered out from the overdue list inside processOverdueOrders list filter,
-    // it won't even start a transaction.
-    const result = await AdminService.processOverdueOrders();
-    expect(result.processedCount).toBe(0);
-  });
-
-  test('prevents double refund/stock restore if status changes concurrently before locking', async () => {
-    // Test the transaction-level idempotency guard:
-    // If order was waiting, but when locked inside the transaction it has already been processed or completed:
-    dbState.addSelect([{ id: 1, offsetSeconds: 25 * 3600 }]); // getEffectiveNow
-
-    const sampleOrder = {
-      id: 'order-1',
-      buyerId: 'buyer-1',
-      storeId: 'store-1',
-      deliveryMethod: 'instant',
-      status: 'menunggu_pengirim',
-      totalAmount: 100000,
-      createdAt: new Date(Date.now() - 3 * 3600 * 1000),
-    };
-    dbState.addSelect([sampleOrder]); // allOrders select
-
-    // Inside transaction: select orders for update returns 'dikembalikan' (completed concurrently by another worker)
-    const concurrentReturnedOrder = { ...sampleOrder, status: 'dikembalikan' };
-    dbState.addSelect([concurrentReturnedOrder]);
-
-    const result = await AdminService.processOverdueOrders();
-    expect(result.processedCount).toBe(0); // Should skip and process 0
+    expect((await AdminService.processOverdueOrders()).processedCount).toBe(0);
+    expect(await db.select().from(walletTransactions)).toEqual([]);
   });
 });
