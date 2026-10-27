@@ -152,10 +152,7 @@ export class ProductsService {
     return { success: true };
   }
 
-  /**
-   * Public listing. Free-text queries are ranked by the search service and loaded here in that
-   * order, so price and stock come from catalog. Without search, the same query runs as a regex.
-   */
+  // Search ranks, catalog loads the rows, so price and stock in results are never stale.
   static async getPublicProducts(options: {
     search?: string;
     storeSlug?: string;

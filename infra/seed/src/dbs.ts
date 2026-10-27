@@ -28,5 +28,5 @@ export const connections = {
 type Db = PostgresJsDatabase<typeof schema>;
 export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 
-/** identity and commerce in one open transaction each; catalog is MongoDB. */
+// identity and commerce in one open transaction each; catalog is MongoDB.
 export type Dbs = { identity: Tx; commerce: Tx; catalog: MongoDb };

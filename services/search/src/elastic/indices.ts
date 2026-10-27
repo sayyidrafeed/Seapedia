@@ -18,7 +18,7 @@ export async function createIndex() {
   return index;
 }
 
-/** Points the alias at `index` in one atomic step and drops the indices it replaced. */
+// Points the alias at `index` in one atomic step and drops the indices it replaced.
 export async function swapAlias(index: string) {
   const current = (await aliasExists())
     ? Object.keys(await elastic.indices.getAlias({ name: alias }))
@@ -37,7 +37,7 @@ export async function swapAlias(index: string) {
 
 export const storesIndex = `${alias}_stores`;
 
-/** The small store lookup index (not rebuilt by reindex swaps, only upserted). */
+// The small store lookup index (not rebuilt by reindex swaps, only upserted).
 export async function ensureStoresIndex() {
   if (await elastic.indices.exists({ index: storesIndex })) return;
   await elastic.indices.create({

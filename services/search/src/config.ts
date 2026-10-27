@@ -2,7 +2,7 @@ import { loadConfig, staticConfig } from '@seapedia/platform/consul';
 import { z } from 'zod';
 import { env } from './env';
 
-/** Non-secret tunables from Consul KV (`config/shared/*`, `config/search/*`). */
+// Non-secret tunables from Consul KV (`config/shared/*`, `config/search/*`).
 export const configSchema = z.object({
   fuzziness: z.string().default('AUTO'),
   soldCountBoost: z.number().min(0).default(0.1),

@@ -12,7 +12,7 @@ const sameSecret = (a: string, b: string) => {
   return left.length === right.length && timingSafeEqual(left, right);
 };
 
-/** OAuth2 client-credentials for service-to-service calls. Not routed by the gateway. */
+// OAuth2 client-credentials for service-to-service calls. Not routed by the gateway.
 export const oauthRouter = factory.createApp();
 
 oauthRouter.post(
@@ -52,7 +52,7 @@ oauthRouter.post(
   },
 );
 
-/** Public: Kong and services can fetch the key that verifies identity's tokens. */
+// Public: Kong and services can fetch the key that verifies identity's tokens.
 export const jwksRouter = factory.createApp();
 
 jwksRouter.get('/jwks.json', describeRoute({ hide: true }), async (c) => c.json(await jwks()));

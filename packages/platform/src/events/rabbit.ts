@@ -8,10 +8,7 @@ import { EXCHANGE, REDELIVER_EXCHANGE, RETRY_EXCHANGE } from './envelope';
 
 export type RabbitOptions = { url: string; service: string };
 
-/**
- * One AMQP connection per process, reopened after failures. Channels are created on demand and
- * dropped with the connection, so callers just ask again after an error.
- */
+// Channels die with the connection; callers simply ask again after an error.
 export function createRabbit({ url, service }: RabbitOptions) {
   let connection: Promise<ChannelModel> | null = null;
   let confirm: Promise<ConfirmChannel> | null = null;
@@ -47,7 +44,7 @@ export function createRabbit({ url, service }: RabbitOptions) {
 
   return {
     connect,
-    /** Channel with publisher confirms, shared by the outbox relay. */
+    // Channel with publisher confirms, shared by the outbox relay.
     async confirmChannel(): Promise<ConfirmChannel> {
       if (!confirm) {
         confirm = connect()
@@ -67,7 +64,7 @@ export function createRabbit({ url, service }: RabbitOptions) {
       }
       return confirm;
     },
-    /** A fresh channel for one consumer. */
+    // A fresh channel for one consumer.
     async channel(): Promise<Channel> {
       const ch = await (await connect()).createChannel();
       ch.on('error', () => undefined);

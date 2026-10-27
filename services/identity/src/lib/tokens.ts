@@ -7,7 +7,7 @@ const pem = (value: string) => value.replace(/\\n/g, '\n');
 const privateKey = importPKCS8(pem(env.JWT_PRIVATE_KEY), 'RS256');
 const KEY_ID = 'seapedia-1';
 
-/** Short-lived user access token: what Kong and every service verify. */
+// Short-lived user access token: what Kong and every service verify.
 export async function signAccessToken(claims: {
   userId: string;
   sessionId: string;
@@ -32,7 +32,7 @@ export async function signAccessToken(claims: {
   return { token, expiresAt: Math.floor(Date.now() / 1000) + ttl, ttl };
 }
 
-/** Client-credentials token: `client` may call `audience` with `scopes`. */
+// Client-credentials token: `client` may call `audience` with `scopes`.
 export async function signServiceToken(client: string, audience: string, scopes: string[]) {
   const ttl = config.get().serviceTokenTtlSeconds;
   const token = await new SignJWT({ scope: scopes.join(' '), token_use: 'service' })
@@ -46,7 +46,7 @@ export async function signServiceToken(client: string, audience: string, scopes:
   return { token, ttl };
 }
 
-/** Public key set for anyone verifying identity's tokens. */
+// Public key set for anyone verifying identity's tokens.
 export async function jwks() {
   const jwk = await exportJWK(
     await importSPKI(pem(env.JWT_PUBLIC_KEY), 'RS256', { extractable: true }),

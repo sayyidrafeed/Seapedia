@@ -2,10 +2,7 @@ import { collections, mongo } from './index';
 
 const caseInsensitive = { locale: 'en', strength: 2 } as const;
 
-/**
- * Indexes that enforce catalog's invariants. Idempotent; runs on every start instead of
- * migrations (MongoDB has no schema migrations, the documents are typed in db/index.ts).
- */
+// MongoDB has no migrations: invariant indexes are ensured idempotently on every start.
 export async function setupDatabase() {
   await mongo.connect();
   await Promise.all([

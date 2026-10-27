@@ -28,7 +28,7 @@ export type ProductDoc = {
   rating: number;
   reviewCount: number;
   soldCount: number;
-  /** Read model of commerce inventory, applied from `commerce.inventory.changed`. */
+  // Read model of commerce inventory, applied from `commerce.inventory.changed`.
   stock: number;
   stockVersion: number;
   version: number;
@@ -40,7 +40,7 @@ export type ProductReviewDoc = {
   _id: string;
   productId: string;
   buyerId: string;
-  /** Snapshot of the buyer's display name when the review was written. */
+  // Snapshot of the buyer's display name when the review was written.
   reviewerName: string;
   rating: number;
   comment: string;
@@ -55,10 +55,10 @@ export type AppReviewDoc = {
   createdAt: Date;
 };
 
-/** Replica of identity users (display names), from `identity.user.*`. */
+// Replica of identity users (display names), from `identity.user.*`.
 export type UserRefDoc = { _id: string; displayName: string; version: number };
 
-/** Completed purchases from `commerce.order.completed`: the review gate. `_id` = buyerId:productId. */
+// Completed purchases from `commerce.order.completed`: the review gate. `_id` = buyerId:productId.
 export type PurchaseDoc = { _id: string; buyerId: string; productId: string; at: Date };
 
 export type OutboxDoc = {
@@ -84,7 +84,7 @@ export const collections = {
   inbox: database.collection<InboxDoc>('inbox'),
 };
 
-/** Multi-document transaction (catalog-db runs as a single-node replica set for this). */
+// Multi-document transaction (catalog-db runs as a single-node replica set for this).
 export async function inTransaction<T>(work: (session: ClientSession) => Promise<T>): Promise<T> {
   const session = mongo.startSession();
   try {

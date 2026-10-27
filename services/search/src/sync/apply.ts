@@ -17,11 +17,7 @@ const productEvent = z.object({
 });
 const storeEvent = z.object({ id: z.string(), name: z.string(), slug: z.string() });
 
-/**
- * Applies `doc` only if it is newer than what the index holds. Events can arrive twice or out of
- * order; the catalog version decides. Deletions are kept as tombstones so a late, older upsert
- * cannot bring a deleted product back.
- */
+// Events may repeat or arrive out of order; tombstones stop a late upsert resurrecting a deletion.
 const VERSION_GUARD = `
   if (ctx._source.version == null || ctx._source.version < params.doc.version) {
     ctx._source.putAll(params.doc);

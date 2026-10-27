@@ -6,7 +6,7 @@ import { runtime } from '@/runtime';
 import { reindex } from '@/sync/reindex';
 import { SearchService } from './search.service';
 
-/** Internal only: catalog queries ranked ids (`search:query`), ops triggers reindexes (`search:reindex`). */
+// Internal only: catalog queries ranked ids (`search:query`), ops triggers reindexes (`search:reindex`).
 export const searchRouter = factory.createApp();
 
 searchRouter.get(

@@ -135,19 +135,17 @@ export async function seedReviews(
       if (!item.productId) continue;
 
       // catalog's review gate, normally filled from `commerce.order.completed`.
-      await catalog
-        .collection<Doc>('purchases')
-        .updateOne(
-          { _id: `${order.buyerId}:${item.productId}` },
-          {
-            $setOnInsert: {
-              buyerId: order.buyerId,
-              productId: item.productId,
-              at: order.createdAt,
-            },
+      await catalog.collection<Doc>('purchases').updateOne(
+        { _id: `${order.buyerId}:${item.productId}` },
+        {
+          $setOnInsert: {
+            buyerId: order.buyerId,
+            productId: item.productId,
+            at: order.createdAt,
           },
-          { upsert: true },
-        );
+        },
+        { upsert: true },
+      );
 
       // Unique constraint: 1 review per buyer per product
       const uniqKey = `${order.buyerId}_${item.productId}`;

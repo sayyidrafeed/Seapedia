@@ -2,15 +2,15 @@ import { createEnv } from '@t3-oss/env-core';
 import { runtimeEnvSchema } from '@seapedia/platform/runtime';
 import { z } from 'zod';
 
-/** Secrets and bootstrap addresses only; tunables live in Consul (see config.ts). */
+// Secrets and bootstrap addresses only; tunables live in Consul (see config.ts).
 export const env = createEnv({
   server: {
     ...runtimeEnvSchema.shape,
     PORT: z.coerce.number().int().default(4001),
     DATABASE_URL: z.string().url(),
-    /** RS256 private key (PKCS#8 PEM) that signs access and service tokens. */
+    // RS256 private key (PKCS#8 PEM) that signs access and service tokens.
     JWT_PRIVATE_KEY: z.string().min(1),
-    /** Client-credentials secrets of the other services: `catalog=...,commerce=...`. */
+    // Client-credentials secrets of the other services: `catalog=...,commerce=...`.
     SERVICE_CLIENT_SECRETS: z.string().transform(
       (v) =>
         Object.fromEntries(

@@ -2,7 +2,7 @@ import type { ClientSession } from 'mongodb';
 import { createEvent, type EventEnvelope, type OutboxStore } from '@seapedia/platform/events';
 import { collections, type ProductDoc, type StoreDoc } from '@/db';
 
-/** Written in the same transaction as the change; published by the relay. */
+// Written in the same transaction as the change; published by the relay.
 export async function enqueue(session: ClientSession, ...events: EventEnvelope[]) {
   if (events.length === 0) return;
   await collections.outbox.insertMany(

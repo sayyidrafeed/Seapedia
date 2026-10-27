@@ -1,11 +1,4 @@
-/**
- * Creates the `seapedia` vhost and one RabbitMQ user per service with least privilege:
- *   - configure/read/write only the shared exchanges, the service's own queues
- *     (`<service>`, `<service>.retry`, `<service>.parked`) and server-named exclusive queues;
- *   - topic permission on `seapedia.events`: a service may publish only `<service>.*` routing
- *     keys, so it cannot forge another service's events.
- * Idempotent: run on every deploy. Uses the management HTTP API.
- */
+// Least-privilege broker users: each service may only publish its own `<service>.*` routing keys.
 const api = process.env.RABBITMQ_API ?? 'http://rabbitmq:15672';
 const admin = `Basic ${btoa(`${process.env.RABBITMQ_ADMIN_USER}:${process.env.RABBITMQ_ADMIN_PASSWORD}`)}`;
 const vhost = 'seapedia';

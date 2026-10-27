@@ -3,16 +3,12 @@ import { EXCHANGE } from './envelope';
 import type { Rabbit } from './rabbit';
 
 export type OutboxStore = {
-  /** Oldest unpublished events, at most `limit`. */
+  // Oldest unpublished events, at most `limit`.
   pending(limit: number): Promise<EventEnvelope[]>;
   markPublished(ids: string[]): Promise<void>;
 };
 
-/**
- * Moves events from a service's transactional outbox to RabbitMQ. An event is marked published
- * only after the broker confirms it, so a crash between the two republishes it (consumers
- * dedupe by id or version).
- */
+// Marked published only after the broker confirms; a crash in between republishes (consumers dedupe).
 export function createOutboxRelay({
   rabbit,
   store,

@@ -29,7 +29,7 @@ const CATALOG_COLLECTIONS = [
   'inbox',
 ];
 
-/** Seeding starts clean: every service table is emptied (migration history is untouched). */
+// Seeding starts clean: every service table is emptied (migration history is untouched).
 async function wipePostgres(tx: Tx) {
   const tables = await tx.execute<{ tablename: string }>(
     sql`select tablename from pg_tables where schemaname = 'public'`,
@@ -39,7 +39,7 @@ async function wipePostgres(tx: Tx) {
   await tx.execute(sql.raw(`truncate table ${names} restart identity cascade`));
 }
 
-/** Catalog's sold counts are a read model of commerce's completed orders. */
+// Catalog's sold counts are a read model of commerce's completed orders.
 async function syncSoldCounts({ catalog, commerce }: Dbs) {
   const sold = await commerce
     .select({
@@ -84,10 +84,7 @@ async function seed(dbs: Dbs) {
   await syncSoldCounts(dbs);
 }
 
-/**
- * The seed bypasses catalog's outbox, so the search index is rebuilt from scratch. The seed is a
- * client of its own (`seed`, scope `search:reindex`), found through Consul like any service.
- */
+// The seed bypasses catalog's outbox, so search is rebuilt via its own client (`seed`).
 async function rebuildSearchIndex() {
   if (!env.CONSUL_HTTP_ADDR || !env.SEED_CLIENT_SECRET) {
     console.log(

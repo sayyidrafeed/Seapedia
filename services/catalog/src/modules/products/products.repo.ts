@@ -4,7 +4,7 @@ import { collections, type ProductDoc } from '@/db';
 const rating = (value: number) => value.toFixed(2);
 const escapeRegex = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/** Products joined with their store, in the public API shape (ratings as "4.50" strings). */
+// Products joined with their store, in the public API shape (ratings as "4.50" strings).
 function publicStages(): object[] {
   return [
     { $lookup: { from: 'stores', localField: 'storeId', foreignField: '_id', as: 'store' } },
@@ -62,7 +62,7 @@ const formatPublic = (row: PublicRow) => ({
 
 export type PublicProduct = ReturnType<typeof formatPublic>;
 
-/** API shape of a product as its seller sees it. */
+// API shape of a product as its seller sees it.
 export const toSellerProduct = ({ _id, ...rest }: ProductDoc) => ({
   id: _id,
   ...rest,
@@ -98,7 +98,7 @@ export const ProductsRepo = {
     return row ? formatPublic(row) : null;
   },
 
-  /** Loads products by id, keeping the given (ranked) order; missing ids are dropped. */
+  // Loads products by id, keeping the given (ranked) order; missing ids are dropped.
   async publicInOrder(ids: string[]) {
     if (ids.length === 0) return [];
     const rows = await collections.products
@@ -152,7 +152,7 @@ export const ProductsRepo = {
       { session, returnDocument: 'after' },
     ),
 
-  /** Keyset page of the search projection (no price or stock), for full reindexes. */
+  // Keyset page of the search projection (no price or stock), for full reindexes.
   async exportPage(after: string | undefined, limit: number) {
     const rows = await collections.products
       .aggregate<{

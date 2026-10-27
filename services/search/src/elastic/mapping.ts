@@ -1,6 +1,6 @@
 import type { estypes } from '@elastic/elasticsearch';
 
-/** Indonesian-language full text, with keyword sub-fields for exact filters. */
+// Indonesian-language full text, with keyword sub-fields for exact filters.
 export const productIndexSettings: estypes.IndicesIndexSettings = {
   number_of_shards: 1,
   // Single node: replicas could never be allocated and would keep the cluster yellow.
@@ -34,7 +34,7 @@ export const productMappings: estypes.MappingTypeMapping = {
   },
 };
 
-/** Store name and slug per store id, used to enrich product events (which carry only storeId). */
+// Store name and slug per store id, used to enrich product events (which carry only storeId).
 export const storeMappings: estypes.MappingTypeMapping = {
   dynamic: 'strict',
   properties: {

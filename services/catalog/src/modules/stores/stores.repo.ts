@@ -4,7 +4,7 @@ import { collections, type StoreDoc } from '@/db';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const caseInsensitive = { locale: 'en', strength: 2 } as const;
 
-/** API shape of a store (Mongo keeps the id in `_id`). */
+// API shape of a store (Mongo keeps the id in `_id`).
 export type Store = Omit<StoreDoc, '_id'> & { id: string };
 
 export const toStore = ({ _id, ...rest }: StoreDoc): Store => ({ id: _id, ...rest });
@@ -23,7 +23,7 @@ export const StoresRepo = {
       { collation: caseInsensitive },
     )) > 0,
 
-  /** By UUID, slug, or (case-insensitive) name, in that order. */
+  // By UUID, slug, or (case-insensitive) name, in that order.
   async findPublic(slugOrId: string) {
     if (UUID_RE.test(slugOrId)) {
       const byId = await collections.stores.findOne({ _id: slugOrId });

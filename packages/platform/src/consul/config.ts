@@ -27,14 +27,7 @@ async function readPrefix(consulUrl: string, prefix: string, index?: string) {
   return { values, index: nextIndex };
 }
 
-/**
- * Centralized, non-secret configuration from Consul KV: `config/shared/<key>` overridden by
- * `config/<service>/<key>`. Values are JSON. The result is validated by the service's schema;
- * an invalid change is rejected and the last good config stays active.
- *
- * Read values through `get()` at use time and they follow changes without a restart
- * (blocking-query watch). Secrets never live here: they come from the environment.
- */
+// An invalid KV change is rejected and the last valid config stays; read via get() to follow changes.
 export async function loadConfig<S extends z.ZodType>(options: {
   consulUrl: string;
   service: string;
@@ -109,7 +102,7 @@ export async function loadConfig<S extends z.ZodType>(options: {
   };
 }
 
-/** Config for unit tests and tools: schema defaults, no Consul. */
+// Config for unit tests and tools: schema defaults, no Consul.
 export function staticConfig<S extends z.ZodType>(schema: S, values: Record<string, unknown> = {}) {
   const value: z.infer<S> = schema.parse(values);
   return { get: () => value, stop: () => undefined };

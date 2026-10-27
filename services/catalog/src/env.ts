@@ -2,7 +2,7 @@ import { createEnv } from '@t3-oss/env-core';
 import { runtimeEnvSchema } from '@seapedia/platform/runtime';
 import { z } from 'zod';
 
-/** Secrets and bootstrap addresses only; tunables live in Consul (see config.ts). */
+// Secrets and bootstrap addresses only; tunables live in Consul (see config.ts).
 export const env = createEnv({
   server: {
     ...runtimeEnvSchema.shape,

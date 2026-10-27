@@ -1,12 +1,4 @@
-/**
- * Production-like stack: prints a fresh .env.prod.local (random passwords, per-service RabbitMQ
- * and client-credentials secrets, identity's RS256 key pair as PEM with \n escapes).
- *   bun scripts/generate-secrets.ts > .env.prod.local
- *
- * Development: writes services/<svc>/.env, infra/seed/.env and infra/kong/.env from their
- * .env.example files plus one shared key pair. Existing .env files are left untouched.
- *   bun scripts/generate-secrets.ts --dev
- */
+// Usage: `bun scripts/generate-secrets.ts > .env.prod.local`, or `--dev` to write the dev .env files.
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
 
 const secret = () => randomBytes(24).toString('hex');

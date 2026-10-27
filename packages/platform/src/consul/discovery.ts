@@ -12,15 +12,12 @@ function firstPrivateIPv4() {
   return '127.0.0.1';
 }
 
-/**
- * Registers this instance in Consul with an HTTP health check, and deregisters on shutdown.
- * Consul drops instances whose check stays critical for a minute (crashes, OOM kills).
- */
+// Consul drops an instance whose health check stays critical for a minute (crash, OOM kill).
 export async function registerService(options: {
   consulUrl: string;
   name: string;
   port: number;
-  /** Address other containers reach this instance on. Defaults to the container's IP. */
+  // Address other containers reach this instance on. Defaults to the container's IP.
   address?: string;
   healthPath?: string;
 }) {
@@ -66,10 +63,7 @@ export async function registerService(options: {
   return { id, address, deregister };
 }
 
-/**
- * Client-side discovery: healthy instances of a service from Consul, cached briefly, chosen
- * round-robin. `next()` skips to another instance after a connection failure.
- */
+// Client-side discovery: healthy instances from Consul, cached briefly, picked round-robin.
 export function createResolver(consulUrl: string, cacheMs = 10_000) {
   const cache = new Map<string, { urls: string[]; at: number; cursor: number }>();
 
@@ -89,7 +83,7 @@ export function createResolver(consulUrl: string, cacheMs = 10_000) {
   }
 
   return {
-    /** Base URL of the next healthy instance. */
+    // Base URL of the next healthy instance.
     async resolve(name: string): Promise<string> {
       const entry = await instances(name);
       if (entry.urls.length === 0) throw new Error(`no healthy instance of ${name}`);
@@ -97,7 +91,7 @@ export function createResolver(consulUrl: string, cacheMs = 10_000) {
       entry.cursor++;
       return url;
     },
-    /** How many healthy instances are known (for retrying each once). */
+    // How many healthy instances are known (for retrying each once).
     async count(name: string) {
       return (await instances(name)).urls.length;
     },

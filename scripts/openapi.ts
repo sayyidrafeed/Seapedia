@@ -1,11 +1,4 @@
-/**
- * Builds the public API contract: merges identity, catalog and commerce `/openapi.json` into
- * apps/web/public/openapi.json, which the web SDK is generated from and /docs renders. Kong does
- * not merge specs, so this runs whenever a service's public API changes (services must be up).
- *
- *   bun scripts/openapi.ts                       # finds services through Consul (localhost:8500)
- *   bun scripts/openapi.ts http://localhost:4001 http://localhost:4002 http://localhost:4003
- */
+// Kong does not merge specs: rerun when a public API changes (services must be running).
 const SERVICES = ['identity', 'catalog', 'commerce'] as const;
 const PUBLIC_URL = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
 const consul = process.env.CONSUL_HTTP_ADDR ?? 'http://localhost:8500';

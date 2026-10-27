@@ -27,10 +27,6 @@ async function upsertUser(event: EventEnvelope) {
     });
 }
 
-/**
- * Choreography: catalog reacts to identity (reviewer names) and commerce (stock for display,
- * purchases that unlock reviews, sold counts that rank search). It never calls them.
- */
 export const consumer = createEventConsumer({
   rabbit: runtime.rabbit,
   queue: 'catalog',

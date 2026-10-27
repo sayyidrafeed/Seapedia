@@ -18,9 +18,6 @@ const MIME_TO_EXT: Record<string, string> = {
   'image/webp': '.webp',
 };
 
-/**
- * Cloudflare R2 (S3-compatible) object storage, configured by the owning service's env.
- */
 export function createStorage(config: StorageConfig) {
   // Lazy initialize S3 Client to avoid parsing errors during testing if process envs aren't present
   let s3Client: S3Client | null = null;

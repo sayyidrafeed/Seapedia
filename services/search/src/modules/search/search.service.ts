@@ -7,7 +7,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 export type ProductQuery = { q: string; storeSlug?: string; page: number; limit: number };
 
-/** Builds the ranked product query. Exported for inspection; it has no side effects. */
+// Builds the ranked product query. Exported for inspection; it has no side effects.
 export function buildProductQuery({ q, storeSlug }: ProductQuery): estypes.QueryDslQueryContainer {
   const { fuzziness, soldCountBoost, ratingBoost } = config.get();
   // Deleted products stay as tombstones (see sync/apply.ts) and must never match.
@@ -72,7 +72,7 @@ export function buildProductQuery({ q, storeSlug }: ProductQuery): estypes.Query
 }
 
 export const SearchService = {
-  /** Ranked product ids for a page of results, plus the total hit count. */
+  // Ranked product ids for a page of results, plus the total hit count.
   async searchProducts(params: ProductQuery) {
     const result = await elastic.search({
       index: alias,

@@ -29,11 +29,7 @@ const catalog = createInternalClient({
   timeoutMs: 10_000,
 });
 
-/**
- * Builds a fresh index from catalog's full export (ops path, scope `catalog:export`) and swaps the
- * alias atomically. Runs under the writer lock, so events consumed meanwhile wait and then apply
- * to the new index; their version guard keeps whichever state is newer.
- */
+// Runs under the writer lock; events consumed meanwhile apply afterwards, guarded by version.
 export function reindex() {
   return exclusive(async () => {
     await ensureStoresIndex();
@@ -66,7 +62,7 @@ export function reindex() {
   });
 }
 
-/** First boot (or a wiped cluster): build the index before syncing. */
+// First boot (or a wiped cluster): build the index before syncing.
 export async function ensureIndex() {
   await ensureStoresIndex();
   if (!(await aliasExists())) await reindex();

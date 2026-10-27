@@ -1,13 +1,4 @@
-/**
- * Manual end-to-end check through Kong against the production-like stack with seed data:
- * edge and service auth, token rotation and revocation, choreography across services, scoped
- * service-to-service calls, broker permissions, Consul configuration and discovery.
- *
- *   bun scripts/smoke.ts                 # API_URL defaults to http://localhost:3001
- *   bun scripts/smoke.ts --resilience    # also stops RabbitMQ, Elasticsearch, catalog, a search replica
- *
- * Not part of CI: it mutates data and needs the whole stack (docker-compose.prod.yml).
- */
+// Manual E2E against docker-compose.prod.yml; mutates data, so not in CI. `--resilience` stops containers.
 const API = process.env.API_URL ?? 'http://localhost:3001';
 const CONSUL = process.env.CONSUL_HTTP_ADDR ?? 'http://localhost:8500';
 const COMPOSE = ['docker', 'compose', '-f', 'docker-compose.prod.yml', '--env-file', '.env.prod.local'];
@@ -65,7 +56,7 @@ class Session {
   }
 }
 
-/** Replication through events is eventually consistent: poll. */
+// Replication through events is eventually consistent: poll.
 async function eventually(probe: () => Promise<boolean>, timeoutMs = 20_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -82,7 +73,7 @@ async function compose(...args: string[]) {
   return out;
 }
 
-/** Runs a snippet with Bun inside a container on the private network. */
+// Runs a snippet with Bun inside a container on the private network.
 const inContainer = (service: string, workdir: string, code: string) =>
   compose('exec', '-T', '-w', workdir, service, 'bun', '-e', code).then((out) => out.trim());
 

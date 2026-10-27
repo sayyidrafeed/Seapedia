@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { ProductsRepo } from '@/modules/products/products.repo';
 import { runtime } from '@/runtime';
 
-/** Full export of the search projection, for the search service's reindex (scope `catalog:export`). */
+// Full export of the search projection, for the search service's reindex (scope `catalog:export`).
 export const searchExportRouter = factory.createApp();
 
 searchExportRouter.get(

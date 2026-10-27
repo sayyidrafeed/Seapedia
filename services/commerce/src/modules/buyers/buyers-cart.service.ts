@@ -7,7 +7,7 @@ import { ProductSyncingError } from '@/modules/inventory/inventory.index';
 
 type Executor = Pick<typeof db, 'select'>;
 
-/** Product as commerce sees it: catalog's replicated fields plus commerce-owned stock. */
+// Product as commerce sees it: catalog's replicated fields plus commerce-owned stock.
 function selectProductWithStock(executor: Executor, productId: string) {
   return executor
     .select({

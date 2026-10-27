@@ -12,10 +12,7 @@ const searchClient = createInternalClient({
   scope: 'search:query',
 });
 
-/**
- * Ranked product ids from the search service, or `null` when search is switched off in Consul or
- * does not answer in time; callers then query the database instead.
- */
+// Null when search is switched off or too slow; callers then query MongoDB instead.
 export async function searchProductIds(params: {
   q: string;
   storeSlug?: string;

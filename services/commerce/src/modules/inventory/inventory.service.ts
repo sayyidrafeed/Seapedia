@@ -5,7 +5,7 @@ import { inventory, productRefs, storeRefs } from '@/db/schema';
 import { ReplicaSync } from '@/modules/catalog-sync/catalog-sync.index';
 import { CommerceEvents, commerceOutbox } from '@/modules/events/events.index';
 
-/** A product created in catalog moments ago may not have replicated here yet. */
+// A product created in catalog moments ago may not have replicated here yet.
 export class ProductSyncingError extends ConflictError {
   constructor() {
     super('Product is still being synchronized, please retry in a moment', 'PRODUCT_SYNCING');
@@ -13,7 +13,7 @@ export class ProductSyncingError extends ConflictError {
 }
 
 export class InventoryService {
-  /** Sets a product's stock. Only the seller who owns the product's store may do this. */
+  // Sets a product's stock. Only the seller who owns the product's store may do this.
   static async setStock(sellerId: string, productId: string, stock: number) {
     if (!(await ReplicaSync.hasProduct(productId))) throw new ProductSyncingError();
 

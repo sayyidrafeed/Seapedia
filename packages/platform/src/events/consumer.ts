@@ -12,12 +12,12 @@ export type EventHandler = (event: EventEnvelope) => Promise<void>;
 
 export type ConsumerOptions = {
   rabbit: Rabbit;
-  /** Durable queue owned by this service, e.g. `commerce`. Omit for a per-instance queue. */
+  // Durable queue owned by this service, e.g. `commerce`. Omit for a per-instance queue.
   queue?: string;
-  /** Event types to receive; each is also a routing key binding. */
+  // Event types to receive; each is also a routing key binding.
   handlers: Record<string, EventHandler>;
   prefetch?: number;
-  /** Attempts before a message is parked in `<queue>.parked` for a human to look at. */
+  // Attempts before a message is parked in `<queue>.parked` for a human to look at.
   maxAttempts?: number;
   retryDelayMs?: number;
 };
@@ -29,16 +29,7 @@ function attempts(msg: ConsumeMessage): number {
   return 1 + (deaths?.reduce((sum, d) => sum + (d.count ?? 0), 0) ?? 0) / 2;
 }
 
-/**
- * Durable choreography consumer. Topology per queue Q:
- *   seapedia.events --(event types)--> Q --(nack)--> seapedia.retry --Q--> Q.retry (TTL)
- *   Q.retry --(expire)--> seapedia.redeliver --Q--> Q
- * A failed message therefore comes back only to Q, after `retryDelayMs`, and is parked in
- * `Q.parked` after `maxAttempts`. Handlers must be idempotent: delivery is at-least-once.
- *
- * Without `queue`, an exclusive auto-delete queue is used (every instance gets every event, no
- * retry), which suits per-process caches such as the session denylist.
- */
+// Failed messages retry via Q.retry (TTL) back to Q only, then park in Q.parked; handlers must be idempotent.
 export function createEventConsumer({
   rabbit,
   queue,

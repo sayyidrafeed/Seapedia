@@ -3,16 +3,13 @@ import { z } from 'zod';
 const tokenResponse = z.object({ access_token: z.string(), expires_in: z.number() });
 
 export type ServiceTokenOptions = {
-  /** Resolves identity's base URL (via discovery). */
+  // Resolves identity's base URL (via discovery).
   identityUrl: () => Promise<string>;
   clientId: string;
   clientSecret: string;
 };
 
-/**
- * OAuth2 client-credentials: this service's identity toward another service. Tokens are cached
- * per audience until shortly before they expire.
- */
+// Client-credentials tokens, cached per audience until shortly before they expire.
 export function createServiceTokenProvider({
   identityUrl,
   clientId,

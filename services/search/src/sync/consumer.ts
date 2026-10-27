@@ -3,7 +3,7 @@ import { runtime } from '@/runtime';
 import { deleteProduct, upsertProduct, upsertStore } from './apply';
 import { exclusive } from './lock';
 
-/** Choreography: the index follows catalog's events; it never asks catalog. */
+// Choreography: the index follows catalog's events; it never asks catalog.
 export const consumer = createEventConsumer({
   rabbit: runtime.rabbit,
   queue: 'search',

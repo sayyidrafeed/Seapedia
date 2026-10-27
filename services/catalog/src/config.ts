@@ -2,7 +2,7 @@ import { loadConfig, staticConfig } from '@seapedia/platform/consul';
 import { z } from 'zod';
 import { env } from './env';
 
-/** Non-secret tunables from Consul KV (`config/shared/*`, `config/catalog/*`). */
+// Non-secret tunables from Consul KV (`config/shared/*`, `config/catalog/*`).
 export const configSchema = z.object({
   searchEnabled: z.boolean().default(true),
   searchTimeoutMs: z.number().int().min(50).max(10_000).default(500),

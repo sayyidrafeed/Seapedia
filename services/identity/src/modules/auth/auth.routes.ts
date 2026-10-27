@@ -23,7 +23,7 @@ export const authRouter = factory.createApp();
 
 const secure = env.NODE_ENV === 'production';
 
-/** The access token goes everywhere; the refresh token only ever reaches /api/auth. */
+// The access token goes everywhere; the refresh token only ever reaches /api/auth.
 function setAuthCookies(c: Context, tokens: IssuedTokens) {
   setCookie(c, ACCESS_COOKIE, tokens.accessToken, {
     httpOnly: true,

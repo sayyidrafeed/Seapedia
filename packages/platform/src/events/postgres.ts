@@ -6,7 +6,7 @@ import type { OutboxStore } from './relay';
 
 type Executor = PgDatabase<PgQueryResultHKT, Record<string, unknown>>;
 
-/** Transactional outbox: events committed together with the state change they describe. */
+// Transactional outbox: events committed together with the state change they describe.
 export function outboxTable() {
   return pgTable('outbox', {
     id: uuid('id').primaryKey(),
@@ -17,7 +17,7 @@ export function outboxTable() {
   });
 }
 
-/** Consumer-side dedupe for events whose effect is not idempotent (e.g. increments). */
+// Consumer-side dedupe for events whose effect is not idempotent (e.g. increments).
 export function inboxTable() {
   return pgTable('inbox', {
     eventId: uuid('event_id').primaryKey(),
@@ -49,7 +49,7 @@ export function createPostgresOutbox(db: Executor, table: OutboxTable) {
 
   return {
     store,
-    /** Record events in the caller's transaction. */
+    // Record events in the caller's transaction.
     async enqueue(tx: Executor, ...events: EventEnvelope[]) {
       if (events.length === 0) return;
       await tx.insert(table).values(events.map((e) => ({ id: e.id, type: e.type, payload: e })));
@@ -57,10 +57,7 @@ export function createPostgresOutbox(db: Executor, table: OutboxTable) {
   };
 }
 
-/**
- * Returns true the first time an event id is seen in this transaction's database; false for a
- * redelivery, in which case the caller skips the side effect.
- */
+// False for a redelivery: the caller skips its non-idempotent side effect.
 export async function firstDelivery(tx: Executor, table: InboxTable, event: EventEnvelope) {
   const inserted = await tx
     .insert(table)

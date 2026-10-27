@@ -17,11 +17,7 @@ export type ServiceAppOptions = {
   denylist: SessionDenylist;
 };
 
-/**
- * Base Hono app for a service: request id, error mapping, and user authentication from the
- * access token. Authorization is per route: `requireSession` / `requireRole` for users,
- * `requireServiceScope` for `/internal/*` routes called by other services.
- */
+// Authentication here; authorization per route (requireSession/requireRole, requireServiceScope).
 export function createServiceApp({ name, verifier, denylist }: ServiceAppOptions) {
   const app = factory.createApp();
 
@@ -48,7 +44,7 @@ export function createServiceApp({ name, verifier, denylist }: ServiceAppOptions
   return app;
 }
 
-/** Serves this service's public OpenAPI document (merged into the public contract by scripts/openapi.ts). */
+// Serves this service's public OpenAPI document (merged into the public contract by scripts/openapi.ts).
 export function serviceSpec(app: Hono<ServiceEnv>, title: string) {
   return async () => {
     const spec = await generateSpecs(app, {

@@ -4,11 +4,7 @@ import { factory } from '../factory';
 import type { SessionDenylist } from './denylist';
 import { ACCESS_COOKIE, type TokenVerifier } from './tokens';
 
-/**
- * Resolves the caller's user identity from the access token (cookie, or bearer for API
- * clients). Invalid, expired, or revoked tokens leave the request anonymous; routes that need a
- * user then answer 401 through `requireSession`.
- */
+// Invalid, expired, or revoked tokens leave the request anonymous; requireSession then answers 401.
 export function authenticate(verifier: TokenVerifier, denylist: SessionDenylist) {
   return factory.createMiddleware(async (c, next) => {
     const header = c.req.header('authorization');
@@ -43,10 +39,7 @@ export function requireRole(allowedRole: string) {
   });
 }
 
-/**
- * Guards service-to-service routes: the caller must present a service token issued by identity
- * for this service (`audience`) carrying `scope`.
- */
+// Caller needs an identity-issued service token for this audience carrying `scope`.
 export function requireServiceScope(verifier: TokenVerifier, audience: string, scope: string) {
   return factory.createMiddleware(async (c, next) => {
     const header = c.req.header('authorization') ?? '';

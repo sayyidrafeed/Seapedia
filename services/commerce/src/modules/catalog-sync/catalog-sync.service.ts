@@ -21,11 +21,7 @@ const storeData = z.object({
 });
 const userData = z.object({ id: z.string(), roles: z.array(z.string()) });
 
-/**
- * Applies other services' events to commerce's replicas. Events carry full state and a version;
- * each write only wins over an older version, so redeliveries and reordering are harmless. A
- * product whose store has not replicated yet fails the foreign key and is retried later.
- */
+// Version-guarded writes make redeliveries and reordering harmless; a missing store ref fails and retries.
 export const ReplicaSync = {
   async productUpserted(event: EventEnvelope) {
     const p = productData.parse(event.data);

@@ -2,7 +2,7 @@ import { loadConfig, staticConfig } from '@seapedia/platform/consul';
 import { z } from 'zod';
 import { env } from './env';
 
-/** Non-secret tunables from Consul KV (`config/shared/*`, `config/commerce/*`). */
+// Non-secret tunables from Consul KV (`config/shared/*`, `config/commerce/*`).
 export const configSchema = z.object({
   outboxIntervalMs: z.number().int().min(100).default(500),
   deliveryFees: z

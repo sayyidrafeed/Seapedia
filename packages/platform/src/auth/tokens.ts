@@ -2,7 +2,7 @@ import { importSPKI, jwtVerify, type JWTPayload } from 'jose';
 import { z } from 'zod';
 
 export const ISSUER = 'seapedia-identity';
-/** Audience of user access tokens: every public API behind the gateway. */
+// Audience of user access tokens: every public API behind the gateway.
 export const API_AUDIENCE = 'seapedia-api';
 export const ACCESS_COOKIE = '__access';
 export const REFRESH_COOKIE = '__refresh';
@@ -32,10 +32,7 @@ export type UserIdentity = {
 
 export type ServiceIdentity = { client: string; scopes: string[] };
 
-/**
- * Verifies tokens issued by identity (RS256). Every service verifies on its own: the gateway's
- * check is the first line, not the only one.
- */
+// Every service verifies tokens itself: Kong's check is the first line, not the only one.
 export function createTokenVerifier(publicKeyPem: string) {
   const key = importSPKI(publicKeyPem.replace(/\\n/g, '\n'), 'RS256');
 
@@ -65,7 +62,7 @@ export function createTokenVerifier(publicKeyPem: string) {
         expiresAt: c.exp,
       };
     },
-    /** A service token addressed to `audience` (the calling service's name is `sub`). */
+    // A service token addressed to `audience` (the calling service's name is `sub`).
     async service(token: string, audience: string): Promise<ServiceIdentity | null> {
       const parsed = serviceClaims.safeParse(await verify(token, audience));
       if (!parsed.success) return null;

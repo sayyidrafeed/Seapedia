@@ -17,7 +17,7 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
 
-/** Tokens handed to the browser after login, register, refresh, or a role change. */
+// Tokens handed to the browser after login, register, refresh, or a role change.
 export type IssuedTokens = {
   accessToken: string;
   accessTtl: number;
@@ -49,7 +49,7 @@ async function accessFor(userId: string, sessionId: string, roles: string[], act
   return { accessToken: access.token, accessTtl: access.ttl };
 }
 
-/** The longest an access token issued now could still be accepted. */
+// The longest an access token issued now could still be accepted.
 const accessHorizon = () => Math.floor(Date.now() / 1000) + config.get().accessTokenTtlSeconds;
 
 export class AuthService {
@@ -100,7 +100,7 @@ export class AuthService {
     });
   }
 
-  /** Signs in on a new device: a separate session, so logging out elsewhere does not affect it. */
+  // Signs in on a new device: a separate session, so logging out elsewhere does not affect it.
   static async login(input: { username: string; password: string }) {
     const [user] = await db
       .select()
@@ -138,10 +138,6 @@ export class AuthService {
     });
   }
 
-  /**
-   * Rotates a refresh token. A token that was already used means someone replayed it: the whole
-   * session is revoked and every service is told to reject its access tokens.
-   */
   static async refresh(presented: string) {
     return await db.transaction(async (tx) => {
       const [row] = await tx
@@ -189,7 +185,7 @@ export class AuthService {
     });
   }
 
-  /** Ends a session, by its id (from the access token) or by its refresh token. */
+  // Ends a session, by its id (from the access token) or by its refresh token.
   static async logout(by: { sessionId?: string; refreshToken?: string }) {
     await db.transaction(async (tx) => {
       let sessionId = by.sessionId;
@@ -216,7 +212,7 @@ export class AuthService {
     }
   }
 
-  /** Switches the session's active role and re-issues the access token that carries it. */
+  // Switches the session's active role and re-issues the access token that carries it.
   static async selectRole(userId: string, sessionId: string, role: string) {
     const roles = await rolesOf(db, userId);
     if (!roles.includes(role)) {
@@ -258,7 +254,7 @@ export class AuthService {
     return { userId, activeRole: session.activeRole, roles: await rolesOf(db, userId) };
   }
 
-  /** Sets the user's roles; the caller's access token is re-issued with them. */
+  // Sets the user's roles; the caller's access token is re-issued with them.
   static async onboard(
     userId: string,
     sessionId: string,

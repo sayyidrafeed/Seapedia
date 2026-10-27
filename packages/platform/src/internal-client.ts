@@ -17,20 +17,16 @@ export class UpstreamError extends Error {
 type Query = Record<string, string | number | boolean | string[] | undefined>;
 
 export type InternalClientConfig = {
-  /** Callee service name, as registered in Consul and used as the token audience. */
+  // Callee service name, as registered in Consul and used as the token audience.
   service: string;
   resolver: Resolver;
-  /** Client-credentials token for this callee, carrying `scope`. */
+  // Client-credentials token for this callee, carrying `scope`.
   tokens: ServiceTokenProvider;
   scope: string;
   timeoutMs?: number;
 };
 
-/**
- * Typed service-to-service HTTP client: client-side discovery (healthy instances, round-robin,
- * next instance on connection failure), a scoped service token, timeout, request-id
- * propagation, and response validation at the boundary.
- */
+// On a connection failure the next healthy instance is tried before giving up.
 export function createInternalClient({
   service,
   resolver,

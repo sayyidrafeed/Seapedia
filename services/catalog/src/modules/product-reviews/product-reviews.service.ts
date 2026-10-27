@@ -3,7 +3,7 @@ import { inTransaction } from '@/db';
 import { CatalogEvents, enqueue } from '@/modules/events/events.index';
 import { ProductReviewsRepo, toReview } from './product-reviews.repo';
 
-/** Running average after adding one rating. */
+// Running average after adding one rating.
 export const addToAverage = (average: number, count: number, rating: number) =>
   Number(((average * count + rating) / (count + 1)).toFixed(2));
 

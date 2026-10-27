@@ -1,7 +1,4 @@
-/**
- * Sessions revoked before their access tokens expire (logout, refresh-token reuse). Fed by the
- * `identity.session.revoked` event; an entry is only needed until the token would expire anyway.
- */
+// Revoked sessions, kept only until their access tokens would have expired anyway.
 export function createSessionDenylist() {
   const revoked = new Map<string, number>();
 
