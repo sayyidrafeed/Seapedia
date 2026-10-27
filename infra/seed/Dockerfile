@@ -5,6 +5,7 @@ WORKDIR /repo
 COPY package.json bun.lock ./
 COPY apps/web/package.json apps/web/
 COPY packages/platform/package.json packages/platform/
+COPY packages/contracts/package.json packages/contracts/
 COPY infra/seed/package.json infra/seed/
 COPY services/identity/package.json services/identity/
 COPY services/catalog/package.json services/catalog/

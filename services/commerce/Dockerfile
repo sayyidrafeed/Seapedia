@@ -9,6 +9,7 @@ COPY package.json bun.lock ./
 # Every workspace manifest is needed for the frozen lockfile to resolve.
 COPY apps/web/package.json apps/web/
 COPY packages/platform/package.json packages/platform/
+COPY packages/contracts/package.json packages/contracts/
 COPY infra/seed/package.json infra/seed/
 COPY services/identity/package.json services/identity/
 COPY services/catalog/package.json services/catalog/
@@ -22,6 +23,7 @@ ENV NODE_ENV=production PORT=4003
 COPY --from=deps /repo /repo
 COPY tsconfig.base.json ./
 COPY packages/platform packages/platform
+COPY packages/contracts packages/contracts
 COPY services/commerce services/commerce
 WORKDIR /repo/services/commerce
 USER bun

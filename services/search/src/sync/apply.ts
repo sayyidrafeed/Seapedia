@@ -1,21 +1,8 @@
+import { dataOf } from '@seapedia/contracts/events';
 import type { EventEnvelope } from '@seapedia/platform/events';
-import { z } from 'zod';
 import { elastic } from '@/elastic/client';
 import type { IndexedProduct } from '@/elastic/documents';
 import { alias, storesIndex } from '@/elastic/indices';
-
-const productEvent = z.object({
-  id: z.string(),
-  storeId: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.string().nullable(),
-  rating: z.number(),
-  reviewCount: z.number().int(),
-  soldCount: z.number().int(),
-  createdAt: z.string(),
-});
-const storeEvent = z.object({ id: z.string(), name: z.string(), slug: z.string() });
 
 // Events may repeat or arrive out of order; tombstones stop a late upsert resurrecting a deletion.
 const VERSION_GUARD = `
@@ -26,7 +13,7 @@ const VERSION_GUARD = `
   }`;
 
 async function guardedUpsert(index: string, id: string, doc: Record<string, unknown>) {
-  await elastic.update({
+  const result = await elastic.update({
     index,
     id,
     scripted_upsert: true,
@@ -34,18 +21,28 @@ async function guardedUpsert(index: string, id: string, doc: Record<string, unkn
     upsert: {},
     retry_on_conflict: 3,
   });
+  return result.result !== 'noop';
 }
 
 export async function upsertProduct(event: EventEnvelope) {
-  const product = productEvent.parse(event.data);
+  const product = dataOf('catalog.product.upserted', event);
   const store = await elastic
     .get<{ name: string; slug: string }>({ index: storesIndex, id: product.storeId })
     .catch(() => null);
   // The store event has not been applied yet: fail, and the consumer retries after a delay.
   if (!store?._source) throw new Error(`store ${product.storeId} not indexed yet`);
 
+  // Price and stock stay out of the index: catalog loads them for every result.
   const doc: IndexedProduct = {
-    ...product,
+    id: product.id,
+    storeId: product.storeId,
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    rating: product.rating,
+    reviewCount: product.reviewCount,
+    soldCount: product.soldCount,
+    createdAt: product.createdAt,
     storeName: store._source.name,
     storeSlug: store._source.slug,
     version: event.version,
@@ -55,17 +52,19 @@ export async function upsertProduct(event: EventEnvelope) {
 }
 
 export async function deleteProduct(event: EventEnvelope) {
-  const { id } = z.object({ id: z.string() }).parse(event.data);
+  const { id } = dataOf('catalog.product.deleted', event);
   await guardedUpsert(alias, id, { id, version: event.version, deleted: true });
 }
 
 export async function upsertStore(event: EventEnvelope) {
-  const store = storeEvent.parse(event.data);
-  await guardedUpsert(storesIndex, store.id, {
+  const store = dataOf('catalog.store.upserted', event);
+  const applied = await guardedUpsert(storesIndex, store.id, {
     name: store.name,
     slug: store.slug,
     version: event.version,
   });
+  // A stale store event must not rename that store's products back.
+  if (!applied) return;
   await elastic.updateByQuery({
     index: alias,
     conflicts: 'proceed',

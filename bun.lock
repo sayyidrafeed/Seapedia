@@ -67,6 +67,20 @@
         "typescript": "^6.0.3",
       },
     },
+    "packages/contracts": {
+      "name": "@seapedia/contracts",
+      "dependencies": {
+        "@seapedia/platform": "workspace:*",
+        "zod": "^4.6.6",
+      },
+      "devDependencies": {
+        "@types/node": "^26.0.1",
+        "bun-types": "^1.3.14",
+        "oxfmt": "^0.55.0",
+        "oxlint": "^1.70.0",
+        "typescript": "^6.0.3",
+      },
+    },
     "packages/platform": {
       "name": "@seapedia/platform",
       "dependencies": {
@@ -92,6 +106,7 @@
       "name": "@seapedia/catalog",
       "dependencies": {
         "@hono/standard-validator": "^0.2.2",
+        "@seapedia/contracts": "workspace:*",
         "@seapedia/platform": "workspace:*",
         "@t3-oss/env-core": "^0.13.11",
         "hono": "^4.12.26",
@@ -112,6 +127,7 @@
       "name": "@seapedia/commerce",
       "dependencies": {
         "@hono/standard-validator": "^0.2.2",
+        "@seapedia/contracts": "workspace:*",
         "@seapedia/platform": "workspace:*",
         "@t3-oss/env-core": "^0.13.11",
         "drizzle-orm": "^0.45.2",
@@ -134,6 +150,7 @@
       "name": "@seapedia/identity",
       "dependencies": {
         "@hono/standard-validator": "^0.2.2",
+        "@seapedia/contracts": "workspace:*",
         "@seapedia/platform": "workspace:*",
         "@t3-oss/env-core": "^0.13.11",
         "drizzle-orm": "^0.45.2",
@@ -157,6 +174,7 @@
       "dependencies": {
         "@elastic/elasticsearch": "^9.5.1",
         "@hono/standard-validator": "^0.2.2",
+        "@seapedia/contracts": "workspace:*",
         "@seapedia/platform": "workspace:*",
         "@t3-oss/env-core": "^0.13.11",
         "hono": "^4.12.26",
@@ -541,6 +559,8 @@
     "@seapedia/catalog": ["@seapedia/catalog@workspace:services/catalog"],
 
     "@seapedia/commerce": ["@seapedia/commerce@workspace:services/commerce"],
+
+    "@seapedia/contracts": ["@seapedia/contracts@workspace:packages/contracts"],
 
     "@seapedia/identity": ["@seapedia/identity@workspace:services/identity"],
 

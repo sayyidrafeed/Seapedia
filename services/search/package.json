@@ -15,6 +15,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^9.5.1",
     "@hono/standard-validator": "^0.2.2",
+    "@seapedia/contracts": "workspace:*",
     "@seapedia/platform": "workspace:*",
     "@t3-oss/env-core": "^0.13.11",
     "hono": "^4.12.26",

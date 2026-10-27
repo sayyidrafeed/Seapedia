@@ -1,5 +1,6 @@
 import type { ClientSession } from 'mongodb';
-import { createEvent, type EventEnvelope, type OutboxStore } from '@seapedia/platform/events';
+import { event } from '@seapedia/contracts/events';
+import type { EventEnvelope, OutboxStore } from '@seapedia/platform/events';
 import { collections, type ProductDoc, type StoreDoc } from '@/db';
 
 // Written in the same transaction as the change; published by the relay.
@@ -34,35 +35,9 @@ export const outboxStore: OutboxStore = {
   },
 };
 
-export type StoreEventData = {
-  id: string;
-  sellerId: string;
-  name: string;
-  slug: string;
-  logoKey: string | null;
-  rating: number;
-  reviewCount: number;
-  totalProducts: number;
-};
-
-export type ProductEventData = {
-  id: string;
-  storeId: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  price: number;
-  imageKey: string | null;
-  rating: number;
-  reviewCount: number;
-  soldCount: number;
-  createdAt: string;
-};
-
 export const CatalogEvents = {
   storeUpserted(store: StoreDoc) {
-    return createEvent<StoreEventData>(
-      'catalog',
+    return event(
       'catalog.store.upserted',
       {
         id: store._id,
@@ -78,8 +53,7 @@ export const CatalogEvents = {
     );
   },
   productUpserted(product: ProductDoc) {
-    return createEvent<ProductEventData>(
-      'catalog',
+    return event(
       'catalog.product.upserted',
       {
         id: product._id,
@@ -98,11 +72,6 @@ export const CatalogEvents = {
     );
   },
   productDeleted(product: ProductDoc) {
-    return createEvent(
-      'catalog',
-      'catalog.product.deleted',
-      { id: product._id },
-      product.version + 1,
-    );
+    return event('catalog.product.deleted', { id: product._id }, product.version + 1);
   },
 };
