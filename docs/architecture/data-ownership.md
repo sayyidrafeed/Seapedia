@@ -36,20 +36,23 @@ consequences:
 - Checkout charges `product_refs.price`; a price change applies to checkouts once replicated.
 - Stock and sold counts shown by catalog can lag commerce briefly. Checkout always uses commerce's
   `inventory`, so the lag never oversells.
-- A product created a moment ago may not be in commerce yet: setting its stock or adding it to a
-  cart answers 409 `PRODUCT_SYNCING`, and the web app retries.
+- A product created a moment ago may not be in commerce yet. Setting its stock answers 202 and
+  keeps the value in `pending_stock`; it is applied when the product arrives, if its store belongs
+  to that seller. Adding such a product to a cart answers 409 `PRODUCT_SYNCING`.
 - Search results are ids only; catalog loads price and stock from its own data for each page.
 
 ## Ordering and duplicates
 
 Events carry the producer's entity `version`. Every replica write applies only if the incoming
 version is newer (`setWhere version < incoming` in Postgres, a version-guarded scripted upsert in
-Elasticsearch). Counter-style effects (`order.completed` increments sold counts) record the event
+Elasticsearch). Payloads are validated against the shared schemas in `packages/contracts` on both
+the producing and the consuming side. Counter-style effects (`order.completed` increments sold counts) record the event
 id in an `inbox` in the same transaction and skip redeliveries. Product deletions are kept as
 tombstones in search so a late, older upsert cannot resurrect them.
 
 ## Deleting data
 
-Catalog deletes a product and publishes `catalog.product.deleted`. Commerce deletes its
-`product_refs` row, cascading to `inventory` and `cart_items`; `order_items.product_id` becomes
-null and the order keeps its name and price snapshot. Search marks the document deleted.
+Catalog deletes a product and publishes `catalog.product.deleted`. Commerce keeps its
+`product_refs` row as a tombstone (`deleted`, with the delete's version, so a late older upsert
+cannot revive it) and removes the product's `inventory`, `cart_items` and pending stock; orders
+keep their name and price snapshot. Search marks the document deleted.

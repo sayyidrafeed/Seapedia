@@ -19,7 +19,7 @@ call the producer back.
 | `identity.session.revoked` | identity | every service instance: deny that session's access tokens |
 | `catalog.store.upserted` | catalog | commerce: `store_refs` · search: store lookup + rename in documents |
 | `catalog.product.upserted` | catalog | commerce: `product_refs` + `inventory` row · search: index document |
-| `catalog.product.deleted` | catalog | commerce: drop ref (cascades cart items) · search: tombstone |
+| `catalog.product.deleted` | catalog | commerce: tombstone ref, drop stock and cart items · search: tombstone |
 | `commerce.inventory.changed` | commerce | catalog: stock read model |
 | `commerce.order.completed` | commerce | catalog: purchases (review gate) + sold counts → `catalog.product.upserted` |
 
@@ -33,7 +33,11 @@ call the producer back.
   nothing). Messages are acked after the handler commits.
 - **Retries without fan-out.** A failed message is dead-lettered to `seapedia.retry` →
   `<queue>.retry` (TTL 5 s) → `seapedia.redeliver` → back to the same queue only. After 5 attempts
-  it is moved to `<queue>.parked` for inspection.
+  it is published to `seapedia.parking` and lands in `<queue>.parked` for inspection. Each consumer
+  takes `consumerPrefetch` unacknowledged messages at a time (Consul, default 20).
+- **Topology.** `infra/rabbitmq/init.ts` declares the four exchanges; services only check that they
+  exist and declare their own queues. Search declares its queue before building its index, so no
+  event published during its first boot is lost; handlers wait until the index exists.
 - **Idempotent consumers.** Version guards and the inbox (see
   [data ownership](./data-ownership.md#ordering-and-duplicates)) make redeliveries and reordering
   harmless.

@@ -13,6 +13,7 @@ Seapedia is a set of microservices in one repository (bun workspace). Read
 | `services/commerce` | Cart, wallet, orders, discounts, delivery, admin, stock. Postgres `commerce-db`. |
 | `services/search` | Elasticsearch read model of the catalog. |
 | `packages/platform` | Technical code shared by services (auth, events, Consul, errors). No business rules. |
+| `packages/contracts` | Event payload schemas (`event()` for producers, `dataOf()` for consumers). Integration shapes only. |
 | `infra/kong` | API gateway (Kong DB-less config + image). |
 | `infra/consul`, `infra/rabbitmq`, `infra/mongo` | Platform bootstrap (KV defaults, broker users, replica set). |
 | `infra/seed` | Ops tool that seeds the three databases. |
@@ -22,6 +23,9 @@ Seapedia is a set of microservices in one repository (bun workspace). Read
 - A service never imports another service's code. The only exception is `infra/seed`, an ops tool.
 - A service reads and writes only its own data store. Data owned elsewhere comes from a local
   replica fed by the owner's events, never from a call to the owner.
+- Event payloads are defined once in `packages/contracts/src/events.ts`; producers build events with
+  `event(type, data, version)` and consumers read them with `dataOf(type, envelope)`. Changing a
+  payload is a contract change: keep it backward compatible or update every consumer in one change.
 - A write that other services depend on enqueues an event in the same transaction
   (`identityOutbox.enqueue`, catalog `enqueue(session, ...)`, `commerceOutbox.enqueue`). Events
   carry full state and the entity `version`; consumers apply only newer versions.

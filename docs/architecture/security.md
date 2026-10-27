@@ -9,7 +9,8 @@
 
 - **Sessions are per device** (`sessions`). Login opens a new one; logout revokes only that one.
 - **Refresh rotates.** `POST /api/auth/refresh` marks the presented refresh token used and issues a
-  new pair. Presenting a used token again means it leaked: the whole session is revoked.
+  new pair, recording the successor in `replaced_by` (a session is one token family). Presenting a
+  used token again means it leaked: the whole session is revoked.
 - **Immediate revocation.** Logging out or a detected reuse publishes `identity.session.revoked`;
   every service instance denies that session's access tokens until they would have expired.
 - **Role switch** (`POST /api/auth/select-role`) and onboarding re-issue the access token with the
@@ -36,7 +37,9 @@
 
 ## Service to service
 
-- **Client credentials.** Each calling service has a secret; identity (`POST /oauth/token`) issues
+- **Client credentials.** Each calling service has a secret. Identity keeps only their SHA-256
+  hashes in `service_clients`, synced from `SERVICE_CLIENT_SECRETS` at startup (a client removed
+  from the environment loses access). `POST /oauth/token` issues
   a 5-minute RS256 token with `sub=<caller>`, `aud=<callee>`, and the granted `scope`. The policy
   of who may call whom lives in identity (`modules/oauth/oauth.policy.ts`):
 
@@ -53,9 +56,16 @@
 
 Each service has its own RabbitMQ user in vhost `seapedia` (`infra/rabbitmq/init.ts`):
 
-- configure/read/write only on the shared exchanges, its own queues, and server-named queues;
-- **topic permission** on `seapedia.events`: it may publish only routing keys starting with its own
-  name, so no service can forge another's events.
+- configure only its own queues (`<service>`, `<service>.retry`, `<service>.parked`) and
+  server-named ones; exchanges are declared by the init job, not by services;
+- write only `seapedia.events`, `seapedia.parking` and its own queues. Not the default exchange and
+  not `seapedia.retry`/`seapedia.redeliver` (the broker dead-letters into those itself), so a service
+  cannot push a message straight into another service's queue;
+- **topic permissions**: on `seapedia.events` it may publish only routing keys starting with its own
+  name, so no service can forge another's events; on `seapedia.parking` only its own queue name.
+
+`scripts/smoke.ts` checks that a forged routing key and an injection into another service's queue
+are both refused.
 
 ## Secrets
 

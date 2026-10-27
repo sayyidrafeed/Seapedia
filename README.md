@@ -123,6 +123,7 @@ seapedia/
 │   ├── commerce/          # cart, wallet, orders, stock      → Postgres
 │   └── search/            # read model                       → Elasticsearch
 ├── packages/platform/     # technical code shared by services (auth, events, Consul)
+├── packages/contracts/    # event payload schemas shared by producers and consumers
 ├── infra/
 │   ├── kong/              # API gateway image and declarative config
 │   ├── consul/            # configuration defaults
@@ -213,9 +214,9 @@ seeded account uses the password `password123`. A few to start with:
 
 Interactive API documentation (Scalar) is served by the web app at `/docs`, from
 `apps/web/public/openapi.json`: the merged contract of identity, catalog and commerce, built by
-`bun scripts/openapi.ts`. The file is generated, not committed: run that script with the services
-up whenever a public API changes. The web SDK is generated from the same file
-(`cd apps/web && bun run openapi:generate`).
+`bun scripts/openapi.ts`, which loads each service offline (no databases or broker needed). The
+file and the web SDK generated from it (`cd apps/web && bun run openapi:generate`) are committed;
+CI regenerates both and fails if they are stale.
 
 ## Security Measures
 

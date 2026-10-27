@@ -54,7 +54,8 @@ Demo accounts are in [SEED-DATA.md](./SEED-DATA.md); every password is `password
 ## Configuration
 
 Secrets and bootstrap addresses come from each service's environment (`src/env.ts`,
-`.env.example`). Tunables come from Consul KV and apply without a restart:
+`.env.example`). Tunables come from Consul KV; service keys apply without a restart, shared keys
+(`config/shared/*`) at the next restart:
 
 ```bash
 docker compose exec consul consul kv get -recurse config/
@@ -66,10 +67,12 @@ See [architecture/platform.md](./architecture/platform.md).
 
 ## Public API contract
 
-The web SDK and `/docs` read `apps/web/public/openapi.json`, merged from the running services:
+The web SDK and `/docs` read `apps/web/public/openapi.json`, merged from the services' OpenAPI
+documents. Both files are committed and CI fails when they are stale, so regenerate them after
+changing a public route or schema (no running stack needed):
 
 ```bash
-bun scripts/openapi.ts                      # finds the services through Consul
+bun scripts/openapi.ts                      # loads each service offline with its test environment
 cd apps/web && bun run openapi:generate
 ```
 
@@ -79,7 +82,7 @@ cd apps/web && bun run openapi:generate
 | --- | --- |
 | `bun run check` | type-check every workspace |
 | `bun run fl` | format and lint every workspace |
-| `bun run test` | unit tests of the services and `packages/platform` |
+| `bun run test` | unit tests of the services and `packages/*` |
 | `bun run seed` | wipe and seed the three databases, rebuild search |
 | `bun run smoke` | end-to-end checks against a running stack |
 | `cd services/<identity or commerce> && bun run db:generate` | create a Postgres migration |
