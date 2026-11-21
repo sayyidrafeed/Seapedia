@@ -30,7 +30,7 @@ WORKDIR /repo/apps/web
 RUN bun run build
 
 # ── Release: static files behind nginx ───────────────────────────────────────
-FROM nginx:1.30.6-alpine AS release
+FROM nginx:1.30.7-alpine AS release
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /repo/apps/web/dist /usr/share/nginx/html
 EXPOSE 8080
